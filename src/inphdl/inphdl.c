@@ -8,6 +8,8 @@
 #include "base/base.h"
 
 #include "SDL.h"
+#include <string.h>
+#include <stdlib.h>
 #include "inphdl/arrow1x_xpm.c"
 #include "inphdl/arrow2x_xpm.c"
 #include "sound/fx.h"
@@ -227,6 +229,171 @@ static void inpQuitJoystick(void)
     }
 }
 
+/* ------------------------------------------------------------------------
+ * Script mode (2026-11-21): plays input from a text file, for automated
+ * tests and for playing without a screen. Enabled with DERCLOU_SCRIPT=file.
+ *
+ *   wait <ms>          pause before the next command
+ *   key <name>         press and release a key (SDL key name: Return, Escape,
+ *                      Up, Down, Left, Right, Space, F1 ... or a letter)
+ *   click <x> <y>      left click at game coordinates (320 x 200)
+ *   rclick <x> <y>     right click
+ *   move <x> <y>       move the mouse
+ *   shot <name>        save a screenshot as <name>.png in DERCLOU_SHOTDIR
+ *   log <text>         write a line to the log
+ *   quit               close the game
+ *   # ...              comment
+ * ------------------------------------------------------------------------ */
+static FILE *inpScriptFile = NULL;
+static uint32_t inpScriptNext = 0;
+static uint32_t inpScriptUpAt = 0;
+static Uint8 inpScriptUpButton = 0;
+static int inpScriptUpX = 0;
+static int inpScriptUpY = 0;
+static char inpScriptShotDir[FILENAME_MAX] = ".";
+
+static void inpScriptInit(void)
+{
+    const char *path = getenv("DERCLOU_SCRIPT");
+    const char *dir = getenv("DERCLOU_SHOTDIR");
+
+    if (dir) snprintf(inpScriptShotDir, sizeof(inpScriptShotDir), "%s", dir);
+    if (!path) return;
+
+    inpScriptFile = fopen(path, "r");
+    if (inpScriptFile)
+    {
+        Log("Script mode: playing %s", path);
+        inpScriptNext = SDL_GetTicks();
+    }
+    else
+    {
+        Log("Script mode: cannot open %s", path);
+    }
+}
+
+static void inpScriptToWindow(int x, int y, int *wx, int *wy)
+{
+    *wx = gfxScalingOffsetX + x * gfxScalingFactor + gfxScalingFactor / 2;
+    *wy = gfxScalingOffsetY + y * gfxScalingFactor + gfxScalingFactor / 2;
+}
+
+static void inpScriptPushMouse(Uint32 type, Uint8 button, int wx, int wy)
+{
+    SDL_Event ev;
+    memset(&ev, 0, sizeof(ev));
+    ev.type = type;
+    if (type == SDL_MOUSEMOTION)
+    {
+        ev.motion.x = wx;
+        ev.motion.y = wy;
+    }
+    else
+    {
+        ev.button.button = button;
+        ev.button.state = (type == SDL_MOUSEBUTTONDOWN) ? SDL_PRESSED : SDL_RELEASED;
+        ev.button.clicks = 1;
+        ev.button.x = wx;
+        ev.button.y = wy;
+    }
+    SDL_PushEvent(&ev);
+}
+
+static void inpScriptPushKey(SDL_Keycode sym)
+{
+    SDL_Event ev;
+    memset(&ev, 0, sizeof(ev));
+    ev.type = SDL_KEYDOWN;
+    ev.key.state = SDL_PRESSED;
+    ev.key.keysym.sym = sym;
+    ev.key.keysym.scancode = SDL_GetScancodeFromKey(sym);
+    SDL_PushEvent(&ev);
+    ev.type = SDL_KEYUP;
+    ev.key.state = SDL_RELEASED;
+    SDL_PushEvent(&ev);
+}
+
+static void inpScriptPump(void)
+{
+    char line[512];
+    uint32_t now = SDL_GetTicks();
+
+    if (inpScriptUpButton && now >= inpScriptUpAt)
+    {
+        inpScriptPushMouse(SDL_MOUSEBUTTONUP, inpScriptUpButton, inpScriptUpX, inpScriptUpY);
+        inpScriptUpButton = 0;
+    }
+
+    while (inpScriptFile && !inpScriptUpButton && now >= inpScriptNext)
+    {
+        char cmd[32] = {0};
+        char arg[480] = {0};
+        int x = 0, y = 0, wx = 0, wy = 0;
+
+        if (!fgets(line, sizeof(line), inpScriptFile))
+        {
+            Log("Script mode: end of script");
+            fclose(inpScriptFile);
+            inpScriptFile = NULL;
+            return;
+        }
+        line[strcspn(line, "\r\n")] = '\0';
+        if (sscanf(line, "%31s %479[^\n]", cmd, arg) < 1 || cmd[0] == '#') continue;
+
+        if (!strcmp(cmd, "wait"))
+        {
+            inpScriptNext = now + (uint32_t)atoi(arg);
+        }
+        else if (!strcmp(cmd, "key"))
+        {
+            SDL_Keycode sym = SDL_GetKeyFromName(arg);
+            if (sym == SDLK_UNKNOWN)
+                Log("Script mode: unknown key '%s'", arg);
+            else
+                inpScriptPushKey(sym);
+        }
+        else if ((!strcmp(cmd, "click") || !strcmp(cmd, "rclick")) && sscanf(arg, "%d %d", &x, &y) == 2)
+        {
+            Uint8 button = (cmd[0] == 'r') ? SDL_BUTTON_RIGHT : SDL_BUTTON_LEFT;
+            inpScriptToWindow(x, y, &wx, &wy);
+            inpScriptPushMouse(SDL_MOUSEMOTION, 0, wx, wy);
+            inpScriptPushMouse(SDL_MOUSEBUTTONDOWN, button, wx, wy);
+            /* release a little later, like a real click */
+            inpScriptUpButton = button;
+            inpScriptUpX = wx;
+            inpScriptUpY = wy;
+            inpScriptUpAt = now + 80;
+        }
+        else if (!strcmp(cmd, "move") && sscanf(arg, "%d %d", &x, &y) == 2)
+        {
+            inpScriptToWindow(x, y, &wx, &wy);
+            inpScriptPushMouse(SDL_MOUSEMOTION, 0, wx, wy);
+        }
+        else if (!strcmp(cmd, "shot"))
+        {
+            char fileName[FILENAME_MAX + 512];
+            snprintf(fileName, sizeof(fileName), "%s" DIR_SEPARATOR "%s.png", inpScriptShotDir, arg);
+            gfxSaveScreenshotTo(fileName);
+            Log("Script mode: screenshot %s", fileName);
+        }
+        else if (!strcmp(cmd, "log"))
+        {
+            Log("Script: %s", arg);
+        }
+        else if (!strcmp(cmd, "quit"))
+        {
+            SDL_Event ev;
+            memset(&ev, 0, sizeof(ev));
+            ev.type = SDL_QUIT;
+            SDL_PushEvent(&ev);
+        }
+        else
+        {
+            Log("Script mode: cannot parse '%s'", line);
+        }
+    }
+}
+
 void inpOpenAllInputDevs(void)
 {
     IHandler.uch_EscStatus = 1;
@@ -241,6 +408,8 @@ void inpOpenAllInputDevs(void)
     {
         inpInitJoystick();
     }
+
+    inpScriptInit();
 }
 
 static void inpDoPseudoMultiTasking(void)
@@ -328,6 +497,8 @@ int32_t inpWaitFor(int32_t l_Mask)
 
     while (!action)
     {
+        inpScriptPump();
+
         while (SDL_PollEvent(&event))
         {
             switch (event.type)
