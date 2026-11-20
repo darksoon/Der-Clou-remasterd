@@ -1,0 +1,121 @@
+name: Build
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sudo apt-get -qq update && sudo apt-get install -y cmake libsdl2-dev libsdl2-image-dev
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+      - name: Build
+        run: cmake --build build -j
+      - name: Package
+        run: |
+          mkdir -p dist/DerClou
+          cp -r gamedata/. dist/DerClou/
+          cp build/build/x64/DerClou dist/DerClou/
+          cp README.md PublicLicenceContract.txt mame.txt dist/DerClou/
+          tar -C dist -czf DerClou-linux-x64.tar.gz DerClou
+      - name: Smoke test
+        run: scripts/smoke-test.sh dist/DerClou/DerClou 10
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DerClou-linux-x64
+          path: DerClou-linux-x64.tar.gz
+
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            zip
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-SDL2
+            mingw-w64-ucrt-x86_64-SDL2_image
+      - name: Configure
+        run: cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+      - name: Build
+        run: cmake --build build
+      - name: Package
+        run: |
+          mkdir -p dist/DerClou
+          cp -r gamedata/. dist/DerClou/
+          cp build/build/x64/DerClou.exe dist/DerClou/
+          # bundle every DLL from the MSYS2 environment the exe depends on
+          ldd dist/DerClou/DerClou.exe | grep -i '/ucrt64/' | awk '{print $3}' | xargs -r -I{} cp {} dist/DerClou/
+          cp README.md PublicLicenceContract.txt mame.txt dist/DerClou/
+          cd dist && zip -qr ../DerClou-windows-x64.zip DerClou
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DerClou-windows-x64
+          path: DerClou-windows-x64.zip
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: brew install sdl2 sdl2_image
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+      - name: Build
+        run: cmake --build build -j
+
+  web:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mymindstorm/setup-emsdk@v14
+      - name: Configure
+        run: emcmake cmake -B build-web -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+      - name: Build
+        run: cmake --build build-web -j
+      - name: Package
+        run: |
+          mkdir -p dist/web
+          cp build-web/build/web/DerClou.* dist/web/
+          cp dist/web/DerClou.html dist/web/index.html
+          cd dist && zip -qr ../DerClou-web.zip web
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DerClou-web
+          path: DerClou-web.zip
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [ linux, windows, macos, web ]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true
