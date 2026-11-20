@@ -22,7 +22,7 @@ Dieses Projekt führt die besten Teile der bisherigen Community-Ports zusammen:
 - Browser-Version: gespeicherte Einbruchspläne bleiben nach einem Neuladen erhalten
 - Linux-Build repariert
 
-Alle Optionen stehen kommentiert in `gamedata/cosp.cfg`.
+Alle Optionen stehen kommentiert in `gamedata/cosp.cfg`. Was noch zu tun ist, steht in [AUDIT.md](AUDIT.md).
 
 ## Bauen unter Linux (Debian/Ubuntu)
 
