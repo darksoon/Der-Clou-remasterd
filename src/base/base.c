@@ -88,6 +88,14 @@ static ubyte detectLanguage(void)
     return 0;
 }
 
+/* 2026-11-20 quit when the window is closed (idea from vrza/derclou tcQuit) */
+void tcQuitGame(void)
+{
+    Log("Window closed, quitting.");
+    tcDone();
+    exit(EXIT_SUCCESS); /* SDL_Quit() runs via atexit() */
+}
+
 /* 2026-11-20 detect game version from text keys (ported from vrza/derclou) */
 static void detectVersion(void)
 {
@@ -367,6 +375,9 @@ static void loadConfig(const char *rootPath)
     Config.SfxVolume = SND_MAX_VOLUME;
     Config.VoiceVolume = SND_MAX_VOLUME;
     Config.UseJoystick = 0;
+    Config.gfxResizable = 1;
+    Config.gfxLinearFilter = 0;
+    Config.gfxIntegerScale = 0;
 
     sprintf(config_file, "%s" DIR_SEPARATOR "%s", rootPath, "cosp.cfg");
     file = dskOpen(config_file, "rb", 0);
@@ -435,9 +446,21 @@ static void loadConfig(const char *rootPath)
             {
                 Config.NoIntro = atoi(pValue) ? 1 : 0;
             }
+            else if (!strcasecmp(pParam, "resizable"))
+            {
+                Config.gfxResizable = atoi(pValue) ? 1 : 0;
+            }
+            else if (!strcasecmp(pParam, "scalequality"))
+            {
+                Config.gfxLinearFilter = (!strcasecmp(pValue, "linear") || !strcmp(pValue, "1")) ? 1 : 0;
+            }
+            else if (!strcasecmp(pParam, "integerscale"))
+            {
+                Config.gfxIntegerScale = atoi(pValue) ? 1 : 0;
+            }
             else if (!strcasecmp(pParam, "usejoystick"))
             {
-                Config.UseJoystick = atoi(pValue);
+                Config.UseJoystick = (!strcasecmp(pValue, "auto")) ? CFG_JOYSTICK_AUTO : atoi(pValue);
             }
             else if (!strcasecmp(pParam, "demo") && (atoi(pValue) == 42))
             {

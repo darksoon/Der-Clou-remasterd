@@ -27,8 +27,13 @@ typedef struct
     int VoiceVolume;
 
     unsigned char UseJoystick;
+
+    char gfxResizable;     /* window can be resized freely (aspect ratio is kept) */
+    char gfxLinearFilter;  /* scale with bilinear filtering instead of nearest neighbour */
+    char gfxIntegerScale;  /* only scale the window content by whole numbers */
 } Configuration_t;
 extern Configuration_t Config; /* base.c */
+#define CFG_JOYSTICK_AUTO 255 /* usejoystick = auto: first joystick found, follows hotplug */
 
 /*
  * MemAlloc/MemFree logging to

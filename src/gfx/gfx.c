@@ -164,6 +164,7 @@ static void SetWindowIcon(char *icon)
         SDL_SetColorKey(image, SDL_TRUE, colorkey);
 
         SDL_SetWindowIcon(Window, image);
+        SDL_FreeSurface(image);
     }
 }
 
@@ -251,6 +252,13 @@ int gfxInitSDL(void)
         {
             flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
         }
+        if (Config.gfxResizable)
+        {
+            flags |= SDL_WINDOW_RESIZABLE;
+        }
+
+        /* must be set before the screen texture is created */
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, Config.gfxLinearFilter ? "linear" : "nearest");
 
         gfxScalingFactor = min((Config.gfxScreenWidth / 320), (Config.gfxScreenHeight / 200));
         if (gfxScalingFactor > 4)
@@ -314,6 +322,16 @@ int gfxInitSDL(void)
         SDL_CreateWindowAndRenderer(Config.gfxScreenWidth, Config.gfxScreenHeight, flags, &Window, &Renderer);
         SetWindowIcon(iconPath);
         SDL_SetWindowTitle(Window, TitleStr);
+
+        /* Let SDL scale the fixed-size game screen to whatever size the window has.
+           Keeps the aspect ratio (letterboxing) and translates mouse coordinates
+           back to the logical screen size, so the input code needs no changes. */
+        SDL_RenderSetLogicalSize(Renderer, Config.gfxScreenWidth, Config.gfxScreenHeight);
+        SDL_RenderSetIntegerScale(Renderer, Config.gfxIntegerScale ? SDL_TRUE : SDL_FALSE);
+        if (Config.gfxResizable)
+        {
+            SDL_SetWindowMinimumSize(Window, 320, 200);
+        }
         SurfaceScreen =
             SDL_CreateRGBSurface(SDL_SWSURFACE, Config.gfxScreenWidth, Config.gfxScreenHeight, 8, 0, 0, 0, 0);
         ScreenTexture = SDL_CreateTextureFromSurface(Renderer, SurfaceScreen);
@@ -332,6 +350,26 @@ int gfxInitSDL(void)
         }
     }
     return 0;
+}
+
+/* redraw the last frame, e.g. after the window was resized or uncovered */
+void gfxRepresentSDL(void)
+{
+    if (Renderer && ScreenTexture)
+    {
+        SDL_RenderClear(Renderer);
+        SDL_RenderCopy(Renderer, ScreenTexture, NULL, NULL);
+        SDL_RenderPresent(Renderer);
+    }
+}
+
+void gfxToggleFullscreen(void)
+{
+    if (!Window) return;
+
+    Config.gfxFullScreen = !Config.gfxFullScreen;
+    SDL_SetWindowFullscreen(Window, Config.gfxFullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    gfxRepresentSDL();
 }
 
 void gfxDoneSDL(void)

@@ -90,4 +90,6 @@ extern int tcStartGame(int argc, char **argv);
 extern void tcClearStdBuffer(void *p_Buffer);
 extern void tcSetPermanentColors(void);
 
+extern void tcQuitGame(void);
+
 #endif

@@ -5,6 +5,7 @@
    Based on the original by neo Software GmbH
 */
 #include "inphdl/inphdl.h"
+#include "base/base.h"
 
 #include "SDL.h"
 #include "inphdl/arrow1x_xpm.c"
@@ -130,15 +131,71 @@ void removeMouseCursor(void)
     }
 }
 
-/* 2014-01-10 LucyG: Joystick */
-static SDL_Joystick *inpJoystick = NULL;
+/* 2014-01-10 LucyG: Joystick
+   2026-11-20: hotplug support and "auto" mode (idea from vrza/derclou) */
+#define INP_JOY_DEAD_ZONE 10000
 
-static void inpInitJoystick(void)
+static SDL_Joystick *inpJoystick = NULL;
+static SDL_JoystickID inpJoystickId = -1;
+static ubyte inpJoySubsystem = 0;
+
+static void inpOpenJoystickIfNeeded(void)
 {
     int numJoys = 0;
     int i = 0;
+    int first = 0;
+    int last = 0;
 
+    if (!inpJoySubsystem || inpJoystick) return;
+
+    numJoys = SDL_NumJoysticks();
+
+    if (Config.UseJoystick == CFG_JOYSTICK_AUTO)
+    {
+        first = 0;
+        last = numJoys - 1;
+    }
+    else
+    {
+        first = last = Config.UseJoystick - 1;
+    }
+
+    for (i = first; (i <= last) && (i < numJoys); i++)
+    {
+        inpJoystick = SDL_JoystickOpen(i);
+        if (inpJoystick)
+        {
+            inpJoystickId = SDL_JoystickInstanceID(inpJoystick);
+            Log("Using joystick #%d = \"%s\"", i + 1, SDL_JoystickName(inpJoystick));
+            return;
+        }
+    }
+
+    if ((Config.UseJoystick != CFG_JOYSTICK_AUTO) && (numJoys > 0))
+    {
+        Log("Joystick #%d not available. Connected joysticks:", Config.UseJoystick);
+        for (i = 0; i < numJoys; i++)
+        {
+            Log("#%d = \"%s\"", i + 1, SDL_JoystickNameForIndex(i));
+        }
+    }
+}
+
+static void inpCloseJoystick(void)
+{
+    if (inpJoystick)
+    {
+        SDL_JoystickClose(inpJoystick);
+        inpJoystick = NULL;
+        inpJoystickId = -1;
+    }
+}
+
+static void inpInitJoystick(void)
+{
     inpJoystick = NULL;
+    inpJoystickId = -1;
+
     if (!Config.UseJoystick)
     {
         return;
@@ -151,39 +208,22 @@ static void inpInitJoystick(void)
         return;
     }
 
-    numJoys = SDL_NumJoysticks();
-    if (numJoys <= 0)
-    {
-        Log("No joystick detected.");
-        Config.UseJoystick = 0;
-        return;
-    }
+    inpJoySubsystem = 1;
+    SDL_JoystickEventState(SDL_ENABLE);
 
-    if (Config.UseJoystick <= numJoys)
-    {
-        inpJoystick = SDL_JoystickOpen(Config.UseJoystick - 1);
-        if (inpJoystick)
-        {
-            SDL_JoystickEventState(SDL_ENABLE);
-            return;
-        }
-    }
-
-    Log("Failed to open joystick #%d. Please try a different one.", Config.UseJoystick);
-    for (i = 0; i < numJoys; i++)
-    {
-        Log("#%d = \"%s\"", i + 1, SDL_JoystickNameForIndex(i));
-    }
-    Config.UseJoystick = 0;
+    /* a missing joystick is fine: it is opened as soon as it gets plugged in */
+    inpOpenJoystickIfNeeded();
+    if (!inpJoystick) Log("No joystick connected yet.");
 }
 
 static void inpQuitJoystick(void)
 {
-    if (inpJoystick)
+    if (inpJoySubsystem)
     {
         SDL_JoystickEventState(SDL_IGNORE);
-        SDL_JoystickClose(inpJoystick);
-        inpJoystick = NULL;
+        inpCloseJoystick();
+        SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+        inpJoySubsystem = 0;
     }
 }
 
@@ -294,6 +334,12 @@ int32_t inpWaitFor(int32_t l_Mask)
             {
                 case SDL_KEYDOWN:
                     sym = event.key.keysym.sym;
+                    /* Alt+Enter: toggle fullscreen (handled here so Enter does not also confirm) */
+                    if (((sym == SDLK_RETURN) || (sym == SDLK_KP_ENTER)) && (event.key.keysym.mod & KMOD_ALT))
+                    {
+                        if (!event.key.repeat) gfxToggleFullscreen();
+                        break;
+                    }
                     if ((l_Mask & INP_LEFT) && (sym == SDLK_LEFT))
                     {
                         action |= INP_KEYBOARD | INP_LEFT;
@@ -323,7 +369,7 @@ int32_t inpWaitFor(int32_t l_Mask)
                         action |= INP_KEYBOARD | INP_ESC;
                     }
                     if (IHandler.uch_FunctionKeyStatus && (l_Mask & INP_FUNCTION_KEY) &&
-                        ((sym >= SDLK_F1) && (sym <= SDLK_F11)))
+                        ((sym >= SDLK_F1) && (sym <= SDLK_F10)))
                     {
                         action |= INP_KEYBOARD | INP_FUNCTION_KEY;
                     }
@@ -331,12 +377,15 @@ int32_t inpWaitFor(int32_t l_Mask)
                     {
                         case SDLK_F11:
                         {
-                            gfxScreenshotShadow();  // save shadow surface
+                            if (!event.key.repeat) gfxToggleFullscreen();
                         }
                         break;
                         case SDLK_F12:
                         {
-                            gfxScreenshot();  // 2014-07-13 LucyG : guess what F12 does
+                            if (event.key.keysym.mod & KMOD_SHIFT)
+                                gfxScreenshotShadow();  // Shift+F12: save shadow surface (debug)
+                            else
+                                gfxScreenshot();  // 2014-07-13 LucyG : guess what F12 does
                         }
                         break;
                         case SDLK_INSERT:
@@ -454,40 +503,84 @@ int32_t inpWaitFor(int32_t l_Mask)
                         action |= INP_MOUSEWHEEL | INP_DOWN;
                     }
                     break;
+                case SDL_JOYDEVICEADDED:
+                    inpOpenJoystickIfNeeded();
+                    break;
+                case SDL_JOYDEVICEREMOVED:
+                    if (inpJoystick && (event.jdevice.which == inpJoystickId))
+                    {
+                        Log("Joystick disconnected.");
+                        inpCloseJoystick();
+                        inpOpenJoystickIfNeeded(); /* auto mode: switch to another one if present */
+                    }
+                    break;
+                case SDL_JOYHATMOTION: /* d-pad: emulate cursor keys */
+                    if (event.jhat.which != inpJoystickId) break;
+                    if ((l_Mask & INP_LEFT) && (event.jhat.value & SDL_HAT_LEFT))
+                    {
+                        action |= INP_KEYBOARD | INP_LEFT;
+                    }
+                    else if ((l_Mask & INP_RIGHT) && (event.jhat.value & SDL_HAT_RIGHT))
+                    {
+                        action |= INP_KEYBOARD | INP_RIGHT;
+                    }
+                    if ((l_Mask & INP_UP) && (event.jhat.value & SDL_HAT_UP))
+                    {
+                        action |= INP_KEYBOARD | INP_UP;
+                    }
+                    else if ((l_Mask & INP_DOWN) && (event.jhat.value & SDL_HAT_DOWN))
+                    {
+                        action |= INP_KEYBOARD | INP_DOWN;
+                    }
+                    break;
                 case SDL_JOYAXISMOTION: /* 2015-01-10 LucyG: emulate cursor keys with joystick */
+                    if (event.jaxis.which != inpJoystickId) break;
                     if (event.jaxis.axis == 0)
                     {  // X axis
-                        if ((l_Mask & INP_LEFT) && (event.jaxis.value < -10000))
+                        if ((l_Mask & INP_LEFT) && (event.jaxis.value < -INP_JOY_DEAD_ZONE))
                         {
                             action |= INP_KEYBOARD | INP_LEFT;
                         }
-                        else if ((l_Mask & INP_RIGHT) && (event.jaxis.value > 10000))
+                        else if ((l_Mask & INP_RIGHT) && (event.jaxis.value > INP_JOY_DEAD_ZONE))
                         {
                             action |= INP_KEYBOARD | INP_RIGHT;
                         }
                     }
                     else if (event.jaxis.axis == 1)
                     {  // Y axis
-                        if ((l_Mask & INP_UP) && (event.jaxis.value < -10000))
+                        if ((l_Mask & INP_UP) && (event.jaxis.value < -INP_JOY_DEAD_ZONE))
                         {
                             action |= INP_KEYBOARD | INP_UP;
                         }
-                        else if ((l_Mask & INP_DOWN) && (event.jaxis.value > 10000))
+                        else if ((l_Mask & INP_DOWN) && (event.jaxis.value > INP_JOY_DEAD_ZONE))
                         {
                             action |= INP_KEYBOARD | INP_DOWN;
                         }
                     }
                     break;
                 case SDL_JOYBUTTONUP: /* 2015-01-10 LucyG: emulate RETURN/SPACE with (any) joystick button */
+                    if (event.jbutton.which != inpJoystickId) break;
                     if (l_Mask & (INP_LBUTTONP | INP_LBUTTONR))
                     {
                         action |= INP_KEYBOARD | INP_LBUTTONP;
+                    }
+                    break;
+                case SDL_WINDOWEVENT:
+                    if ((event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) ||
+                        (event.window.event == SDL_WINDOWEVENT_EXPOSED))
+                    {
+                        gfxRepresentSDL();
                     }
                     break;
                 case SDL_QUIT:
                     if (l_Mask & INP_QUIT)
                     {
                         action |= INP_QUIT;
+                    }
+                    else
+                    {
+                        /* window closed outside of a quit prompt: leave cleanly instead of ignoring it */
+                        tcQuitGame();
                     }
                     break;
             }

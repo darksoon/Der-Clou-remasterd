@@ -20,6 +20,8 @@ extern int gfxScalingFactor;
 
 extern void gfxScreenshot(void);
 extern void gfxScreenshotShadow(void);
+extern void gfxRepresentSDL(void);
+extern void gfxToggleFullscreen(void);
 extern ubyte *gfxGetGfxBoardBase(void);
 extern void gfxInvalidate(void);
 extern void gfxSetDarkness(ubyte value);
