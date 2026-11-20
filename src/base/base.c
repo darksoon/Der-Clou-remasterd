@@ -23,7 +23,8 @@ void *StdBuffer1 = 0;
 char prgname[255];
 
 /************************************************/
-char bProfidisk = 1;  // default = 1
+char bProfidisk = 1;  // default = 1, overwritten by detectVersion()
+char bCDRom = 1;      // overwritten by detectVersion()
 /************************************************/
 
 void tcClearStdBuffer(void *p_Buffer)
@@ -87,6 +88,33 @@ static ubyte detectLanguage(void)
     return 0;
 }
 
+/* 2026-11-20 detect game version from text keys (ported from vrza/derclou) */
+static void detectVersion(void)
+{
+    if (txtKeyExists(THECLOU_TXT, "BITTE_WARTEN_PC_CD_ROM_PROFI"))
+    {
+        bProfidisk = 1;
+        bCDRom = 1;
+    }
+    else if (txtKeyExists(THECLOU_TXT, "BITTE_WARTEN_PC_PROFI"))
+    {
+        bProfidisk = 1;
+        bCDRom = 0;
+    }
+    else if (txtKeyExists(THECLOU_TXT, "BITTE_WARTEN_PC_CD_ROM"))
+    {
+        bProfidisk = 0;
+        bCDRom = 1;
+    }
+    else if (txtKeyExists(THECLOU_TXT, "BITTE_WARTEN_PC"))
+    {
+        bProfidisk = 0;
+        bCDRom = 0;
+    }
+
+    Log("Detected version: Der Clou!%s%s", bProfidisk ? " Profidisk" : "", bCDRom ? " CD-ROM" : "");
+}
+
 static int tcInit(void)
 {
     pcErrOpen(ERR_NO_OUTPUT, tcDone, NULL);
@@ -99,6 +127,7 @@ static int tcInit(void)
         inpOpenAllInputDevs();
 
         txtInit(detectLanguage()); /* 2014-06-27 templer */
+        detectVersion();
 
         InitAnimHandler();
 
@@ -215,11 +244,11 @@ static ubyte StartupMenu(void)
     // 2014-07-01 templer
     if (!bProfidisk)
     {
-        strcat(line, " (Std. CD-ROM)");
+        strcat(line, bCDRom ? " (Std. CD-ROM)" : " (Std.)");
     }
     else
     {
-        strcat(line, " (Prof. CD-ROM)");
+        strcat(line, bCDRom ? " (Prof. CD-ROM)" : " (Prof.)");
     }
 
     PrintStatus(line);

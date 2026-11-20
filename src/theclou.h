@@ -61,6 +61,7 @@ typedef short word;
 
 // ADDITIONAL VERSION DEFINES
 extern char bProfidisk;
+extern char bCDRom;
 
 /*
  * Textdateien, die auch als Daten verwendet werden
