@@ -70,8 +70,10 @@ python3 -m http.server -d build-web/build/web 8000
 ## Versionen
 
 Die Versionsnummer steht in der Datei `VERSION`. Beim Bauen ergänzt CMake sie über `git describe` um den
-Commit, so dass jedes Paket genau zuzuordnen ist. Ein Tag `v*` (zum Beispiel `v0.9.0`) erzeugt in der CI
-automatisch ein Release mit allen Paketen. Jeder Push auf `main` aktualisiert die Webseite.
+Commit, so dass jedes Paket genau zuzuordnen ist. Für ein neues Release genügt es, die Nummer in `VERSION`
+zu erhöhen und einen Abschnitt in `CHANGELOG.md` zu ergänzen: Sobald das auf `main` landet, legt die CI den
+Tag an und veröffentlicht ein Release mit allen Paketen und dem Changelog-Abschnitt als Beschreibung.
+Ein von Hand gepushter Tag `v*` funktioniert ebenso. Jeder Push auf `main` aktualisiert die Webseite.
 
 ## Skriptmodus und Tests
 
