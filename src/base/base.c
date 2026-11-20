@@ -382,7 +382,11 @@ static void loadConfig(const char *rootPath)
     Config.SfxVolume = SND_MAX_VOLUME;
     Config.VoiceVolume = SND_MAX_VOLUME;
     Config.UseJoystick = 0;
+#ifdef __EMSCRIPTEN__
+    Config.gfxResizable = 0; /* the web page scales the canvas itself */
+#else
     Config.gfxResizable = 1;
+#endif
     Config.gfxLinearFilter = 0;
     Config.gfxIntegerScale = 0;
 
@@ -524,10 +528,25 @@ int tcStartGame(int argc, char **argv)
 
     rndInit();
 
+    /* command line: --script <file> and --shotdir <dir> (same as the environment variables) */
+    for (int i = 1; i + 1 < argc; i++)
+    {
+#ifdef _WIN32
+        if (!strcmp(argv[i], "--script")) _putenv_s("DERCLOU_SCRIPT", argv[++i]);
+        else if (!strcmp(argv[i], "--shotdir")) _putenv_s("DERCLOU_SHOTDIR", argv[++i]);
+#else
+        if (!strcmp(argv[i], "--script")) setenv("DERCLOU_SCRIPT", argv[++i], 1);
+        else if (!strcmp(argv[i], "--shotdir")) setenv("DERCLOU_SHOTDIR", argv[++i], 1);
+#endif
+    }
+
     /* game data directory: DERCLOU_ROOTDIR, else the directory of the executable.
        SDL_GetBasePath() also works when started via PATH, a symlink or a desktop file. */
     static char rootPathBuf[FILENAME_MAX];
     char *rootPath = getenv("DERCLOU_ROOTDIR");
+#ifdef __EMSCRIPTEN__
+    if (!rootPath) rootPath = "/gamedata"; /* --preload-file target, see CMakeLists.txt */
+#endif
     if (!rootPath)
     {
 #ifndef __EMSCRIPTEN__

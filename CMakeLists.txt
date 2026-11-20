@@ -29,11 +29,16 @@ cmake_print_variables(CMAKE_SYSTEM_NAME)
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
   set(CMAKE_C_COMPILER "emcc")
 
-  # Override default optimization for release builds
-  set(CMAKE_C_FLAGS_RELEASE "-O1 -DNDEBUG" CACHE STRING "Release flags" FORCE)
-  
-  set(COMPILE_FLAGS "-g --use-port=sdl2 -sASYNCIFY -sLEGACY_GL_EMULATION --use-port=sdl2_image:formats=lbm,png")
-  set(LINK_FLAGS "-sASYNCIFY -sLEGACY_GL_EMULATION --preload-file ../../gamedata -lidbfs.js")
+  # Release: optimise, no debug info (keeps the download small)
+  set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG" CACHE STRING "Release flags" FORCE)
+
+  set(COMPILE_FLAGS "--use-port=sdl2 --use-port=sdl2_image:formats=lbm,png")
+  set(LINK_FLAGS "--use-port=sdl2 --use-port=sdl2_image:formats=lbm,png \
+    -sASYNCIFY -sLEGACY_GL_EMULATION -sALLOW_MEMORY_GROWTH=1 \
+    -sINVOKE_RUN=0 -sEXPORTED_RUNTIME_METHODS=callMain,FS,ENV \
+    --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/gamedata@/gamedata \
+    --shell-file ${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html \
+    -lidbfs.js")
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMPILE_FLAGS}")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LINK_FLAGS}")
