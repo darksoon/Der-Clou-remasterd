@@ -80,6 +80,10 @@ add_compile_definitions(CMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}"
                         INSTALL_PATH_BIN="${INSTALL_PATH_BIN}")
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+  if(TARGET SDL2::SDL2main)
+    # provides WinMain on Windows and calls our SDL_main
+    target_link_libraries(DerClou PRIVATE SDL2::SDL2main)
+  endif()
   target_link_libraries(DerClou PRIVATE SDL2::SDL2 SDL2_image::SDL2_image)
   if(UNIX AND NOT APPLE)
     target_link_libraries(DerClou PRIVATE m)
