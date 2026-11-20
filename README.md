@@ -1,32 +1,80 @@
-# Der Clou! Open Source Project
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/W7W8M9SU8)
+# Der Clou! remastered
 
-Based on V0.8 (2019-11-26) of http://sourceforge.net/projects/cosp
+Weiterentwicklung der Einbruchssimulation **Der Clou!** (1994) von neo Software.
+Basierend auf der Originalversion von neo Software. Details darüber finden Sie unter www.neo.at.
+
+Dieses Projekt führt die besten Teile der bisherigen Community-Ports zusammen:
+
+| Herkunft | Was übernommen wurde |
+| --- | --- |
+| [Der Clou! Open Source Project (COSP) 0.8](https://sourceforge.net/projects/cosp) | SDL-Port, Sprachausgabe der CD von Festplatte, Modfiles |
+| [iljabauer/DerClou](https://github.com/iljabauer/DerClou) | Basis dieses Repositories: CMake, SDL2, Browser-Version (WebAssembly), PNG-Bilder, Spielstände im Browser, viele Fehlerkorrekturen |
+| [vrza/derclou](https://github.com/vrza/derclou) | Versionserkennung, frei skalierbares Fenster, Vollbild-Taste, Joystick-Hotplug, Steuerkreuz |
+| [vcosta/derclou](https://github.com/vcosta/derclou), [midzer/derclou](https://github.com/midzer/derclou) | Ursprünglicher SDL2-Port und Emscripten-Experimente, als Referenz |
+
+## Neu in dieser Version
+
+- Erkennt automatisch Standard- oder Profidisk-Version, Diskette oder CD-ROM
+- Fenster frei skalierbar, das Bild behält sein Seitenverhältnis
+- **F11** oder **Alt+Enter** schaltet zwischen Fenster und Vollbild um, **F12** speichert einen Screenshot
+- Joysticks können im laufenden Spiel an- und abgesteckt werden (`usejoystick = auto`), das Steuerkreuz funktioniert
+- Schließen des Fensters beendet das Spiel sauber
+- Browser-Version: gespeicherte Einbruchspläne bleiben nach einem Neuladen erhalten
+- Linux-Build repariert
+
+Alle Optionen stehen kommentiert in `gamedata/cosp.cfg`.
+
+## Bauen unter Linux (Debian/Ubuntu)
+
+```
+sudo apt install build-essential cmake libsdl2-dev libsdl2-image-dev
+```
+
+```
+cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j
+```
+
+```
+DERCLOU_ROOTDIR=$PWD/gamedata/ ./build/build/x64/DerClou
+```
+
+## Spieldaten und Lizenz
+
+Quellcode, Grafiken, Musik und die deutschen Spieldaten stehen unter der
+Lizenz von neo Software (`PublicLicenceContract.txt`). Kurz gesagt: Weitergabe
+und Veränderung sind erlaubt, aber **nur kostenlos und nichtkommerziell**,
+der Name muss mit „Der Clou!“ beginnen, und Quellcode samt Daten müssen
+öffentlich bleiben. Die englischen Spieldaten wurden von neo nie freigegeben
+und sind deshalb nicht enthalten.
+
+Der enthaltene OPL-Emulator (fmopl) stammt aus MAME und steht unter dessen
+eigener, ebenfalls nichtkommerzieller Lizenz (`mame.txt`).
 
 ## Roadmap
-The overall goal is to make the game accessible for more people either for gaming or for modding.
 
-1. Prebuilt Releases
-    - [ ] MacOSX
-    - [ ] Linux
-    - [ ] Windows
-    - [ ] Web (WASM): [theclue.netlify.app](https://theclue.netlify.app)
-        - [x] Saving should work
-        - [ ] Plans should work
-        - [ ] Audio should work on start
-    - [ ] Steam?
-    - [ ] iOS?
-2. Improve Graphic System
-    - [ ] Allow pictures with 640x200 px and change base resolution to 640x240
-    - [x] Use SDL Image for Image loading, to allow PNG images
-    - [ ] Increase color depth from 8bit to 16bit or 32bit
-3. Improve Audio / Music system
-    - [ ] Change Music files to ogg or similiar
-    - [ ] Full voice output (all dialogs, all characters) in German, English
-4. Ongoing Changes
-    - [ ] Find better names for functions and variables
-    - [ ] Make code readable
-    - [ ] Rewrite (parts like story code) in python
+Zusammengeführt aus der Roadmap von iljabauer/DerClou und eigenen Zielen.
+
+1. Fertige Downloads
+    - [ ] Linux, Windows, macOS als automatisch gebaute Releases
+    - [ ] Browser-Version (WebAssembly)
+        - [x] Spielstände bleiben erhalten
+        - [x] Einbruchspläne bleiben erhalten
+        - [ ] Ton direkt beim Start (Browser erlauben Ton erst nach einem Klick)
+        - [ ] Kleinere Downloadgröße (Release ohne Debug-Infos, LTO)
+2. Grafik
+    - [x] Bilder per SDL_image laden, PNG möglich
+    - [x] Frei skalierbares Fenster, Vollbild-Taste, wählbarer Filter
+    - [ ] Bilder mit 640 Pixeln Breite, Basisauflösung 640 × 240
+    - [ ] Mehr als 256 Farben (16 oder 32 Bit)
+3. Ton und Musik
+    - [ ] Musik als OGG oder ähnlich
+    - [ ] Vollständige Sprachausgabe aller Dialoge (Deutsch, Englisch)
+4. Code
+    - [ ] Verständlichere Namen für Funktionen und Variablen
+    - [ ] Lesbarerer Code, Kommentare auf Englisch
+    - [ ] Logdatei im Benutzerverzeichnis statt im aktuellen Ordner
+5. Spiel
+    - [ ] Bessere Übersicht im Planungsmodus
 
 ## CREDITS
 ```
