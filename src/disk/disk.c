@@ -229,3 +229,15 @@ char *dskGets(char *text, int n, FILE *file)
     }
     return NULL;
 }
+
+/* 2026-11-20 persist the user data directory (IDBFS) in the browser build.
+   Without this, files written outside of tcSaveTheClou (e.g. burglary plans)
+   are lost on page reload. No-op on native builds. */
+void dskSyncUserData(void)
+{
+#ifdef __EMSCRIPTEN__
+    EM_ASM(
+        FS.syncfs(false, function (err) {if (err) {console.error("dskSyncUserData: syncing failed", err)}});
+    );
+#endif
+}

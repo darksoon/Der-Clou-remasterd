@@ -243,6 +243,7 @@ void plSave(uint32_t objId)
         }
 
         dskClose(fh);
+        dskSyncUserData(); /* persist plan + plan list in the browser build */
     }
 }
 

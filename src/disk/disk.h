@@ -55,4 +55,6 @@ extern int dskIsEOF(FILE *p_File);
 
 extern char *dskGets(char *text, int n, FILE *file);
 
+extern void dskSyncUserData(void);
+
 #endif
