@@ -186,7 +186,7 @@ int gfxSaveScreenshotTo(const char *fileName)
 
 static void gfxScreenshotName(char *fileName, size_t size, const char *prefix, const char *ext)
 {
-    char dir[FILENAME_MAX];
+    char dir[FILENAME_MAX - 64];
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
     static int counter = 0; /* several shots within one second */
@@ -797,7 +797,7 @@ void gfxDraw(struct RastPort *rp, uword us_X, uword us_Y)
         return;
     }
 
-    if ((us_X >= 0) && (us_X < rp->us_Width) && (us_Y >= 0) && (us_Y < rp->us_Height))
+    if ((us_X < rp->us_Width) && (us_Y < rp->us_Height))
     {
         col = rp->uch_FrontPenAbs;
 

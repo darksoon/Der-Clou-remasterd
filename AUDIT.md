@@ -1,5 +1,25 @@
 # Audit: Der Clou! remastered
 
+## Stand mit Version 0.9.0
+
+| ID | Status |
+| --- | --- |
+| H1 | Erledigt: Name, Version und neo-Hinweis im Startmenü, auf der Webseite und in den Paketen |
+| H2 | Entfällt: neo Software existiert nicht mehr, eine Adresse für die Mail gibt es nicht |
+| H3 | Erledigt: im echten Browser (Chrome) getestet, Startbildschirm mit Klick, Ton läuft, Pläne bleiben erhalten |
+| H4 | Erledigt: Release `v0.9.0` |
+| M1, M2, M3 | Erledigt |
+| M4 | Entschärft: ungültige Instrumentnummern werden ignoriert. Ein Hörvergleich mit dem DOS-Original steht aus |
+| M5 | Erledigt: AppImage für Linux, macOS mit eingebetteten Bibliotheken |
+| M6, M7 | Erledigt |
+| M8 | Erledigt: Skriptmodus mit zwei Testpartien (Spielbeginn, Planung), auch unter ASan und UBSan in der CI |
+| N2 | Erledigt: Build ohne Warnungen bei `-Wall` |
+| N8 | Erledigt: in der README beschrieben |
+| N1, N3 bis N7 | Offen |
+
+Der ursprüngliche Bericht folgt unverändert.
+
+
 Stand: 20.11.2026, Commit nach „Fix Windows build: link SDL2main to provide WinMain“.
 
 Das Projekt baut auf allen vier Plattformen (Linux, Windows, macOS, Browser) und startet unter Linux

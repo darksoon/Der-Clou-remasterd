@@ -4,6 +4,7 @@
   \___/\____/___/_/ https://cosp.sourceforge.net
    Based on the original by neo Software GmbH
 */
+#include <string.h>
 #include "SDL.h"
 #include "SDL_image.h"
 #include "gfx/gfx.h"
@@ -147,6 +148,11 @@ static void ILBMCopyToSurface(ubyte *pBody, ILBMHeader *hdr, SDL_Surface *pSurfa
 
 static SDL_Surface *gfxLoadILBM(ubyte *pFileBuffer, int32_t ulSizeOfFile, const char *puch_Pathname)
 {
+    if (ulSizeOfFile < 12 || memcmp(pFileBuffer, idFORM, 4) || memcmp(&pFileBuffer[8], idILBM, 4))
+    {
+        Log("Not an ILBM file: %s\n", puch_Pathname);
+        return NULL;
+    }
     int32_t sizeOfForm = PeekL_BE(&pFileBuffer[4]) + 8;
     if (sizeOfForm > ulSizeOfFile)
     {
@@ -290,6 +296,11 @@ SDL_Surface *gfxLoadImage(const char *puch_Pathname)
     }
 
     pSurface = IMG_Load(puch_Pathname);
+    if (!pSurface)
+    {
+        /* SDL_image built without LBM support: fall back to the built-in decoder */
+        pSurface = gfxLoadILBM(p_FileBuffer, ul_SizeOfFile, puch_Pathname);
+    }
     if (!pSurface)
     {
         Log("gfxLoadImage pSurface = NULL: %s", puch_Pathname);

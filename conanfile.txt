@@ -1,7 +1,0 @@
-[requires]
-sdl_image/2.6.3
-sdl/[*]
-
-[generators]
-CMakeDeps
-CMakeToolchain

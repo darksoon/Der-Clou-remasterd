@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Der Clou! remastered
+Comment=Die Einbruchssimulation von 1994
+Exec=DerClou
+Icon=derclou
+Categories=Game;StrategyGame;
+Terminal=false

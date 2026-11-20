@@ -13,6 +13,17 @@
 #include "error/error.h"
 #include "memory/memory.h"
 
+/* fread that zero-fills whatever could not be read, so a truncated file never leaves stale bytes behind */
+static void freadz(void *buf, size_t size, size_t n, FILE *file)
+{
+    size_t want = size * n;
+    size_t got = fread(buf, 1, want, file);
+    if (got < want)
+    {
+        memset((char *)buf + got, 0, want - got);
+    }
+}
+
 #ifndef FALSE
 #define FALSE 0
 #endif
@@ -1063,7 +1074,7 @@ static int IffAnim_FindChunk(IffAnim *anim, FILE *file, char *idreq, int len)
     len += pos;
     while (pos < len)
     {
-        fread(id, 1, 4, file);
+        freadz(id, 1, 4, file);
         if (!memcmp(id, idreq, 4))
         {
             break;
@@ -1092,14 +1103,14 @@ static int IffAnim_GetNumFrames(IffAnim *anim, FILE *file)
     numframes = 0;
     fseek(file, 0, SEEK_SET);
     // check for FORM id
-    fread(idbuf, 1, 4, file);
+    freadz(idbuf, 1, 4, file);
     if (memcmp(idbuf, "FORM", 4))
     {
         return -1;
     }
     fseek(file, 4, SEEK_CUR);
     // check for ANIM id
-    fread(idbuf, 1, 4, file);
+    freadz(idbuf, 1, 4, file);
     if (memcmp(idbuf, "ANIM", 4))
     {
         return -1;
@@ -1109,7 +1120,7 @@ static int IffAnim_GetNumFrames(IffAnim *anim, FILE *file)
     {
         memset(idbuf, 0, 4);
         // check for FORM id
-        fread(idbuf, 1, 4, file);
+        freadz(idbuf, 1, 4, file);
         if (memcmp(idbuf, "FORM", 4))
         {
             break;
@@ -1117,7 +1128,7 @@ static int IffAnim_GetNumFrames(IffAnim *anim, FILE *file)
         chunksize = fget32(file);
         chunksize = (chunksize + 1) & (~1);
         // check for ILBM id
-        fread(idbuf, 1, 4, file);
+        freadz(idbuf, 1, 4, file);
         if (memcmp(idbuf, "ILBM", 4))
         {
             break;
@@ -1166,7 +1177,7 @@ static int IffAnim_read_CMAP(IffAnim *anim, FILE *file, iffanim_frame *frame)
     if (anim->ehb)
     {
         palsize = palsize / 2;
-        fread(frame->cmap, 1, palsize, file);
+        freadz(frame->cmap, 1, palsize, file);
         for (j = 0; j < palsize; j++)
         {
             frame->cmap[palsize + j] = frame->cmap[j] / 2;  // every color value divided by 2 (half brightness)
@@ -1174,7 +1185,7 @@ static int IffAnim_read_CMAP(IffAnim *anim, FILE *file, iffanim_frame *frame)
     }
     else
     {
-        fread(frame->cmap, 1, palsize, file);
+        freadz(frame->cmap, 1, palsize, file);
     }
     return TRUE;
 }
@@ -1253,7 +1264,7 @@ static int IffAnim_read_SBDY(IffAnim *anim, FILE *file, int searchlen, char **au
         return FALSE;
     }
     *audiobufsize = chunksize;
-    fread(*audiobuf, 1, chunksize, file);
+    freadz(*audiobuf, 1, chunksize, file);
     // interleave stereo channels
     if ((anim->audio.nch == 2) && anim->audio.bps)
     {
@@ -1270,7 +1281,7 @@ static int IffAnim_read_SBDY(IffAnim *anim, FILE *file, int searchlen, char **au
             return FALSE;
         }
         memcpy(tptr, *audiobuf, *audiobufsize);           // copy data of first SBDY
-        fread(tptr + *audiobufsize, 1, chunksize, file);  // read first SBDY data to mem
+        freadz(tptr + *audiobufsize, 1, chunksize, file);  // read first SBDY data to mem
         MemFree(*audiobuf, *audiobufsize);                // delete old, too small buffer
         *audiobuf = tptr;                                 // set pointer to new buffer
         // interleave stereo channels
@@ -1516,7 +1527,7 @@ static int IffAnim_ReadFrames(IffAnim *anim, FILE *file)
             break;
         }
         anim->frame[i].datasize = chunksize;
-        fread(anim->frame[i].data, 1, chunksize, file);
+        freadz(anim->frame[i].data, 1, chunksize, file);
         // decompress data from body chunks if RLE compressed, only "body" chunk data can be RLE compressed
         if (body && anim->compressed)
         {

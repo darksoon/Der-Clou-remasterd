@@ -50,7 +50,7 @@ void dskInitUserDataPath(void)
         {
             NewErrorMsg(Disk_Defect, __FILE__, __func__, 1);
         }
-        strncpy(UserPathName, path, FILENAME_MAX);
+        snprintf(UserPathName, sizeof(UserPathName), "%s", path);
         SDL_free(path);
         dskMakeDirectory(UserPathName);
         char result[FILENAME_MAX];

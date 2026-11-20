@@ -34,10 +34,47 @@ jobs:
           tar -C dist -czf DerClou-linux-x64.tar.gz DerClou
       - name: Smoke test
         run: scripts/smoke-test.sh dist/DerClou/DerClou 10
+      - name: Scripted play tests
+        run: |
+          tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt
+          tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "fullenv = 42" "storyoff = 42"
+      - name: AppImage
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: 1
+          LDAI_OUTPUT: DerClou-linux-x86_64.AppImage
+        run: |
+          curl -sSLo linuxdeploy https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy
+          mkdir -p AppDir/usr/bin
+          cp -r gamedata/. AppDir/usr/bin/
+          ./linuxdeploy --appdir AppDir -e build/build/x64/DerClou \
+            -d packaging/derclou.desktop -i packaging/derclou.png --output appimage
       - uses: actions/upload-artifact@v4
         with:
           name: DerClou-linux-x64
-          path: DerClou-linux-x64.tar.gz
+          path: |
+            DerClou-linux-x64.tar.gz
+            DerClou-linux-x86_64.AppImage
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-screenshots
+          path: tests/out
+
+  sanitizers:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sudo apt-get -qq update && sudo apt-get install -y cmake libsdl2-dev libsdl2-image-dev
+      - name: Configure (ASan + UBSan)
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+      - name: Build
+        run: cmake --build build -j
+      - name: Scripted play tests
+        run: |
+          tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt
+          tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "fullenv = 42" "storyoff = 42"
 
   windows:
     runs-on: windows-latest
@@ -80,11 +117,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: brew install sdl2 sdl2_image
+        run: brew install sdl2 sdl2_image dylibbundler
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
       - name: Build
         run: cmake --build build -j
+      - name: Package
+        run: |
+          mkdir -p dist/DerClou
+          cp -r gamedata/. dist/DerClou/
+          cp build/build/x64/DerClou dist/DerClou/
+          dylibbundler -od -b -x dist/DerClou/DerClou -d dist/DerClou/libs -p @executable_path/libs
+          cp README.md PublicLicenceContract.txt mame.txt dist/DerClou/
+          cd dist && zip -qry ../DerClou-macos.zip DerClou
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DerClou-macos
+          path: DerClou-macos.zip
 
   web:
     runs-on: ubuntu-24.04
@@ -105,14 +154,53 @@ jobs:
         with:
           name: DerClou-web
           path: DerClou-web.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: |
+            web/site
+            dist/web
+
+  pages:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [ linux, web ]
+    runs-on: ubuntu-24.04
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: in
+      - name: Assemble site
+        run: |
+          mkdir -p public/play
+          cp -r in/web/site/. public/
+          cp -r in/dist/web/. public/play/
+          touch public/.nojekyll
+      - name: Publish to GitHub Pages (gh-pages branch)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: public
+          force_orphan: true
+          user_name: darksoon
+          user_email: rarzemail@googlemail.com
+      - name: Publish to Vercel
+        if: env.VERCEL_TOKEN != ''
+        run: |
+          cd public
+          npx --yes vercel@latest link --yes --project der-clou-remastered --token "$VERCEL_TOKEN"
+          npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [ linux, windows, macos, web ]
+    needs: [ linux, sanitizers, windows, macos, web ]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/download-artifact@v4
         with:
+          pattern: DerClou-*
           path: artifacts
           merge-multiple: true
       - uses: softprops/action-gh-release@v2

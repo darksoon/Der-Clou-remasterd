@@ -52,7 +52,7 @@ void tcDisplayCommon(void)
 {
     LIST *texts;
     char line[TXT_KEY_LENGTH] = {0}, name[TXT_KEY_LENGTH] = {0};
-    Building building;
+    Building building = NULL;
 
     texts = txtGoKey(BUSINESS_TXT, "PLAN_COMMON_DATA");
 

@@ -472,7 +472,11 @@ static int32_t HSCOpen(HSC_File *pHSC, const char *pszFileName)
         return 0;
     }
 
-    fread(hsc_file, 1, hsc_size, pFile);
+    if (fread(hsc_file, 1, hsc_size, pFile) != (size_t)hsc_size)
+    {
+        fclose(pFile);
+        return 0;
+    }
     fclose(pFile);
 
     hsc_data = hsc_file;
