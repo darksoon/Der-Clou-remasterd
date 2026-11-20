@@ -3,4 +3,6 @@
 /.cache/
 /.vscode/
 /gamedata/DerClou
-/gamedata/clou.logb/
+/gamedata/clou.log
+/b/
+
