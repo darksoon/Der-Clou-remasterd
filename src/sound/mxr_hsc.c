@@ -261,7 +261,13 @@ static void hsc_process_row(HSC_File *pHSC)
 
             case 128:
             {
-                hsc_set_instrument(pHSC, channel, effect);
+                /* Only 128 instruments exist. TITLE.BK asks for #207 once; that used to
+                   read pattern data as instrument registers (undefined behaviour, found
+                   with UBSan). Keep the current instrument instead. */
+                if (effect < 128)
+                {
+                    hsc_set_instrument(pHSC, channel, effect);
+                }
             }
             break;
 

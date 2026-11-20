@@ -1,0 +1,27 @@
+# Story start: Victoria Station, Holland Street, Ugley Dog Hotel, choose a name
+wait 2500
+key Return
+wait 3000
+shot a01
+key Return
+wait 1500
+shot a02
+key Return
+wait 1500
+shot a03
+key Return
+wait 1500
+shot a04
+key Return
+wait 1500
+shot a05
+key Return
+wait 1500
+shot a06
+key Return
+wait 1500
+shot a07
+key Return
+wait 1500
+shot a08
+quit
