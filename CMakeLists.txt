@@ -1,10 +1,28 @@
 cmake_minimum_required(VERSION 3.12)
 include(CMakePrintHelpers)
 
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" DERCLOU_VERSION LIMIT_COUNT 1)
+
 project(
   DerClou
-  VERSION 0.9
+  VERSION ${DERCLOU_VERSION}
   LANGUAGES C)
+
+# version string shown in the game: "0.9.0" or "0.9.0-12-gabc1234" between releases
+set(DERCLOU_VERSION_FULL "${DERCLOU_VERSION}")
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} describe --tags --match "v*" --dirty=-mod
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    OUTPUT_VARIABLE DERCLOU_GIT_DESCRIBE
+    OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+  if(DERCLOU_GIT_DESCRIBE MATCHES "^v(.+)$")
+    set(DERCLOU_VERSION_FULL "${CMAKE_MATCH_1}")
+  endif()
+endif()
+message(STATUS "Der Clou! remastered version ${DERCLOU_VERSION_FULL}")
+add_compile_definitions(DERCLOU_VERSION="${DERCLOU_VERSION_FULL}")
 
 cmake_print_variables(CMAKE_C_COMPILER)
 cmake_print_variables(CMAKE_SYSTEM_NAME)

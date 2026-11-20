@@ -23,21 +23,31 @@ struct ErrorHandler
 
 struct ErrorHandler ErrorHandler;
 
+/* empty until errSetLogFile() is called: messages then only go to stdout */
+static char LogPath[FILENAME_MAX] = {0};
+
+void errSetLogFile(const char *path)
+{
+    snprintf(LogPath, sizeof(LogPath), "%s", path);
+    remove(LogPath); /* start every session with a fresh log */
+}
+
 void Log(const char *s, ...)
 {
     static char log_buffer[1024];
     FILE *file = NULL;
     if (s)
     {
-        if ((file = fopen(LOG_FILENAME, "a")))
+        va_list ap;
+        va_start(ap, s);
+        vsnprintf(log_buffer, sizeof(log_buffer), s, ap);
+        va_end(ap);
+
+        printf("%s\n", log_buffer);
+        fflush(stdout);
+
+        if (LogPath[0] && (file = fopen(LogPath, "a")))
         {
-            va_list ap;
-            va_start(ap, s);
-            vsprintf(log_buffer, s, ap);
-#ifndef __LCC__
-            va_end(ap);
-#endif
-            printf("%s\n", log_buffer);
             fprintf(file, "%s\n", log_buffer);
             fclose(file);
         }

@@ -261,6 +261,13 @@ static ubyte StartupMenu(void)
 
     PrintStatus(line);
 
+    /* notice required by the neo license (after start, clearly readable) */
+    gfxSetDrMd(u_wrp, GFX_JAM_1);
+    gfxSetRect(0, 320);
+    gfxSetPens(u_wrp, 249, 254, GFX_SAME_PEN);
+    gfxPrint(u_wrp, NEO_NOTICE_1, 100, GFX_PRINT_SHADOW | GFX_PRINT_CENTER);
+    gfxPrint(u_wrp, NEO_NOTICE_2, 110, GFX_PRINT_SHADOW | GFX_PRINT_CENTER);
+
     inpTurnFunctionKey(0);
     inpTurnESC(0);
 
@@ -511,22 +518,49 @@ int tcStartGame(int argc, char **argv)
     MemInit();
 #endif
 
-    remove(LOG_FILENAME);
-
     if (SDL_InitSubSystem(SDL_INIT_TIMER)) return (0);  // 2015-01-10 LucyG : SDL_Init is already called earlier
 
     strcpy(prgname, argv[0]);
 
     rndInit();
 
-    char *rootPath = NULL;
-    if (!(rootPath = getenv("DERCLOU_ROOTDIR"))) {
-        rootPath = dirname(argv[0]);
+    /* game data directory: DERCLOU_ROOTDIR, else the directory of the executable.
+       SDL_GetBasePath() also works when started via PATH, a symlink or a desktop file. */
+    static char rootPathBuf[FILENAME_MAX];
+    char *rootPath = getenv("DERCLOU_ROOTDIR");
+    if (!rootPath)
+    {
+#ifndef __EMSCRIPTEN__
+        char *basePath = SDL_GetBasePath();
+        if (basePath)
+        {
+            snprintf(rootPathBuf, sizeof(rootPathBuf), "%s", basePath);
+            SDL_free(basePath);
+            /* strip the trailing separator, the path builders add their own */
+            size_t len = strlen(rootPathBuf);
+            if (len > 1 && (rootPathBuf[len - 1] == '/' || rootPathBuf[len - 1] == '\\')) rootPathBuf[len - 1] = '\0';
+            rootPath = rootPathBuf;
+        }
+        else
+#endif
+        {
+            snprintf(rootPathBuf, sizeof(rootPathBuf), "%s", argv[0]);
+            rootPath = dirname(rootPathBuf);
+        }
     }
 
     dskSetRootPath(rootPath);
     // und den Pfad für BuildPathName setzen!
     dskInitUserDataPath();
+
+    {
+        char logPath[FILENAME_MAX];
+        snprintf(logPath, sizeof(logPath), "%s%s", dskGetUserPath(), LOG_FILENAME);
+        errSetLogFile(logPath);
+        Log("%s %s", COSP_TITLE, COSP_VERSION);
+        Log("Game data: %s", rootPath);
+        Log("User data: %s", dskGetUserPath());
+    }
 
     loadConfig(rootPath);
 

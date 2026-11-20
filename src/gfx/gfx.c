@@ -5,6 +5,9 @@
    Based on the original by neo Software GmbH
 */
 #include "gfx/gfx.h"
+#include <time.h>
+#include "SDL_image.h"
+#include "disk/disk.h"
 
 #include <math.h>
 #include <stdint.h>
@@ -172,29 +175,42 @@ ubyte *gfxGetGfxBoardBase(void) { return (pShadowSurface->pixels); }
 
 void gfxInvalidate(void) { bGfxInvalidate = 1; }
 
+/* save the current screen as PNG (falls back to BMP if PNG saving is unavailable) */
+int gfxSaveScreenshotTo(const char *fileName)
+{
+    if (!SurfaceScreen) return 0;
+    if (IMG_SavePNG(SurfaceScreen, fileName) == 0) return 1;
+    Log("PNG screenshot failed (%s), saving BMP", IMG_GetError());
+    return SDL_SaveBMP(SurfaceScreen, fileName) == 0;
+}
+
+static void gfxScreenshotName(char *fileName, size_t size, const char *prefix, const char *ext)
+{
+    char dir[FILENAME_MAX];
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    static int counter = 0; /* several shots within one second */
+
+    snprintf(dir, sizeof(dir), "%sscreenshots", dskGetUserPath());
+    dskMakeDirectory(dir);
+    snprintf(fileName, size, "%s" DIR_SEPARATOR "%s-%04d%02d%02d-%02d%02d%02d-%d.%s", dir, prefix, t->tm_year + 1900,
+             t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, counter++, ext);
+}
+
 // 2014-07-13 LucyG : guess what this one does
+// 2026-11-21: PNG with date and time in the user directory, never overwrites older shots
 void gfxScreenshot(void)
 {
-    static int screenshotsTaken = 0;
-    char fileName[256];
-
-    sprintf(fileName, "." DIR_SEPARATOR "screenshot%02d.bmp", screenshotsTaken + 1);
-    if (!SDL_SaveBMP(SurfaceScreen, fileName))
-    {
-        screenshotsTaken++;
-    }
+    char fileName[FILENAME_MAX];
+    gfxScreenshotName(fileName, sizeof(fileName), "derclou", "png");
+    if (gfxSaveScreenshotTo(fileName)) Log("Screenshot saved: %s", fileName);
 }
 
 void gfxScreenshotShadow(void)
 {
-    static int screenshotsShadowTaken = 0;
-    char fileName[256];
-
-    sprintf(fileName, "." DIR_SEPARATOR "shadow%02d.bmp", screenshotsShadowTaken + 1);
-    if (!SDL_SaveBMP(pShadowSurface, fileName))
-    {
-        screenshotsShadowTaken++;
-    }
+    char fileName[FILENAME_MAX];
+    gfxScreenshotName(fileName, sizeof(fileName), "shadow", "bmp");
+    if (!SDL_SaveBMP(pShadowSurface, fileName)) Log("Shadow surface saved: %s", fileName);
 }
 
 /************************************************/

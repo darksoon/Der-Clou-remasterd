@@ -19,6 +19,7 @@
 #endif
 
 #define LOG_FILENAME "clou.log"
+extern void errSetLogFile(const char *path);
 void Log(const char *s, ...);
 
 #define ERROR_MODULE_BASE 3

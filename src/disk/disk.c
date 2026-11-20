@@ -28,7 +28,9 @@ static char UserPathName[FILENAME_MAX] = {0};
 
 static const char *USER_GAME_DATA_DIR = "DerClou";
 
-void dskSetRootPath(const char *newRootPath) { strcpy(RootPathName, newRootPath); }
+void dskSetRootPath(const char *newRootPath) { snprintf(RootPathName, sizeof(RootPathName), "%s", newRootPath); }
+
+const char *dskGetUserPath(void) { return UserPathName; }
 
 void dskMakeDirectory(const char *path)
 {

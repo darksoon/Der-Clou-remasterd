@@ -10,8 +10,14 @@
 #include <stdint.h>
 
 #define __COSP__
-#define COSP_VERSION "0.8"
-#define COSP_TITLE "Der Clou! Open Source Project"
+#ifndef DERCLOU_VERSION
+#define DERCLOU_VERSION "dev"
+#endif
+#define COSP_VERSION DERCLOU_VERSION
+#define COSP_TITLE "Der Clou! remastered"
+/* required by the neo license: shown after start, see PublicLicenceContract.txt */
+#define NEO_NOTICE_1 "Basierend auf der Originalversion von neo Software."
+#define NEO_NOTICE_2 "Details dar\x81" "ber finden Sie unter www.neo.at" /* \x81 = ü in the game font */
 
 typedef struct
 {
