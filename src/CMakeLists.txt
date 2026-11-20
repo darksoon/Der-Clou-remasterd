@@ -81,6 +81,9 @@ add_compile_definitions(CMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}"
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
   target_link_libraries(DerClou PRIVATE SDL2::SDL2 SDL2_image::SDL2_image)
+  if(UNIX AND NOT APPLE)
+    target_link_libraries(DerClou PRIVATE m)
+  endif()
 endif()
 
 if(NOT DEFINED INSTALL_PATH_BIN)
