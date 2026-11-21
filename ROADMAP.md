@@ -1,6 +1,6 @@
 # Roadmap: Der Clou! remastered
 
-Stand: Version 0.19.0. Die Roadmap ist nach den beiden Spielarten getrennt. Im Original gilt:
+Stand: Version 0.20.0. Die Roadmap ist nach den beiden Spielarten getrennt. Im Original gilt:
 Es spielt sich wie 1994. Erlaubt sind dort nur Fehlerkorrekturen, Technik und Komfort, der den
 Spielablauf nicht verändert und abschaltbar ist. Alles, was Regeln, Balance oder Inhalte ändert,
 gehört in Spiel+.
@@ -14,6 +14,8 @@ gehört in Spiel+.
 - Spiel+: neue Stimmen für 75 Sätze der Geschichte, Hintergrundgeräusche auf der Straße und im Pub
 - Spiel+: Werkzeug-Infos (wer aus der Bande es benutzen kann), Werkzeugwerte per Lua (Stethoskop),
   automatisches Speichern vor jedem Einbruch in einem eigenen fünften Platz
+- Spiel+ Planung: Laufwege und Sichtbereich der Wachen (Taste W), Zeitleiste mit Rückgängig und
+  Wiederherstellen (Taste T)
 - Datenwerkzeug `tools/clou-data.py`: Datenbank, Gebäude, Wachenrouten, Pläne, Handlung und Texte
   verlustfrei als JSON lesen und schreiben, Formate in `docs/DATEIFORMATE.md`
 - Musik: Das Titelstück fordert einmal ein Instrument an, das es nicht gibt. Das geschieht bei
@@ -37,8 +39,7 @@ gehört in Spiel+.
 
 | Punkt | Inhalt | Aufwand |
 | --- | --- | --- |
-| P1 | Laufwege und Sichtbereich der Wachen im Grundriss (in Arbeit) | L |
-| P2 | Zeitleiste aller Figuren in der Planung, Rückgängig (in Arbeit) | L |
+| P2 | Zeitleiste: Sprungmarken zu einem Zeitpunkt, Wachen in der Zeitleiste | M |
 | P3 | Einbruchspläne kopieren und Varianten vergleichen | M |
 | P9 | Neue Einbrüche, Ereignisse und Nebenhandlungen per Lua, erster Beweis ist ein neues Gebäude | L |
 | P13 | Stimmen für die freien Gespräche und die übrigen Figuren (Abt, Auftraggeber am Marx-Grab) | M |

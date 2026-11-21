@@ -3,6 +3,34 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.20.0 (21.11.2026)
+
+### Neu
+
+- Spiel+: In der Planung zeigt der Grundriss die Laufwege der Wachen und den Bereich, den jede Wache
+  gerade sieht (Taste W, in Spiel+ zu Beginn an). Er folgt der echten Regel des Spiels: Eine Wache
+  entdeckt Einbrecher auf demselben Stockwerk, im selben Raum und auf der Seite, in die sie blickt,
+  ohne Grenze für Winkel oder Entfernung. Beim Gehen blickt sie in Laufrichtung, beim Warten,
+  Kontrollieren und Öffnen nach unten. Kleine Quadrate markieren, wo eine Wache stehen bleibt
+- Spiel+: Taste T in den Planungsmenüs öffnet eine Zeitleiste mit einer Zeile pro Einbrecher (Gehen,
+  Warten, Werkzeug, Nehmen/Ablegen, Öffnen/Schließen, Funk) und der Gesamtzeit. Dort macht Z (oder
+  die Rücktaste) die letzte Aktion der aktuellen Person rückgängig, Y stellt sie wieder her
+- Spiel+: Hintergrundgeräusche auch im Hotelzimmer (tickende Uhr, gedämpfter Verkehr) und auf der
+  Polizeiwache (Schreibmaschine, Telefon)
+- Neues Datenwerkzeug `tools/clou-data.py` (nur Python 3): liest und schreibt Objektdatenbank,
+  Relationen, Gebäude (Bodenraster, Scheinwerfer, Wachenrouten), Einbruchspläne, Handlung,
+  verschlüsselte Texte und Listen verlustfrei als lesbares JSON mit Objekt- und Relationsnamen.
+  Grundlage für neue Einbrüche in Spiel+. Alle Formate sind aus dem Ladecode abgeleitet und in
+  `docs/DATEIFORMATE.md` beschrieben, auch welche Dateien ein Gebäude ausmachen
+
+### Technik
+
+- Neuer Test `tests/run-data-test.sh`: Alle 256 unterstützten Spieldateien ergeben nach Export und
+  Import wieder dieselben Bytes; eine per JSON geänderte Wachenroute und ein geänderter Beutewert
+  laden über `MODFILES` in einer kompletten Testpartie
+- Der Originalmodus bleibt unverändert, ein neuer Test prüft die Planung in Spiel+ und dass die neuen
+  Tasten im Original nichts bewirken
+
 ## 0.19.0 (21.11.2026)
 
 ### Neu
