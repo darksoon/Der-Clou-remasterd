@@ -14,6 +14,8 @@ gehört in Spiel+.
 - Spiel+: neue Stimmen für 75 Sätze der Geschichte, Hintergrundgeräusche auf der Straße und im Pub
 - Spiel+: Werkzeug-Infos (wer aus der Bande es benutzen kann), Werkzeugwerte per Lua (Stethoskop),
   automatisches Speichern vor jedem Einbruch in einem eigenen fünften Platz
+- Datenwerkzeug `tools/clou-data.py`: Datenbank, Gebäude, Wachenrouten, Pläne, Handlung und Texte
+  verlustfrei als JSON lesen und schreiben, Formate in `docs/DATEIFORMATE.md`
 - Musik: Das Titelstück fordert einmal ein Instrument an, das es nicht gibt. Das geschieht bei
   Lautstärke 60 von 63 Stufen Dämpfung, ist also praktisch unhörbar; das Spiel behält dort das
   bisherige Instrument
@@ -38,10 +40,12 @@ gehört in Spiel+.
 | P1 | Laufwege und Sichtbereich der Wachen im Grundriss (in Arbeit) | L |
 | P2 | Zeitleiste aller Figuren in der Planung, Rückgängig (in Arbeit) | L |
 | P3 | Einbruchspläne kopieren und Varianten vergleichen | M |
-| P8 | Datenwerkzeug für Gebäude und Datenbank, verlustfrei, JSON-Export (in Arbeit) | L |
 | P9 | Neue Einbrüche, Ereignisse und Nebenhandlungen per Lua, erster Beweis ist ein neues Gebäude | L |
 | P13 | Stimmen für die freien Gespräche und die übrigen Figuren (Abt, Auftraggeber am Marx-Grab) | M |
 | P14 | Weitere Hintergrundgeräusche (Bahnhof, Hotel, Polizei, Einbruch) | S |
 | P12 | Musik neu arrangiert (Probe als Jazz liegt vor, vorerst zurückgestellt) | L |
 | P15 | HD-Ebene für einzelne Bilder, erst als Test mit zwei, drei Orten | L |
 | P16 | Weichere Überblendungen zwischen Szenen | M |
+| P17 | Wetter (Regen, Nebel, klare Nacht) mit Wirkung auf Geräusche, Sicht der Wachen und Flucht, sichtbar und hörbar beim Einbruch | M |
+| P18 | Zufällige neue Komplizen: Werte, Namen und Vorgeschichte per Lua, Porträts aus Einzelteilen | L |
+| P19 | Komplizen trainieren: Kurse gegen Geld und Zeit, Fortschritt durch Einbrüche | M |

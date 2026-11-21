@@ -124,6 +124,29 @@ tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "ful
 Die CI führt sie bei jedem Push normal und mit AddressSanitizer und UndefinedBehaviorSanitizer aus und
 lädt die Screenshots als Artefakt hoch.
 
+## Datenwerkzeug
+
+`tools/clou-data.py` liest und schreibt die Daten des Spiels verlustfrei: die Objektdatenbank
+(`*.DAT`), die Relationen (`*.REL`, `*.GRE`), die Gebäude mit Bodenraster (`*.LFD`), Scheinwerfern
+(`*.SPO`), Wachenrouten (`*.GUA`) und Plänen (`*.PLN`, `*.PLL`), die Handlung (`TCSTORY.PC`), die
+verschlüsselten Texte (`TEXTS/*.TXT`) und die Listen (`*.LST`). Es braucht nur Python 3 ohne
+weitere Pakete. Die Formate stehen in [docs/DATEIFORMATE.md](docs/DATEIFORMATE.md).
+
+```
+python3 tools/clou-data.py info gamedata/DATA/BULCETA0.DAT
+python3 tools/clou-data.py export gamedata/DATA/BULCETA.GUA -o wachen.json
+python3 tools/clou-data.py import wachen.json -o MODFILES/DATA/BULCETA.GUA
+python3 tools/clou-data.py roundtrip-all gamedata
+python3 tools/clou-data.py building gamedata Bulstrode
+```
+
+Das JSON enthält Objektnamen, Typen, Relationsnamen und Hinweise wie die Art eines Objekts im
+Grundriss. Alle Schlüssel mit `_` am Anfang sind nur Hinweise und werden beim Import übergangen.
+Export und Import ergeben die Originaldatei Byte für Byte, das prüft `tests/run-data-test.sh` für
+alle unterstützten Dateien in `gamedata`. Eine geänderte Datei legt man unter `MODFILES/` ab, die
+Originaldaten bleiben unberührt. `building` ohne Namen listet alle Gebäude, mit Namen zeigt es alle
+Dateien und Angaben eines Gebäudes.
+
 ## Webseite und Vercel
 
 Die CI veröffentlicht `web/site/` zusammen mit der Browser-Version unter `play/` in den Branch `gh-pages`.
@@ -184,7 +207,7 @@ Zusammengeführt aus der Roadmap von iljabauer/DerClou und eigenen Zielen.
     - [x] Einstellungsmenü im Hauptmenü
     - [x] Spielarten „Original“ und „Spiel+“, Testpartie mit Referenzwerten sichert den Originalmodus ab
     - [ ] Bessere Übersicht im Planungsmodus (Sichtfelder der Wachen, Zeitleiste)
-    - [ ] Werkzeug zum Lesen und Schreiben der Gebäude- und Datenbankdateien, Grundlage für neue Gebäude
+    - [x] Werkzeug zum Lesen und Schreiben der Gebäude- und Datenbankdateien, Grundlage für neue Gebäude
     - [x] Lua 5.5 für Spiel+ (erster Einsatz: Werte des Schwierigkeitsgrads)
     - [ ] Erweiterter Modus mit neuen Einbrüchen
 
