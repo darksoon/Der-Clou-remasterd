@@ -22,7 +22,35 @@ env:
     libdecor-0-dev libasound2-dev libpulse-dev libpipewire-0.3-dev
 
 jobs:
+  # The play tests (scripted games, music recording, sanitizers) take several minutes. They run only
+  # when something that can change the game was touched, for every release and when started by hand.
+  changes:
+    runs-on: ubuntu-24.04
+    outputs:
+      play: ${{ steps.diff.outputs.play }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: diff
+        env:
+          BEFORE: ${{ github.event.before }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          play=true
+          from="${BASE:-$BEFORE}"
+          if [[ "$GITHUB_REF" != refs/tags/* && "$GITHUB_EVENT_NAME" != workflow_dispatch && -n "$from" ]] \
+             && git cat-file -e "$from^{commit}" 2>/dev/null; then
+            changed="$(git diff --name-only "$from" "$GITHUB_SHA")"
+            echo "$changed"
+            if ! grep -qE '^(src/|gamedata/|tests/|scripts/|CMakeLists.txt|VERSION|\.github/)' <<<"$changed"; then
+              play=false
+            fi
+          fi
+          echo "play=$play" | tee -a "$GITHUB_OUTPUT"
+
   linux:
+    needs: changes
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -43,6 +71,7 @@ jobs:
       - name: Smoke test
         run: scripts/smoke-test.sh dist/DerClou/DerClou 10
       - name: Scripted play tests
+        if: needs.changes.outputs.play == 'true'
         run: |
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt
           # the title music must keep playing with both AdLib emulations
@@ -91,6 +120,8 @@ jobs:
           path: tests/out
 
   sanitizers:
+    needs: changes
+    if: needs.changes.outputs.play == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -235,7 +266,7 @@ jobs:
           publish_dir: public
           force_orphan: true
           user_name: darksoon
-          user_email: rarzemail@googlemail.com
+          user_email: ratzemail@googlemail.com
       - name: Publish to Vercel
         if: env.VERCEL_TOKEN != ''
         run: |
