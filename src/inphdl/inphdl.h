@@ -52,6 +52,7 @@
 /* global functions */
 
 extern void inpOpenAllInputDevs(void);
+extern void inpApplyJoystickConfig(void);
 extern void inpCloseAllInputDevs(void);
 
 extern void inpGetMouseXY(struct RastPort *p_RP, uword *p_X, uword *p_Y);

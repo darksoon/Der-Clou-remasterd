@@ -388,6 +388,26 @@ void gfxToggleFullscreen(void)
     gfxRepresentSDL();
 }
 
+/* apply fullscreen, scaling filter and integer scaling from Config at runtime (settings menu) */
+void gfxApplyDisplayConfig(void)
+{
+    if (!Window) return;
+
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, Config.gfxLinearFilter ? "linear" : "nearest");
+    if (ScreenTexture)
+    {
+        SDL_SetTextureScaleMode(ScreenTexture, Config.gfxLinearFilter ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
+    }
+    SDL_RenderSetIntegerScale(Renderer, Config.gfxIntegerScale ? SDL_TRUE : SDL_FALSE);
+
+    if (((SDL_GetWindowFlags(Window) & SDL_WINDOW_FULLSCREEN_DESKTOP) == SDL_WINDOW_FULLSCREEN_DESKTOP) !=
+        (Config.gfxFullScreen != 0))
+    {
+        SDL_SetWindowFullscreen(Window, Config.gfxFullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    }
+    gfxRepresentSDL();
+}
+
 void gfxDoneSDL(void)
 {
     if (pRefreshSurface)

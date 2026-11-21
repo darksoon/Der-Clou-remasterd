@@ -23,6 +23,7 @@ extern void gfxScreenshotShadow(void);
 extern int gfxSaveScreenshotTo(const char *fileName);
 extern void gfxRepresentSDL(void);
 extern void gfxToggleFullscreen(void);
+extern void gfxApplyDisplayConfig(void);
 extern ubyte *gfxGetGfxBoardBase(void);
 extern void gfxInvalidate(void);
 extern void gfxSetDarkness(ubyte value);

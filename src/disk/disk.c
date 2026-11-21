@@ -71,8 +71,18 @@ void dskInitUserDataPath(void)
             }
 
             FS.mount(IDBFS, {}, result);
-            FS.syncfs(true, function (err) {if (err) {console.error("dskInitUserDataPath: syncing failed", err)}});
+            Module.derclouUserDataReady = 0;
+            FS.syncfs(true, function (err) {
+                if (err) {console.error("dskInitUserDataPath: syncing failed", err)}
+                Module.derclouUserDataReady = 1;
+            });
         , result);
+
+        /* the settings file is read right after this, so wait (at most 3 s) until IndexedDB is loaded */
+        for (int i = 0; i < 300 && !EM_ASM_INT(return Module.derclouUserDataReady;); i++)
+        {
+            emscripten_sleep(10);
+        }
         #endif
     }
 }

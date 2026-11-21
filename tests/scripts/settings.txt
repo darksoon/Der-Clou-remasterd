@@ -1,0 +1,44 @@
+# Settings menu from the main menu: change music volume and difficulty with the cursor keys,
+# leave with Escape (saves settings.cfg in the user directory)
+wait 2500
+shot b01
+key Right
+wait 300
+key Return
+wait 1500
+shot b02
+key Left
+wait 300
+key Left
+wait 300
+key Down
+wait 300
+key Return
+wait 500
+shot b03
+key Down
+wait 200
+key Down
+wait 200
+key Down
+wait 200
+key Down
+wait 200
+key Down
+wait 300
+key Right
+wait 500
+shot b04
+key Down
+wait 200
+key Down
+wait 200
+key Down
+wait 200
+key Down
+wait 500
+shot b05
+key Escape
+wait 1500
+shot b06
+quit

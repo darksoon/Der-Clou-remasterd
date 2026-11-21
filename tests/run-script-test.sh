@@ -1,6 +1,7 @@
 #!/bin/bash
 # Play an input script headless and check that the game survives it.
 # Usage: tests/run-script-test.sh <executable> <script> [extra cosp.cfg lines...]
+# TEST_HOME=<dir> uses that directory as home instead of a fresh one.
 # Screenshots taken by the script land in $SHOTDIR (default: tests/out/<script name>).
 # EXPECT=<grep pattern> additionally requires a line in the game log.
 set -u
@@ -17,7 +18,8 @@ mkdir -p "$SHOTDIR"
 for d in "$REPO"/gamedata/*/; do ln -s "$d" "$ROOT/$(basename "$d")"; done
 { echo "screenwidth = 1280"; echo "screenheight = 960"; echo "nointro = 1"; for l in "$@"; do echo "$l"; done; } > "$ROOT/cosp.cfg"
 
-export SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy HOME="$(mktemp -d)"
+# TEST_HOME keeps the user directory between runs (settings, saved games)
+export SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy HOME="${TEST_HOME:-$(mktemp -d)}"
 export DERCLOU_ROOTDIR="$ROOT" DERCLOU_SCRIPT="$SCRIPT" DERCLOU_SHOTDIR="$SHOTDIR"
 export ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=0:verify_asan_link_order=0}"
 

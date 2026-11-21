@@ -18,6 +18,12 @@ ubyte GetExtBubbleActionInfo(void) { return ExtBubbleActionInfo; }
 
 void SetMenuTimeOutFunc(void *func) { MenuTimeOutFunc = (void (*)())func; }
 
+/* when set, cursor left/right (keyboard or d-pad) also closes the bubble, the caller reads the
+   direction from GetExtBubbleActionInfo(); used by the settings menu, off everywhere else */
+static ubyte BubbleLeftRightExit = 0;
+
+void SetBubbleLeftRightExit(ubyte on) { BubbleLeftRightExit = on; }
+
 ubyte ChoiceOk(ubyte choice, ubyte xit, LIST *l)
 {
     if (choice == GET_OUT) return 0;
@@ -484,7 +490,14 @@ ubyte Bubble(LIST *bubble, ubyte activ, void (*func)(ubyte), uint32_t waitTime)
             {
                 if (action & INP_LBUTTONP) ende = TRUE;
 
-                if (action & INP_MOUSE)
+                ubyte leftRightExit =
+                    BubbleLeftRightExit && (action & INP_KEYBOARD) && (action & (INP_LEFT | INP_RIGHT));
+
+                if (leftRightExit)
+                {
+                    ende = TRUE;
+                }
+                else if (action & INP_MOUSE)
                 {
                     inpGetMouseXY(u_wrp, &x, &y);
 

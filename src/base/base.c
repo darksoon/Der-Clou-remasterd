@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "SDL.h"
+#include "base/settings.h"
 #include "intro/intro.h"
 
 // cheat function
@@ -268,10 +269,13 @@ static ubyte StartupMenu(void)
     gfxPrint(u_wrp, NEO_NOTICE_1, 100, GFX_PRINT_SHADOW | GFX_PRINT_CENTER);
     gfxPrint(u_wrp, NEO_NOTICE_2, 110, GFX_PRINT_SHADOW | GFX_PRINT_CENTER);
 
+    /* new entry "settings" in front of "quit": new, load / settings, quit */
+    AddNode(menu, CreateNode(NULL, 0, (char *)tcSettingsMenuEntry()), GetNthNode(menu, 1));
+
     inpTurnFunctionKey(0);
     inpTurnESC(0);
 
-    activ = Menu(menu, 7L, 0, NULL, 0L);
+    activ = Menu(menu, 15L, 0, NULL, 0L);
 
     inpTurnESC(1);
     inpTurnFunctionKey(1);
@@ -292,7 +296,11 @@ static ubyte StartupMenu(void)
             }
             break;
 
-        case 2:  // Quit Game
+        case 2:  // Settings
+            tcSettingsMenu();
+            break;
+
+        case 3:  // Quit Game
             ret = 2;
             break;
     }
@@ -363,41 +371,20 @@ static char *trimstr(char *str)
     return str;
 }
 
-static void loadConfig(const char *rootPath)
+/* reads one configuration file; later files override earlier ones */
+static int readConfigFile(const char *config_file, int optional)
 {
-    char config_file[256];
     char line[256];
     char *pParam = NULL;
     char *pValue = NULL;
     char *p = NULL;
     FILE *file = NULL;
 
-    // set defaults
-    Config.gfxScreenWidth = 320;
-    Config.gfxScreenHeight = 200;
-    Config.gfxFullScreen = 0;
-    Config.gfxNoFontShadow = 0;
-    Config.NoIntro = 0;
-    Config.MusicVolume = SND_MAX_VOLUME;
-    Config.SfxVolume = SND_MAX_VOLUME;
-    Config.VoiceVolume = SND_MAX_VOLUME;
-    Config.UseJoystick = 0;
-#ifdef __EMSCRIPTEN__
-    Config.gfxResizable = 0; /* the web page scales the canvas itself */
-#else
-    Config.gfxResizable = 1;
-#endif
-    Config.gfxLinearFilter = 0;
-    Config.gfxIntegerScale = 0;
-    Config.Difficulty = CFG_DIFFICULTY_NORMAL;
-    Config.ShowPoliceTimer = 1;
-
-    sprintf(config_file, "%s" DIR_SEPARATOR "%s", rootPath, "cosp.cfg");
-    file = dskOpen(config_file, "rb", 0);
+    /* optional files are opened directly, dskOpen would report a missing one as an error */
+    file = optional ? fopen(config_file, "rb") : dskOpen(config_file, "rb", 0);
     if (!file)
     {
-        Log("Failed to open cosp.cfg");
-        return;
+        return 0;
     }
 
     while (dskGets(line, sizeof(line) - 1, file))
@@ -484,6 +471,10 @@ static void loadConfig(const char *rootPath)
             {
                 Config.ShowPoliceTimer = atoi(pValue) ? 1 : 0;
             }
+            else if (!strcasecmp(pParam, "fastforward"))
+            {
+                Config.FastForward = atoi(pValue);
+            }
             else if (!strcasecmp(pParam, "usejoystick"))
             {
                 Config.UseJoystick = (!strcasecmp(pValue, "auto")) ? CFG_JOYSTICK_AUTO : atoi(pValue);
@@ -528,6 +519,46 @@ static void loadConfig(const char *rootPath)
     }
 
     dskClose(file);
+    return 1;
+}
+
+static void loadConfig(const char *rootPath)
+{
+    char config_file[FILENAME_MAX];
+
+    // set defaults
+    Config.gfxScreenWidth = 320;
+    Config.gfxScreenHeight = 200;
+    Config.gfxFullScreen = 0;
+    Config.gfxNoFontShadow = 0;
+    Config.NoIntro = 0;
+    Config.MusicVolume = SND_MAX_VOLUME;
+    Config.SfxVolume = SND_MAX_VOLUME;
+    Config.VoiceVolume = SND_MAX_VOLUME;
+    Config.UseJoystick = 0;
+#ifdef __EMSCRIPTEN__
+    Config.gfxResizable = 0; /* the web page scales the canvas itself */
+#else
+    Config.gfxResizable = 1;
+#endif
+    Config.gfxLinearFilter = 0;
+    Config.gfxIntegerScale = 0;
+    Config.Difficulty = CFG_DIFFICULTY_NORMAL;
+    Config.ShowPoliceTimer = 1;
+    Config.FastForward = CFG_FAST_FORWARD_DEFAULT;
+
+    snprintf(config_file, sizeof(config_file), "%s" DIR_SEPARATOR "%s", rootPath, "cosp.cfg");
+    if (!readConfigFile(config_file, 0))
+    {
+        Log("Failed to open cosp.cfg");
+    }
+
+    /* settings chosen in the settings menu, stored in the user directory (also works in the browser) */
+    snprintf(config_file, sizeof(config_file), "%s%s", dskGetUserPath(), CFG_USER_FILENAME);
+    if (readConfigFile(config_file, 1))
+    {
+        Log("Settings: %s", config_file);
+    }
 }
 
 int tcStartGame(int argc, char **argv)
@@ -593,13 +624,16 @@ int tcStartGame(int argc, char **argv)
         errSetLogFile(logPath);
         Log("%s %s", COSP_TITLE, COSP_VERSION);
         Log("Game data: %s", rootPath);
-        Log("Difficulty: %s", (Config.Difficulty == CFG_DIFFICULTY_EASY)   ? "easy"
-                              : (Config.Difficulty == CFG_DIFFICULTY_HARD) ? "hard"
-                                                                            : "normal");
         Log("User data: %s", dskGetUserPath());
     }
 
     loadConfig(rootPath);
+    Log("Difficulty: %s", (Config.Difficulty == CFG_DIFFICULTY_EASY)   ? "easy"
+                          : (Config.Difficulty == CFG_DIFFICULTY_HARD) ? "hard"
+                                                                        : "normal");
+
+    if (Config.FastForward < 1) Config.FastForward = 1;
+    if (Config.FastForward > 16) Config.FastForward = 16;
 
     if (Config.gfxScreenWidth < 320)
     {

@@ -3,6 +3,25 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.11.0 (21.11.2026)
+
+### Neu
+
+- Einstellungsmenü im Hauptmenü („Einstellungen“) im Stil der Auswahlblasen des Spiels: Lautstärke von Musik,
+  Geräuschen und Sprachausgabe (nur CD-ROM) in zehn Stufen, Vollbild, Skalierfilter, ganze Pixel,
+  Schwierigkeit, Polizei-Countdown, Zeitraffer-Tempo und Gamepad. Jede Änderung wirkt sofort. Bedienung mit
+  Maus, Tastatur oder Gamepad: Klick schaltet weiter, links und rechts verringern oder erhöhen
+- Die Auswahl wird als `settings.cfg` im Benutzerordner gespeichert und nach `cosp.cfg` gelesen, in der
+  Browser-Version bleibt sie über IndexedDB erhalten
+- Zeitraffer-Tempo einstellbar (`fastforward = 2 | 4 | 8`, Standard 4)
+- Testpartien für das Einstellungsmenü und das erneute Laden der gespeicherten Einstellungen
+
+### Behoben
+
+- Die Logdatei nannte immer den Schwierigkeitsgrad „normal“, weil sie vor dem Lesen der Konfiguration
+  geschrieben wurde
+- Browser-Version: Der Benutzerordner wird vollständig aus IndexedDB geladen, bevor das Spiel ihn liest
+
 ## 0.10.0 (21.11.2026)
 
 ### Neu

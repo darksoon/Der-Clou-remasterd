@@ -53,6 +53,7 @@ extern void RefreshMenu(void);
 extern void SetBubbleType(uword type);
 extern void SetPictID(uword PictID);
 extern void SetMenuTimeOutFunc(void *func);
+extern void SetBubbleLeftRightExit(ubyte on);
 
 extern ubyte GetExtBubbleActionInfo(void);
 

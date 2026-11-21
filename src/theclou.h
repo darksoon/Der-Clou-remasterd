@@ -40,6 +40,7 @@ typedef struct
 
     char Difficulty;       /* CFG_DIFFICULTY_*, normal plays exactly like the original */
     char ShowPoliceTimer;  /* show the time until the police arrives once the alarm is loud */
+    char FastForward;      /* simulation steps per frame while fast forward (Tab) is on */
 } Configuration_t;
 extern Configuration_t Config; /* base.c */
 
@@ -52,6 +53,8 @@ extern Configuration_t Config; /* base.c */
     ((Config.Difficulty == CFG_DIFFICULTY_EASY)   ? ((int32_t)(value) * (easyPerc)) / 100                     \
      : (Config.Difficulty == CFG_DIFFICULTY_HARD) ? ((int32_t)(value) * (hardPerc)) / 100                     \
                                                   : (int32_t)(value))
+#define CFG_FAST_FORWARD_DEFAULT 4
+#define CFG_USER_FILENAME "settings.cfg" /* written by the settings menu into the user directory */
 #define CFG_JOYSTICK_AUTO 255 /* usejoystick = auto: first joystick found, follows hotplug */
 
 /*

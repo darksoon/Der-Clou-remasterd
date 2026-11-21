@@ -16,7 +16,6 @@ enum
 };
 
 // Player defines
-#define PLANING_FAST_FORWARD 4 /* simulation steps per frame with fast forward */
 enum
 {
     PLANING_EXHAUST_MAX = 240,
@@ -287,7 +286,7 @@ static void plDisplayPoliceTimer(void)
 /* one timer tick of the playback; with fast forward (Tab) several simulation steps run per frame */
 static void plPlayerTick(void)
 {
-    int steps = inpFastForward() ? PLANING_FAST_FORWARD : 1;
+    int steps = inpFastForward() ? Config.FastForward : 1; /* simulation steps per frame */
 
     while (steps-- > 0 && !PD.ende)
     {

@@ -28,9 +28,10 @@ Dieses Projekt führt die besten Teile der bisherigen Community-Ports zusammen:
 - Planung per Mausklick: Rechtsklick im Gehen-Modus, die Person nimmt den schnellsten Weg
 - Zeitraffer beim Einbruch (Tab) und Polizei-Countdown nach einem lauten Alarm
 - Schwierigkeitsgrad leicht, normal (wie das Original) oder schwer
+- Einstellungsmenü im Hauptmenü: Lautstärken, Vollbild, Skalierung, Schwierigkeit, Polizei-Countdown, Zeitraffer und Gamepad, gespeichert im Benutzerordner (auch im Browser)
 - Skriptmodus für automatische Testpartien, die bei jeder Änderung in der CI laufen, bis hin zu einem kompletten Einbruch
 
-Alle Optionen stehen kommentiert in `gamedata/cosp.cfg`. Was noch zu tun ist, steht in [AUDIT.md](AUDIT.md).
+Die wichtigsten Optionen lassen sich im Hauptmenü unter „Einstellungen“ ändern. Dort gilt: Klick oder Eingabetaste schaltet weiter, die Pfeiltasten links und rechts verringern oder erhöhen, Rechtsklick oder Escape führt zurück. Die Auswahl landet als `settings.cfg` im Benutzerordner und wird nach `cosp.cfg` gelesen. Alle Optionen stehen kommentiert in `gamedata/cosp.cfg`. Was noch zu tun ist, steht in [AUDIT.md](AUDIT.md).
 
 ## Tasten
 
@@ -43,7 +44,7 @@ Alle Optionen stehen kommentiert in `gamedata/cosp.cfg`. Was noch zu tun ist, st
 | Umschalt+F12 | Screenshot des internen Bildpuffers (BMP, zur Fehlersuche) |
 
 Der Benutzerordner ist unter Linux `~/.local/share/DerClou/`, unter Windows `%APPDATA%\DerClou\` und unter macOS
-`~/Library/Application Support/DerClou/`. Dort liegen Spielstände, Pläne, Screenshots und `clou.log`.
+`~/Library/Application Support/DerClou/`. Dort liegen Spielstände, Pläne, Screenshots, `settings.cfg` und `clou.log`.
 
 ## Bauen unter Linux (Debian/Ubuntu)
 
@@ -161,6 +162,7 @@ Zusammengeführt aus der Roadmap von iljabauer/DerClou und eigenen Zielen.
     - [x] Laufen per Mausklick mit Wegsuche im Planungsmodus
     - [x] Zeitraffer beim Einbruch, Polizei-Countdown
     - [x] Schwierigkeitsgrad
+    - [x] Einstellungsmenü im Hauptmenü
     - [ ] Bessere Übersicht im Planungsmodus (Sichtfelder der Wachen, Zeitleiste)
     - [ ] Werkzeug zum Lesen und Schreiben der Gebäude- und Datenbankdateien, Grundlage für neue Gebäude
     - [ ] Erweiterter Modus mit neuen Einbrüchen

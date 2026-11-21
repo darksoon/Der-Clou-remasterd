@@ -8,6 +8,7 @@ set(SOURCE_FILES
     sound/fmopl.c
     anim/sysanim.c
     base/base.c
+    base/settings.c
     data/dataappl.c
     data/database.c
     data/datacalc.c

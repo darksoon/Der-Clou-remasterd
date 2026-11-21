@@ -399,6 +399,25 @@ static void inpScriptPump(void)
     }
 }
 
+/* settings menu: open or close the joystick after Config.UseJoystick changed */
+void inpApplyJoystickConfig(void)
+{
+    if (!Config.UseJoystick)
+    {
+        inpQuitJoystick();
+        return;
+    }
+
+    if (!inpJoySubsystem)
+    {
+        inpInitJoystick();
+        return;
+    }
+
+    inpCloseJoystick();
+    inpOpenJoystickIfNeeded();
+}
+
 void inpOpenAllInputDevs(void)
 {
     IHandler.uch_EscStatus = 1;
