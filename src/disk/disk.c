@@ -118,6 +118,7 @@ FILE *dskOpen(const char *puch_Pathname, const char *puch_Mode, uword us_DiskId)
         {
             /* try to open modded file */
             p_File = fopen(szModfilesPath, puch_Mode);
+            if (p_File) Log("Modfile: %s", szModfilesPath);
         }
     }
 
@@ -180,8 +181,13 @@ int32_t dskFileLength(const char *puch_Pathname)
 {
     int32_t l_Size = 0;
     FILE *file = NULL;
+    char szModfilesPath[260];
 
-    if ((file = fopen(puch_Pathname, "rb")))
+    /* same lookup as dskOpen: a file in modfiles replaces the original, so its size counts */
+    if (dskModfilesPathName(puch_Pathname, szModfilesPath)) file = fopen(szModfilesPath, "rb");
+    if (!file) file = fopen(puch_Pathname, "rb");
+
+    if (file)
     {
         fseek(file, 0, SEEK_END);
         l_Size = (int32_t)ftell(file);

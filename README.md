@@ -32,7 +32,12 @@ Dieses Projekt führt die besten Teile der bisherigen Community-Ports zusammen:
 - Einstellungsmenü im Hauptmenü: Lautstärken, Vollbild, Skalierung, Schwierigkeit, Polizei-Countdown, Zeitraffer und Gamepad, gespeichert im Benutzerordner (auch im Browser)
 - Skriptmodus für automatische Testpartien, die bei jeder Änderung in der CI laufen, bis hin zu einem kompletten Einbruch
 
-Die wichtigsten Optionen lassen sich im Hauptmenü unter „Einstellungen“ ändern. Dort gilt: Klick oder Eingabetaste schaltet weiter, die Pfeiltasten links und rechts verringern oder erhöhen, Rechtsklick oder Escape führt zurück. Die Auswahl landet als `settings.cfg` im Benutzerordner und wird nach `cosp.cfg` gelesen. Alle Optionen stehen kommentiert in `gamedata/cosp.cfg`. Was noch zu tun ist, steht in [AUDIT.md](AUDIT.md).
+Die wichtigsten Optionen lassen sich im Hauptmenü unter „Einstellungen“ ändern. Dort gilt: Klick oder Eingabetaste schaltet weiter, die Pfeiltasten links und rechts verringern oder erhöhen, Rechtsklick oder Escape führt zurück. Die Auswahl landet als `settings.cfg` im Benutzerordner und wird nach `cosp.cfg` gelesen. Alle Optionen stehen kommentiert in `gamedata/cosp.cfg`.
+
+Eigene Dateien ersetzen Originaldaten, ohne diese zu verändern: Eine Datei unter `MODFILES/` im Spielordner
+wird statt der gleichnamigen Originaldatei geladen, zum Beispiel `MODFILES/PICTURES/MENU` statt
+`PICTURES/MENU`. Ordner- und Dateinamen werden großgeschrieben. Bilder dürfen statt ILBM auch PNG mit
+256-Farben-Palette sein, Name, Größe und Farbbereich müssen dem Original entsprechen. Was noch zu tun ist, steht in [AUDIT.md](AUDIT.md).
 
 ## Tasten
 

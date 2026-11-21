@@ -295,7 +295,8 @@ SDL_Surface *gfxLoadImage(const char *puch_Pathname)
         return NULL;
     }
 
-    pSurface = IMG_Load(puch_Pathname);
+    /* decode the buffer read through dskOpen, so a replacement in modfiles is used as well */
+    pSurface = IMG_Load_RW(SDL_RWFromConstMem(p_FileBuffer, ul_SizeOfFile), 1);
     if (!pSurface)
     {
         /* SDL_image built without LBM support: fall back to the built-in decoder */

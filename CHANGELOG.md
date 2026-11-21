@@ -3,6 +3,14 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.12.1 (21.11.2026)
+
+### Behoben
+
+- Ersatzdateien im Ordner `MODFILES` wurden bei Bildern ignoriert, wenn SDL_image das ILBM-Format lesen
+  konnte, und ihre Dateigröße wurde vom Original genommen. Jetzt werden sie für Bilder und alle anderen
+  Daten verwendet, Ersatzbilder dürfen auch PNG mit Palette sein. Das Log nennt jede benutzte Ersatzdatei
+
 ## 0.12.0 (21.11.2026)
 
 ### Neu

@@ -42,6 +42,9 @@ jobs:
           # original mode: results must match the reference, the difficulty must not matter
           EXPECT_FILE=tests/expected/burglary-original.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
           EXPECT="Game mode of the saved game: Game+" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/gamemode.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
+          # replacement files in MODFILES are used instead of the original data
+          mkdir -p "$RUNNER_TEMP/mods/PICTURES" && cp gamedata/PICTURES/MENU "$RUNNER_TEMP/mods/PICTURES/"
+          MODFILES="$RUNNER_TEMP/mods" EXPECT="Modfile: .*PICTURES/MENU" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
           export TEST_HOME="$(mktemp -d)"
           EXPECT="Settings saved" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
           EXPECT="Difficulty: hard" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings-reload.txt
@@ -86,6 +89,9 @@ jobs:
           # original mode: results must match the reference, the difficulty must not matter
           EXPECT_FILE=tests/expected/burglary-original.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
           EXPECT="Game mode of the saved game: Game+" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/gamemode.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
+          # replacement files in MODFILES are used instead of the original data
+          mkdir -p "$RUNNER_TEMP/mods/PICTURES" && cp gamedata/PICTURES/MENU "$RUNNER_TEMP/mods/PICTURES/"
+          MODFILES="$RUNNER_TEMP/mods" EXPECT="Modfile: .*PICTURES/MENU" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
           export TEST_HOME="$(mktemp -d)"
           EXPECT="Settings saved" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
           EXPECT="Difficulty: hard" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings-reload.txt
