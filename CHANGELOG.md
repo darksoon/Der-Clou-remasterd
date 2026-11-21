@@ -3,6 +3,45 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.21.0 (21.11.2026)
+
+### Neu
+
+- Spiel+: Der Einbruch spielt bei Nacht. Die Räume sind dunkel, jeder Einbrecher leuchtet mit einer
+  Taschenlampe in Blickrichtung, die Wachen tragen eine Laterne, die Scheinwerfer des Gebäudes
+  strahlen, durch die Fenster fällt kaltes Mondlicht schräg in die Räume, und die Schatten der Mauern
+  sind tiefer, so dass die Wände Höhe bekommen. Licht scheint nicht durch Wände
+- Spiel+: Wetter beim Einbruch: klare Nacht, bewölkt, Regen, Gewitter oder Nebel. Regen fällt auf die
+  Straße und ist zu hören, Nebel zieht durchs Bild und verkürzt das Licht, bei Gewitter erhellt ein
+  Doppelblitz Straße und Fenster, kurz darauf donnert es nah oder fern. Das Wetter steht in der
+  Menüzeile zwischen Person und Zeit. Welches Wetter in welcher Nacht herrscht, bestimmt
+  `PLUS/WEATHER.LUA` (Chancen und eine eigene Regel, nach Spieltag und Gebäude; ein geladenes Spiel
+  hat dasselbe Wetter)
+- Nacht und Wetter ändern nur Bild und Ton, nie den Ablauf: Wachen, Alarme, Zeiten und Zufallszahlen
+  bleiben gleich. Abschaltbar oder fest einstellbar im Einstellungsmenü („Nacht und Wetter
+  (Spiel+)“, `plusweather` in `cosp.cfg`). Funktioniert mit allen Bildfiltern und mit „Kanten glätten“
+- Spiel+: Am Morgen nach dem Coup bringt die Zeitung eine Schlagzeile zum Einbruch, je nachdem, ob
+  die Bande entkam, ob es Alarm gab und wie viel sie erbeutete. Die Texte stehen in
+  `PLUS/NEWS.LUA` und lassen sich dort ändern
+- Browser: Spielstände lassen sich als Datei sichern und wieder einspielen
+
+### Behoben
+
+- Spiel+: Die Hintergrundgeräusche richten sich nach dem Ort statt nach der Musik. Im Hotelzimmer und
+  an der Rezeption lief bisher die Straße, weil diese Szenen die Straßenmusik behalten. Die Rezeption
+  hat jetzt ein eigenes, gedämpftes Geräusch
+- Planung: Der Weg per Rechtsklick konnte durch dünne Wände führen, etwa neben der Tür des Kiosks.
+  Die Wegsuche prüft jetzt auch die Wand direkt vor der Person. Das Gehen mit den Pfeiltasten ist
+  unverändert
+- GitHub-Seite und Projektseite überarbeitet: Screenshots, Original und Spiel+ im Überblick, die
+  Hinweise zum Bauen stehen jetzt in `docs/ENTWICKLUNG.md`
+
+### Technik
+
+- Neue Testpartie `burglary-weather.txt`, die einen Einbruch mit Gewitter und ohne Wetter spielt und
+  dasselbe Ergebnis verlangt; die Testpartie in Spiel+ prüft auch die Zeitung
+- Neue Testpartie `walk-to-kiosk.txt`: drei Rechtsklicks in den geschlossenen Kiosk bleiben draußen
+
 ## 0.20.0 (21.11.2026)
 
 ### Neu
