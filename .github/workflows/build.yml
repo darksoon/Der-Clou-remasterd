@@ -94,7 +94,7 @@ jobs:
           REJECT="Lua|Autosave" EXPECT_FILE=tests/expected/burglary-original.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
           # Game+: autosave in the extra fifth slot before the burglary, it loads again as Game+
           (export TEST_HOME="$(mktemp -d)"
-           EXPECT="Autosave in slot 5" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-plus.txt "fullenv = 42" "storyoff = 42"
+           EXPECT_FILE=tests/expected/burglary-plus.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-plus.txt "fullenv = 42" "storyoff = 42"
            EXPECT="Game mode of the saved game: Game+" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-plus-load.txt)
           # Game+ background sounds, never in the original
           EXPECT="Background sound: .*STREET" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start-plus.txt
@@ -166,7 +166,7 @@ jobs:
           REJECT="Lua|Autosave" EXPECT_FILE=tests/expected/burglary-original.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
           # Game+: autosave in the extra fifth slot before the burglary, it loads again as Game+
           (export TEST_HOME="$(mktemp -d)"
-           EXPECT="Autosave in slot 5" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-plus.txt "fullenv = 42" "storyoff = 42"
+           EXPECT_FILE=tests/expected/burglary-plus.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-plus.txt "fullenv = 42" "storyoff = 42"
            EXPECT="Game mode of the saved game: Game+" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-plus-load.txt)
           # smooth edges (Scale4x) with the CRT picture
           SHOTDIR=tests/out/story-smooth tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt "scale2x = 1" "displayfilter = crt"

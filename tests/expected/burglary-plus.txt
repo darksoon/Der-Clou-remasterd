@@ -1,0 +1,3 @@
+# Results of tests/scripts/burglary-plus.txt: autosave before the burglary, newspaper the next morning
+Autosave in slot 5
+Newspaper: 
