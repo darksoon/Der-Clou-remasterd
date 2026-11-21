@@ -256,25 +256,52 @@ static void tcAmbienceForLocation(uint32_t locNr)
 
     switch (locNr)
     {
-        case 3: /* hotel room */
-            file = "HOTEL.WAV";
+        case 3:  /* hotel room */
+        case 52: /* Mrs. Parker */
+        case 53: /* Mr. Maloya */
+        case 54: /* Mr. Pooly */
+        case 61: /* Lisson Grove 17 */
+        case 62: /* Sabien Pardo */
+            file = "HOTEL.WAV"; /* a quiet room with a ticking clock */
             break;
         case 48: /* hotel reception */
             file = "LOBBY.WAV";
             break;
-        case 4: /* Fat Man's Pub */
+        case 4:  /* Fat Man's Pub */
         case 49: /* Walrus */
             file = "PUB.WAV";
             break;
-        case 7: /* police station */
+        case 7:  /* police station */
         case 59: /* police office */
             file = "POLICE.WAV";
+            break;
+        case 6: /* tool dealer */
+            file = "SHOP.WAV";
+            break;
+        case 5:  /* Cars & Vans office */
+        case 50: /* Cars & Vans garage */
+            file = "GARAGE.WAV";
+            break;
+        case 58: /* Victoria Station */
+            file = "STATION.WAV";
+            break;
+        case 10: /* Kiosk, Fulham */
+        case 18: /* Pink Villa */
+        case 20: /* old people's home */
+        case 22: /* Highgate Cemetery */
+        case 23: /* grave of Karl Marx */
+        case 25: /* villa in Chelsea */
+        case 27: /* Kenwood House */
+        case 29: /* Ham House */
+        case 31: /* Osterly Park House */
+        case 33: /* Chiswick House */
+        case 60: /* monastery */
+            file = "PARK.WAV"; /* birds and trees instead of traffic */
             break;
         case 0:
         case 2:
         case 51: /* car park */
         case 55:
-        case 58: /* Victoria Station */
             file = "STREET.WAV";
             break;
         default:

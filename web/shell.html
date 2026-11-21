@@ -31,6 +31,12 @@
     background:#000; border:1px solid var(--line); box-shadow:0 0 40px rgba(0,0,0,.5); }
   #canvas { position:absolute; inset:0; width:100%; height:100%; display:block;
     image-rendering:pixelated; outline:none; }
+  /* fullscreen: the picture keeps 4:3 and is centred, black bars fill the rest of a wide screen */
+  #stage:fullscreen { width:100vw; height:100vh; aspect-ratio:auto; border:0; box-shadow:none; }
+  #stage:-webkit-full-screen { width:100vw; height:100vh; aspect-ratio:auto; border:0; box-shadow:none; }
+  #stage:fullscreen #canvas, #stage:-webkit-full-screen #canvas { inset:0; margin:auto;
+    width:min(100vw, calc(100vh * 4 / 3)); height:min(100vh, calc(100vw * 3 / 4)); }
+  #canvas:fullscreen, #canvas:-webkit-full-screen { width:100vw; height:100vh; object-fit:contain; background:#000; }
   #overlay { position:absolute; inset:0; overflow:auto; display:flex; flex-direction:column; align-items:center;
     justify-content:center; gap:1rem; background:radial-gradient(#173f33, #08201a); text-align:center; padding:1rem; }
   #overlay h2 { margin:0; font-size:2rem; color:var(--accent); letter-spacing:.06em; }

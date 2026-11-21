@@ -3,6 +3,25 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.22.1 (21.11.2026)
+
+### Neu
+
+- Spiel+: Jeder Ort hat sein eigenes Hintergrundgeräusch. Im Hotelzimmer und in den Wohnungen tickt
+  nur noch eine Uhr (ohne Verkehr), die Hotelhalle klingt nach Hotelhalle, beim Werkzeughändler
+  klappert Werkzeug, bei Cars & Vans wird geschraubt, in der Victoria Station zischen Dampfloks. Vor
+  dem Kiosk, den Villen und Landhäusern, auf dem Friedhof und am Kloster singen Vögel statt Autos zu
+  fahren
+
+### Behoben
+
+- In einer Auswahl-Sprechblase zählt ein Mausklick nur noch, wenn er in der Blase liegt. Bisher wählte
+  ein Klick irgendwo im Bild den markierten Eintrag aus
+- Browser: Im Vollbild bleibt das Bild im Seitenverhältnis 4:3 und steht mittig, statt auf die ganze
+  Breite gezogen zu werden
+- Browser: Hintergrundgeräusche und Wetter liegen jetzt im zweiten Datenpaket bei den Stimmen, damit
+  das Hauptpaket klein genug bleibt
+
 ## 0.22.0 (21.11.2026)
 
 Diese Version behebt die Befunde des neuen Audits ([AUDIT.md](AUDIT.md)).

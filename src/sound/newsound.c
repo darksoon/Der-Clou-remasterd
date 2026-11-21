@@ -50,6 +50,7 @@ static void sndSetAmbience(const char *file)
     }
     else
     {
+        Log("Background sound: none");
         MXR_SetInput(pAudioMixer, MXR_INPUT_AMBIENT, NULL);
     }
 }

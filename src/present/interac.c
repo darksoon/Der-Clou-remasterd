@@ -494,7 +494,18 @@ ubyte Bubble(LIST *bubble, ubyte activ, void (*func)(ubyte), uint32_t waitTime)
 
             if (!ende)
             {
-                if (action & INP_LBUTTONP) ende = TRUE;
+                if (action & INP_LBUTTONP)
+                {
+                    /* a mouse click picks an entry only inside the bubble; the original took a click
+                       anywhere on the screen, which picked entries by accident */
+                    if ((action & INP_MOUSE) && !(action & INP_KEYBOARD))
+                    {
+                        inpGetMouseXY(u_wrp, &x, &y);
+                        if ((x >= X_OFFSET) && (x <= X_OFFSET + INT_BUBBLE_WIDTH) && (y <= 56)) ende = TRUE;
+                    }
+                    else
+                        ende = TRUE;
+                }
 
                 ubyte leftRightExit =
                     BubbleLeftRightExit && (action & INP_KEYBOARD) && (action & (INP_LEFT | INP_RIGHT));

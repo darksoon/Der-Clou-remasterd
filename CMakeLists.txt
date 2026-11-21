@@ -85,6 +85,8 @@ if(EMSCRIPTEN)
     -sINVOKE_RUN=0 -sEXPORTED_RUNTIME_METHODS=callMain,FS,ENV \
     --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/gamedata@/gamedata \
     --exclude-file ${CMAKE_CURRENT_SOURCE_DIR}/gamedata/PLUS/VOICE \
+    --exclude-file ${CMAKE_CURRENT_SOURCE_DIR}/gamedata/PLUS/AMBIENT \
+    --exclude-file ${CMAKE_CURRENT_SOURCE_DIR}/gamedata/PLUS/WEATHER \
     --shell-file ${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html \
     -lidbfs.js")
 

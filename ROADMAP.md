@@ -1,6 +1,6 @@
 # Roadmap: Der Clou! remastered
 
-Stand: Version 0.22.0. Die Roadmap ist nach den beiden Spielarten getrennt. Im Original gilt:
+Stand: Version 0.22.1. Die Roadmap ist nach den beiden Spielarten getrennt. Im Original gilt:
 Es spielt sich wie 1994. Erlaubt sind dort nur Fehlerkorrekturen, Technik und Komfort, der den
 Spielablauf nicht verändert und abschaltbar ist. Alles, was Regeln, Balance oder Inhalte ändert,
 gehört in Spiel+.
@@ -11,7 +11,7 @@ gehört in Spiel+.
 - Genaue AdLib-Emulation (Nuked OPL3), Bildfilter Scanlines und Röhrenmonitor, Kanten glätten
 - Bedienung im Browser auf Handy und Tablet, Web-App zum Installieren, Intro wieder an
 - Tastenwiederholung wie auf der PC-Tastatur von 1994 (die Planung läuft beim Halten schneller)
-- Spiel+: neue Stimmen für 75 Sätze der Geschichte, Hintergrundgeräusche je nach Ort (Straße, Pub, Hotel, Polizei)
+- Spiel+: neue Stimmen für 75 Sätze der Geschichte, Hintergrundgeräusche je nach Ort (Straße, Park, Pub, Hotel, Polizei, Laden, Werkstatt, Bahnhof)
 - Spiel+: Werkzeug-Infos (wer aus der Bande es benutzen kann), Werkzeugwerte per Lua (Stethoskop),
   automatisches Speichern vor jedem Einbruch in einem eigenen fünften Platz
 - Spiel+ Planung: Laufwege und Sichtbereich der Wachen (Taste W), Zeitleiste mit Rückgängig und
@@ -48,7 +48,7 @@ gehört in Spiel+.
 | P3 | Einbruchspläne kopieren und Varianten vergleichen | M |
 | P9 | Neue Einbrüche, Ereignisse und Nebenhandlungen per Lua, erster Beweis ist ein neues Gebäude | L |
 | P13 | Stimmen für die freien Gespräche und die übrigen Figuren (Abt, Auftraggeber am Marx-Grab) | M |
-| P14 | Weitere Hintergrundgeräusche (Bahnhof, Werkstatt, Läden) | S |
+| P14 | Weitere Hintergrundgeräusche (Museen, Hafen, Gefängnis, Einbruch) | S |
 | P12 | Musik neu arrangiert (Probe als Jazz liegt vor, vorerst zurückgestellt) | L |
 | P15 | HD-Ebene für einzelne Bilder, erst als Test mit zwei, drei Orten | L |
 | P16 | Weichere Überblendungen zwischen Szenen | M |
