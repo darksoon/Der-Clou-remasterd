@@ -44,13 +44,17 @@ static void sndSetAmbience(const char *file)
     }
 }
 
-/* the background sound for a piece of music: the street songs get the street, the pubs the pub */
+/* the background sound for a piece of music: street, pub, hotel room, police */
 static void sndAmbienceForMusic(const char *name)
 {
     if (!strncasecmp(name, "street", 6))
         sndSetAmbience("STREET.WAV");
     else if (!strncasecmp(name, "bar", 3))
         sndSetAmbience("PUB.WAV");
+    else if (!strcasecmp(name, "hotel.bk"))
+        sndSetAmbience("HOTEL.WAV");
+    else if (!strcasecmp(name, "gludo.bk"))
+        sndSetAmbience("POLICE.WAV");
     else
         sndSetAmbience(NULL);
 }
