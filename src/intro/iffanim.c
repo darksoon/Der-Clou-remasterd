@@ -459,18 +459,12 @@ static int IffAnim_DecodeByteRun(IffAnim *anim, void *dst_, void *data_, int dat
     char *dst = (char *)dst_;   // destination (uncompressed)
     char *src = (char *)data_;  // byte code (compressed)
     int planepitch = 0;         // pitch of a bitplane
-    int linepitch = 0;          // pitch of a scanline with mask plane
     int n = 0;
     int val = 0;
     int posdst = 0;  // write position in dst
     int possrc = 0;  // read position in src
 
     planepitch = (w + 15) / 16 * 2;  // pitch of a plane
-    linepitch = planepitch * bpp;    // pitch of a line without mask
-    if (mask == 1)
-    {
-        linepitch += planepitch;  // add mask plane pitch to line pitch
-    }
     if (!dst || !src)
     {
         return FALSE;

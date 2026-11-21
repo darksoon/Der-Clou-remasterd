@@ -6,7 +6,7 @@
 */
 #include "intro/intro.h"
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 #include "base/base.h"
 #include "disk/disk.h"
 #include "gfx/gfx.h"

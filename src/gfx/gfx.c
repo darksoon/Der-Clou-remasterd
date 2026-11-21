@@ -6,13 +6,12 @@
 */
 #include "gfx/gfx.h"
 #include <time.h>
-#include "SDL_image.h"
 #include "disk/disk.h"
 
 #include <math.h>
 #include <stdint.h>
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 #include "base/base.h"
 #include "gfx/filter.h"
 #include "memory/memory.h"
@@ -162,12 +161,12 @@ static void SetWindowIcon(char *icon)
 
     if (image)
     {
-        colorkey = SDL_MapRGB(image->format, 2, 5, 1);
+        colorkey = SDL_MapSurfaceRGB(image, 2, 5, 1);
 
-        SDL_SetColorKey(image, SDL_TRUE, colorkey);
+        SDL_SetSurfaceColorKey(image, true, colorkey);
 
         SDL_SetWindowIcon(Window, image);
-        SDL_FreeSurface(image);
+        SDL_DestroySurface(image);
     }
 }
 
@@ -179,9 +178,9 @@ void gfxInvalidate(void) { bGfxInvalidate = 1; }
 int gfxSaveScreenshotTo(const char *fileName)
 {
     if (!SurfaceScreen) return 0;
-    if (IMG_SavePNG(SurfaceScreen, fileName) == 0) return 1;
-    Log("PNG screenshot failed (%s), saving BMP", IMG_GetError());
-    return SDL_SaveBMP(SurfaceScreen, fileName) == 0;
+    if (SDL_SavePNG(SurfaceScreen, fileName)) return 1;
+    Log("PNG screenshot failed (%s), saving BMP", SDL_GetError());
+    return SDL_SaveBMP(SurfaceScreen, fileName);
 }
 
 static void gfxScreenshotName(char *fileName, size_t size, const char *prefix, const char *ext)
@@ -210,7 +209,7 @@ void gfxScreenshotShadow(void)
 {
     char fileName[FILENAME_MAX];
     gfxScreenshotName(fileName, sizeof(fileName), "shadow", "bmp");
-    if (!SDL_SaveBMP(pShadowSurface, fileName)) Log("Shadow surface saved: %s", fileName);
+    if (SDL_SaveBMP(pShadowSurface, fileName)) Log("Shadow surface saved: %s", fileName);
 }
 
 /************************************************/
@@ -257,24 +256,56 @@ void gfxSetDarkness(ubyte value)
 
 /************************************************/
 
+/* 8 bit surface with its own palette (SDL 3 creates indexed surfaces without one) */
+SDL_Surface *gfxCreateIndexedSurface(int width, int height)
+{
+    SDL_Surface *surface = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_INDEX8);
+
+    if (surface && !SDL_CreateSurfacePalette(surface))
+    {
+        SDL_DestroySurface(surface);
+        surface = NULL;
+    }
+    if (!surface) Log("gfxCreateIndexedSurface %dx%d: %s", width, height, SDL_GetError());
+    return surface;
+}
+
+/* mouse events come in window coordinates; the game expects coordinates of the logical screen */
+void gfxConvertEventCoordinates(SDL_Event *event)
+{
+    if (!Renderer) return;
+    if (((event->type == SDL_EVENT_MOUSE_MOTION) && event->motion.windowID) ||
+        (((event->type == SDL_EVENT_MOUSE_BUTTON_DOWN) || (event->type == SDL_EVENT_MOUSE_BUTTON_UP)) &&
+         event->button.windowID))
+    {
+        SDL_ConvertEventToRenderCoordinates(Renderer, event);
+    }
+}
+
+/* scale the fixed-size game screen into the window, keeping the aspect ratio; integer scaling optional */
+static void gfxSetLogicalPresentation(void)
+{
+    SDL_SetRenderLogicalPresentation(Renderer, Config.gfxScreenWidth, Config.gfxScreenHeight,
+                                     Config.gfxIntegerScale ? SDL_LOGICAL_PRESENTATION_INTEGER_SCALE
+                                                            : SDL_LOGICAL_PRESENTATION_LETTERBOX);
+}
+
 int gfxInitSDL(void)
 {
-    if (!SDL_InitSubSystem(SDL_INIT_VIDEO))
+    if (SDL_InitSubSystem(SDL_INIT_VIDEO))
     {
-        Uint32 flags = SDL_SWSURFACE;
+        SDL_WindowFlags flags = 0;
         char iconPath[TXT_KEY_LENGTH];
 
         if (Config.gfxFullScreen)
         {
-            flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+            flags |= SDL_WINDOW_FULLSCREEN;
         }
         if (Config.gfxResizable)
         {
             flags |= SDL_WINDOW_RESIZABLE;
         }
 
-        /* must be set before the screen texture is created */
-        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, Config.gfxLinearFilter ? "linear" : "nearest");
 
         gfxScalingFactor = min((Config.gfxScreenWidth / 320), (Config.gfxScreenHeight / 200));
         if (gfxScalingFactor > 4)
@@ -335,28 +366,36 @@ int gfxInitSDL(void)
         gfxScalingOffsetY = (Config.gfxScreenHeight - (200 * gfxScalingFactor)) / 2;
 
         dskBuildPathName(PICTURE_DIRECTORY, "icon.bmp", iconPath);
-        SDL_CreateWindowAndRenderer(Config.gfxScreenWidth, Config.gfxScreenHeight, flags, &Window, &Renderer);
+        if (!SDL_CreateWindowAndRenderer(TitleStr, Config.gfxScreenWidth, Config.gfxScreenHeight, flags, &Window,
+                                         &Renderer))
+        {
+            Log("SDL_CreateWindowAndRenderer: %s", SDL_GetError());
+            return 0;
+        }
         SetWindowIcon(iconPath);
-        SDL_SetWindowTitle(Window, TitleStr);
 
         /* Let SDL scale the fixed-size game screen to whatever size the window has.
            Keeps the aspect ratio (letterboxing) and translates mouse coordinates
            back to the logical screen size, so the input code needs no changes. */
-        SDL_RenderSetLogicalSize(Renderer, Config.gfxScreenWidth, Config.gfxScreenHeight);
-        SDL_RenderSetIntegerScale(Renderer, Config.gfxIntegerScale ? SDL_TRUE : SDL_FALSE);
+        gfxSetLogicalPresentation();
         if (Config.gfxResizable)
         {
             SDL_SetWindowMinimumSize(Window, 320, 200);
         }
-        SurfaceScreen =
-            SDL_CreateRGBSurface(SDL_SWSURFACE, Config.gfxScreenWidth, Config.gfxScreenHeight, 8, 0, 0, 0, 0);
-        ScreenTexture = SDL_CreateTextureFromSurface(Renderer, SurfaceScreen);
-        if (SurfaceScreen)
+        SurfaceScreen = gfxCreateIndexedSurface(Config.gfxScreenWidth, Config.gfxScreenHeight);
+        ScreenTexture = SDL_CreateTexture(Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
+                                          Config.gfxScreenWidth, Config.gfxScreenHeight);
+        if (ScreenTexture)
         {
-            pShadowSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, 640, 328, 8, 0, 0, 0, 0);
+            SDL_SetTextureScaleMode(ScreenTexture,
+                                    Config.gfxLinearFilter ? SDL_SCALEMODE_LINEAR : SDL_SCALEMODE_NEAREST);
+        }
+        if (SurfaceScreen && ScreenTexture)
+        {
+            pShadowSurface = gfxCreateIndexedSurface(640, 328);
             if (pShadowSurface)
             {
-                pRefreshSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, 320, 140, 8, 0, 0, 0, 0);
+                pRefreshSurface = gfxCreateIndexedSurface(320, 140);
                 if (pRefreshSurface)
                 {
                     NCH4Buffer = (ubyte *)MemAlloc(GFX_NCH4_BUFFER_SIZE);
@@ -374,7 +413,7 @@ void gfxRepresentSDL(void)
     if (Renderer && ScreenTexture)
     {
         SDL_RenderClear(Renderer);
-        SDL_RenderCopy(Renderer, ScreenTexture, NULL, NULL);
+        SDL_RenderTexture(Renderer, ScreenTexture, NULL, NULL);
         SDL_RenderPresent(Renderer);
     }
 }
@@ -384,7 +423,7 @@ void gfxToggleFullscreen(void)
     if (!Window) return;
 
     Config.gfxFullScreen = !Config.gfxFullScreen;
-    SDL_SetWindowFullscreen(Window, Config.gfxFullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    SDL_SetWindowFullscreen(Window, Config.gfxFullScreen ? true : false);
     gfxRepresentSDL();
 }
 
@@ -393,17 +432,15 @@ void gfxApplyDisplayConfig(void)
 {
     if (!Window) return;
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, Config.gfxLinearFilter ? "linear" : "nearest");
     if (ScreenTexture)
     {
-        SDL_SetTextureScaleMode(ScreenTexture, Config.gfxLinearFilter ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
+        SDL_SetTextureScaleMode(ScreenTexture, Config.gfxLinearFilter ? SDL_SCALEMODE_LINEAR : SDL_SCALEMODE_NEAREST);
     }
-    SDL_RenderSetIntegerScale(Renderer, Config.gfxIntegerScale ? SDL_TRUE : SDL_FALSE);
+    gfxSetLogicalPresentation();
 
-    if (((SDL_GetWindowFlags(Window) & SDL_WINDOW_FULLSCREEN_DESKTOP) == SDL_WINDOW_FULLSCREEN_DESKTOP) !=
-        (Config.gfxFullScreen != 0))
+    if (((SDL_GetWindowFlags(Window) & SDL_WINDOW_FULLSCREEN) != 0) != (Config.gfxFullScreen != 0))
     {
-        SDL_SetWindowFullscreen(Window, Config.gfxFullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+        SDL_SetWindowFullscreen(Window, Config.gfxFullScreen ? true : false);
     }
     gfxRepresentSDL();
 }
@@ -412,12 +449,12 @@ void gfxDoneSDL(void)
 {
     if (pRefreshSurface)
     {
-        SDL_FreeSurface(pRefreshSurface);
+        SDL_DestroySurface(pRefreshSurface);
         pRefreshSurface = NULL;
     }
     if (pShadowSurface)
     {
-        SDL_FreeSurface(pShadowSurface);
+        SDL_DestroySurface(pShadowSurface);
         pShadowSurface = NULL;
     }
     if (NCH4Buffer) MemFree(NCH4Buffer, GFX_NCH4_BUFFER_SIZE);
@@ -447,8 +484,8 @@ void gfxUpdateSDL(struct RastPort *rp)
 
         if (bGfxPaletteChanged)
         {
-            SDL_SetPaletteColors(SurfaceScreen->format->palette, (SDL_Color *)gfxPaletteGlobal, 0, 256);
-            SDL_SetPaletteColors(pShadowSurface->format->palette, (SDL_Color *)gfxPaletteGlobal, 0, 256);
+            SDL_SetPaletteColors(SDL_GetSurfacePalette(SurfaceScreen), (SDL_Color *)gfxPaletteGlobal, 0, 256);
+            SDL_SetPaletteColors(SDL_GetSurfacePalette(pShadowSurface), (SDL_Color *)gfxPaletteGlobal, 0, 256);
             bGfxPaletteChanged = 0;
         }
         SDL_LockSurface(SurfaceScreen);
@@ -470,10 +507,13 @@ void gfxUpdateSDL(struct RastPort *rp)
         SDL_UnlockSurface(SurfaceScreen);
 
         SDL_RenderClear(Renderer);
-        SDL_Surface *target = SDL_ConvertSurfaceFormat(SurfaceScreen, SDL_PIXELFORMAT_ARGB8888, 0);
-        SDL_UpdateTexture(ScreenTexture, NULL, target->pixels, target->pitch);
-        SDL_FreeSurface(target);
-        SDL_RenderCopy(Renderer, ScreenTexture, NULL, NULL);
+        SDL_Surface *target = SDL_ConvertSurface(SurfaceScreen, SDL_PIXELFORMAT_ARGB8888);
+        if (target)
+        {
+            SDL_UpdateTexture(ScreenTexture, NULL, target->pixels, target->pitch);
+            SDL_DestroySurface(target);
+        }
+        SDL_RenderTexture(Renderer, ScreenTexture, NULL, NULL);
         SDL_RenderPresent(Renderer);
     }
     bGfxInvalidate = 0;
@@ -590,7 +630,7 @@ void gfxSetVideoMode(ubyte uch_NewMode)
 {
     GfxBase.uch_VideoMode = uch_NewMode;
 
-    SDL_FillRect(pShadowSurface, NULL, 0);
+    SDL_FillSurfaceRect(pShadowSurface, NULL, 0);
 
     switch (uch_NewMode)
     {
@@ -705,8 +745,8 @@ static void gfxInitPictList(void)
 
 static void gfxInitXMSRastPort(struct XMSRastPort *rp, uword us_Width, uword us_Height)
 {
-    rp->pSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, us_Width, us_Height, 8, 0, 0, 0, 0);
-    SDL_FillRect(rp->pSurface, NULL, 0);
+    rp->pSurface = gfxCreateIndexedSurface(us_Width, us_Height);
+    SDL_FillSurfaceRect(rp->pSurface, NULL, 0);
     /*
     rp->us_Width  = us_Width;
     rp->us_Height = us_Height;
@@ -719,7 +759,7 @@ static void gfxDoneXMSRastPort(struct XMSRastPort *rp)
 {
     if (rp->pSurface)
     {
-        SDL_FreeSurface(rp->pSurface);
+        SDL_DestroySurface(rp->pSurface);
     }
     /*
     if (rp->p_MemHandle) {
@@ -779,7 +819,7 @@ static void gfxCloseFont(struct Font *font)
     {
         if (font->pSurface)
         {
-            SDL_FreeSurface(font->pSurface);
+            SDL_DestroySurface(font->pSurface);
             font->pSurface = NULL;
         }
 
@@ -988,7 +1028,7 @@ void gfxSetColorTable_hack(SDL_Surface *pSurface)
     SDL_Color *pc = NULL;
     for (i = 0; i < 256; i++)
     {
-        pc = &pSurface->format->palette->colors[i];
+        pc = &SDL_GetSurfacePalette(pSurface)->colors[i];
         *p++ = pc->r;
         *p++ = pc->g;
         *p++ = pc->b;
@@ -1046,15 +1086,14 @@ struct RastPort *gfxPrepareColl(uword us_CollId)
 
             /* Collection in den PrepareRP kopieren */
             // use temp surface to blit image to because src and dst of pixels must be the same size
-            SDL_Surface *pTmpSurface =
-                SDL_CreateRGBSurface(SDL_SWSURFACE, PrepareRP.us_Width, PrepareRP.us_Height, 8, 0, 0, 0, 0);
+            SDL_Surface *pTmpSurface = gfxCreateIndexedSurface(PrepareRP.us_Width, PrepareRP.us_Height);
 
-            SDL_SetPaletteColors(pTmpSurface->format->palette, pSurface->format->palette->colors, 0,
-                                 pSurface->format->palette->ncolors);
+            SDL_SetPaletteColors(SDL_GetSurfacePalette(pTmpSurface), SDL_GetSurfacePalette(pSurface)->colors, 0,
+                                 SDL_GetSurfacePalette(pSurface)->ncolors);
             SDL_BlitSurface(pSurface, NULL, pTmpSurface, NULL);
             memcpy(PrepareRP.p_BitMap, pTmpSurface->pixels, pTmpSurface->w * pTmpSurface->h);
-            SDL_FreeSurface(pTmpSurface);
-            SDL_FreeSurface(pSurface);
+            SDL_DestroySurface(pTmpSurface);
+            SDL_DestroySurface(pSurface);
         }
         else
         {

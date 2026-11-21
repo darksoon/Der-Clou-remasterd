@@ -5,8 +5,7 @@
    Based on the original by neo Software GmbH
 */
 #include <string.h>
-#include "SDL.h"
-#include "SDL_image.h"
+#include <SDL3/SDL.h>
 #include "gfx/gfx.h"
 #include "memory/memory.h"
 // #include "base\base.h"
@@ -217,7 +216,7 @@ static SDL_Surface *gfxLoadILBM(ubyte *pFileBuffer, int32_t ulSizeOfFile, const 
     chunkSize = PeekL_BE(&pFileBuffer[currPos]);
     currPos += 4;
 
-    SDL_Surface *pSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, hdr.width, hdr.height, 8, 0, 0, 0, 0);
+    SDL_Surface *pSurface = gfxCreateIndexedSurface(hdr.width, hdr.height);
     if (!pSurface)
     {
         Log("Failed to create surface: %s\n", puch_Pathname);
@@ -244,18 +243,18 @@ static SDL_Surface *gfxLoadILBM(ubyte *pFileBuffer, int32_t ulSizeOfFile, const 
             if (numColors > 256) numColors = 256;
 
             int c = 0;
-            SDL_Color *pc = NULL;
+            SDL_Color colors[256];
             for (c = 0; c < numColors; c++)
             {
-                pc = &pSurface->format->palette->colors[c];
-                pc->r = pFileBuffer[currPos];
+                colors[c].r = pFileBuffer[currPos];
                 currPos++;
-                pc->g = pFileBuffer[currPos];
+                colors[c].g = pFileBuffer[currPos];
                 currPos++;
-                pc->b = pFileBuffer[currPos];
+                colors[c].b = pFileBuffer[currPos];
                 currPos++;
-                pc->a = 0;
+                colors[c].a = SDL_ALPHA_OPAQUE;
             }
+            SDL_SetPaletteColors(SDL_GetSurfacePalette(pSurface), colors, 0, numColors);
         }
     }
     return pSurface;
@@ -296,11 +295,14 @@ SDL_Surface *gfxLoadImage(const char *puch_Pathname)
     }
 
     /* decode the buffer read through dskOpen, so a replacement in modfiles is used as well */
-    pSurface = IMG_Load_RW(SDL_RWFromConstMem(p_FileBuffer, ul_SizeOfFile), 1);
-    if (!pSurface)
+    if ((ul_SizeOfFile >= 12) && !memcmp(p_FileBuffer, "FORM", 4) && !memcmp(p_FileBuffer + 8, "ILBM", 4))
     {
-        /* SDL_image built without LBM support: fall back to the built-in decoder */
         pSurface = gfxLoadILBM(p_FileBuffer, ul_SizeOfFile, puch_Pathname);
+    }
+    else
+    {
+        /* replacements may be PNG (with a 256 colour palette) or BMP */
+        pSurface = SDL_LoadSurface_IO(SDL_IOFromConstMem(p_FileBuffer, ul_SizeOfFile), true);
     }
     if (!pSurface)
     {

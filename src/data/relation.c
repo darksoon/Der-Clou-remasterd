@@ -8,7 +8,6 @@
 
 #include "port/port.h"
 
-static RELATION nrOfRelations = 1;
 static struct relationDef *relationsDefBase = NULL;
 
 int (*CompareKey)(KEY, KEY) = NULL;
@@ -41,7 +40,6 @@ RELATION AddRelation(RELATION id)
             relationsDefBase = rd;
 
             rd->rd_id = id;
-            nrOfRelations++;
 
             rd->rd_relationsTable = NULL;
 
@@ -98,8 +96,6 @@ RELATION RemRelation(RELATION id)
             }
 
             MemFree(rd, sizeof(struct relationDef));
-
-            nrOfRelations--;
 
             return id;
         }

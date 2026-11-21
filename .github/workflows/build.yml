@@ -13,6 +13,13 @@ permissions:
 
 env:
   BUILD_TYPE: Release
+  # SDL 3 is built from source on Linux; these are the development files of the backends it can use
+  # (X11, Wayland, ALSA, PulseAudio, PipeWire, ...). At runtime they are loaded only when present.
+  SDL_LINUX_DEPS: >-
+    cmake ninja-build libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev
+    libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev
+    libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libwayland-dev wayland-protocols
+    libdecor-0-dev libasound2-dev libpulse-dev libpipewire-0.3-dev
 
 jobs:
   linux:
@@ -20,11 +27,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: sudo apt-get -qq update && sudo apt-get install -y cmake libsdl2-dev libsdl2-image-dev
+        run: sudo apt-get -qq update && sudo apt-get install -y $SDL_LINUX_DEPS
       - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+        run: cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
       - name: Build
-        run: cmake --build build -j
+        run: cmake --build build
       - name: Package
         run: |
           mkdir -p dist/DerClou
@@ -76,11 +83,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: sudo apt-get -qq update && sudo apt-get install -y cmake libsdl2-dev libsdl2-image-dev
+        run: sudo apt-get -qq update && sudo apt-get install -y $SDL_LINUX_DEPS
       - name: Configure (ASan + UBSan)
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+        run: cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
       - name: Build
-        run: cmake --build build -j
+        run: cmake --build build
       - name: Scripted play tests
         run: |
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt
@@ -112,8 +119,7 @@ jobs:
             mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-cmake
             mingw-w64-ucrt-x86_64-ninja
-            mingw-w64-ucrt-x86_64-SDL2
-            mingw-w64-ucrt-x86_64-SDL2_image
+            mingw-w64-ucrt-x86_64-sdl3
       - name: Configure
         run: cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
       - name: Build
@@ -137,7 +143,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: brew install sdl2 sdl2_image dylibbundler
+        run: brew install sdl3 dylibbundler
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
       - name: Build

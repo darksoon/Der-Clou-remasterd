@@ -45,7 +45,7 @@ void livDone(void)
     {
         if (sc->pSurface)
         {
-            SDL_FreeSurface(sc->pSurface);
+            SDL_DestroySurface(sc->pSurface);
             sc->pSurface = NULL;
         }
 
@@ -493,7 +493,7 @@ static void livLoadData(void)
 
     if (sc->pSurface)
     {
-        SDL_FreeSurface(sc->pSurface);
+        SDL_DestroySurface(sc->pSurface);
     }
     sc->pSurface = gfxLoadImage(filename);
     if (!sc->pSurface)

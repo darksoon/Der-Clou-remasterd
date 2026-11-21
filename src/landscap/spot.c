@@ -69,7 +69,7 @@ void lsDoneSpots(void)
 
         if (sc->pSurface)
         {
-            SDL_FreeSurface(sc->pSurface);
+            SDL_DestroySurface(sc->pSurface);
         }
 
         MemFree(sc, sizeof(struct SpotControl));

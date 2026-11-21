@@ -7,7 +7,7 @@
 #include "inphdl/inphdl.h"
 #include "base/base.h"
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 #include <string.h>
 #include <stdlib.h>
 #include "inphdl/arrow1x_xpm.c"
@@ -101,7 +101,7 @@ void setMouseCursor(ubyte fact)
                 SDL_SetCursor(cursor[1]);
                 break;
         }
-        SDL_ShowCursor(1);
+        SDL_ShowCursor();
     }
 }
 
@@ -132,9 +132,9 @@ void removeMouseCursor(void)
 {
     if (cursorInit)
     {
-        SDL_ShowCursor(0);
-        SDL_FreeCursor(cursor[0]);
-        SDL_FreeCursor(cursor[1]);
+        SDL_HideCursor();
+        SDL_DestroyCursor(cursor[0]);
+        SDL_DestroyCursor(cursor[1]);
     }
 }
 
@@ -143,7 +143,7 @@ void removeMouseCursor(void)
 #define INP_JOY_DEAD_ZONE 10000
 
 static SDL_Joystick *inpJoystick = NULL;
-static SDL_JoystickID inpJoystickId = -1;
+static SDL_JoystickID inpJoystickId = 0; /* 0 = none in SDL 3 */
 static ubyte inpJoySubsystem = 0;
 
 static void inpOpenJoystickIfNeeded(void)
@@ -152,10 +152,12 @@ static void inpOpenJoystickIfNeeded(void)
     int i = 0;
     int first = 0;
     int last = 0;
+    SDL_JoystickID *joys = NULL;
 
     if (!inpJoySubsystem || inpJoystick) return;
 
-    numJoys = SDL_NumJoysticks();
+    joys = SDL_GetJoysticks(&numJoys);
+    if (!joys) numJoys = 0;
 
     if (Config.UseJoystick == CFG_JOYSTICK_AUTO)
     {
@@ -169,11 +171,12 @@ static void inpOpenJoystickIfNeeded(void)
 
     for (i = first; (i <= last) && (i < numJoys); i++)
     {
-        inpJoystick = SDL_JoystickOpen(i);
+        inpJoystick = SDL_OpenJoystick(joys[i]);
         if (inpJoystick)
         {
-            inpJoystickId = SDL_JoystickInstanceID(inpJoystick);
-            Log("Using joystick #%d = \"%s\"", i + 1, SDL_JoystickName(inpJoystick));
+            inpJoystickId = SDL_GetJoystickID(inpJoystick);
+            Log("Using joystick #%d = \"%s\"", i + 1, SDL_GetJoystickName(inpJoystick));
+            SDL_free(joys);
             return;
         }
     }
@@ -183,32 +186,33 @@ static void inpOpenJoystickIfNeeded(void)
         Log("Joystick #%d not available. Connected joysticks:", Config.UseJoystick);
         for (i = 0; i < numJoys; i++)
         {
-            Log("#%d = \"%s\"", i + 1, SDL_JoystickNameForIndex(i));
+            Log("#%d = \"%s\"", i + 1, SDL_GetJoystickNameForID(joys[i]));
         }
     }
+    SDL_free(joys);
 }
 
 static void inpCloseJoystick(void)
 {
     if (inpJoystick)
     {
-        SDL_JoystickClose(inpJoystick);
+        SDL_CloseJoystick(inpJoystick);
         inpJoystick = NULL;
-        inpJoystickId = -1;
+        inpJoystickId = 0;
     }
 }
 
 static void inpInitJoystick(void)
 {
     inpJoystick = NULL;
-    inpJoystickId = -1;
+    inpJoystickId = 0;
 
     if (!Config.UseJoystick)
     {
         return;
     }
 
-    if (SDL_InitSubSystem(SDL_INIT_JOYSTICK))
+    if (!SDL_InitSubSystem(SDL_INIT_JOYSTICK))
     {
         Log("Failed to init joystick subsystem.");
         Config.UseJoystick = 0;
@@ -216,7 +220,7 @@ static void inpInitJoystick(void)
     }
 
     inpJoySubsystem = 1;
-    SDL_JoystickEventState(SDL_ENABLE);
+    SDL_SetJoystickEventsEnabled(true);
 
     /* a missing joystick is fine: it is opened as soon as it gets plugged in */
     inpOpenJoystickIfNeeded();
@@ -227,7 +231,7 @@ static void inpQuitJoystick(void)
 {
     if (inpJoySubsystem)
     {
-        SDL_JoystickEventState(SDL_IGNORE);
+        SDL_SetJoystickEventsEnabled(false);
         inpCloseJoystick();
         SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
         inpJoySubsystem = 0;
@@ -288,18 +292,18 @@ static void inpScriptPushMouse(Uint32 type, Uint8 button, int wx, int wy)
     SDL_Event ev;
     memset(&ev, 0, sizeof(ev));
     ev.type = type;
-    if (type == SDL_MOUSEMOTION)
+    if (type == SDL_EVENT_MOUSE_MOTION)
     {
-        ev.motion.x = wx;
-        ev.motion.y = wy;
+        ev.motion.x = (float)wx;
+        ev.motion.y = (float)wy;
     }
     else
     {
         ev.button.button = button;
-        ev.button.state = (type == SDL_MOUSEBUTTONDOWN) ? SDL_PRESSED : SDL_RELEASED;
+        ev.button.down = (type == SDL_EVENT_MOUSE_BUTTON_DOWN);
         ev.button.clicks = 1;
-        ev.button.x = wx;
-        ev.button.y = wy;
+        ev.button.x = (float)wx;
+        ev.button.y = (float)wy;
     }
     SDL_PushEvent(&ev);
 }
@@ -308,13 +312,13 @@ static void inpScriptPushKey(SDL_Keycode sym)
 {
     SDL_Event ev;
     memset(&ev, 0, sizeof(ev));
-    ev.type = SDL_KEYDOWN;
-    ev.key.state = SDL_PRESSED;
-    ev.key.keysym.sym = sym;
-    ev.key.keysym.scancode = SDL_GetScancodeFromKey(sym);
+    ev.type = SDL_EVENT_KEY_DOWN;
+    ev.key.down = true;
+    ev.key.key = sym;
+    ev.key.scancode = SDL_GetScancodeFromKey(sym, NULL);
     SDL_PushEvent(&ev);
-    ev.type = SDL_KEYUP;
-    ev.key.state = SDL_RELEASED;
+    ev.type = SDL_EVENT_KEY_UP;
+    ev.key.down = false;
     SDL_PushEvent(&ev);
 }
 
@@ -325,7 +329,7 @@ static void inpScriptPump(void)
 
     if (inpScriptUpButton && now >= inpScriptUpAt)
     {
-        inpScriptPushMouse(SDL_MOUSEBUTTONUP, inpScriptUpButton, inpScriptUpX, inpScriptUpY);
+        inpScriptPushMouse(SDL_EVENT_MOUSE_BUTTON_UP, inpScriptUpButton, inpScriptUpX, inpScriptUpY);
         inpScriptUpButton = 0;
     }
 
@@ -361,8 +365,8 @@ static void inpScriptPump(void)
         {
             Uint8 button = (cmd[0] == 'r') ? SDL_BUTTON_RIGHT : SDL_BUTTON_LEFT;
             inpScriptToWindow(x, y, &wx, &wy);
-            inpScriptPushMouse(SDL_MOUSEMOTION, 0, wx, wy);
-            inpScriptPushMouse(SDL_MOUSEBUTTONDOWN, button, wx, wy);
+            inpScriptPushMouse(SDL_EVENT_MOUSE_MOTION, 0, wx, wy);
+            inpScriptPushMouse(SDL_EVENT_MOUSE_BUTTON_DOWN, button, wx, wy);
             /* release a little later, like a real click */
             inpScriptUpButton = button;
             inpScriptUpX = wx;
@@ -372,7 +376,7 @@ static void inpScriptPump(void)
         else if (!strcmp(cmd, "move") && sscanf(arg, "%d %d", &x, &y) == 2)
         {
             inpScriptToWindow(x, y, &wx, &wy);
-            inpScriptPushMouse(SDL_MOUSEMOTION, 0, wx, wy);
+            inpScriptPushMouse(SDL_EVENT_MOUSE_MOTION, 0, wx, wy);
         }
         else if (!strcmp(cmd, "shot"))
         {
@@ -389,7 +393,7 @@ static void inpScriptPump(void)
         {
             SDL_Event ev;
             memset(&ev, 0, sizeof(ev));
-            ev.type = SDL_QUIT;
+            ev.type = SDL_EVENT_QUIT;
             SDL_PushEvent(&ev);
         }
         else
@@ -525,17 +529,20 @@ int32_t inpWaitFor(int32_t l_Mask)
 
         while (SDL_PollEvent(&event))
         {
+            /* window to game screen coordinates; script events (window 0) already are */
+            gfxConvertEventCoordinates(&event);
+
             switch (event.type)
             {
-                case SDL_KEYDOWN:
-                    sym = event.key.keysym.sym;
+                case SDL_EVENT_KEY_DOWN:
+                    sym = event.key.key;
                     if ((sym == SDLK_TAB) && !event.key.repeat)
                     {
                         inpFastForwardOn = !inpFastForwardOn;
                         break;
                     }
                     /* Alt+Enter: toggle fullscreen (handled here so Enter does not also confirm) */
-                    if (((sym == SDLK_RETURN) || (sym == SDLK_KP_ENTER)) && (event.key.keysym.mod & KMOD_ALT))
+                    if (((sym == SDLK_RETURN) || (sym == SDLK_KP_ENTER)) && (event.key.mod & SDL_KMOD_ALT))
                     {
                         if (!event.key.repeat) gfxToggleFullscreen();
                         break;
@@ -557,8 +564,8 @@ int32_t inpWaitFor(int32_t l_Mask)
                         action |= INP_KEYBOARD | INP_DOWN;
                     }
                     break;
-                case SDL_KEYUP:
-                    sym = event.key.keysym.sym;
+                case SDL_EVENT_KEY_UP:
+                    sym = event.key.key;
                     if ((l_Mask & (INP_LBUTTONP | INP_LBUTTONR)) &&
                         ((sym == SDLK_SPACE) || (sym == SDLK_RETURN) || (sym == SDLK_KP_ENTER)))
                     {
@@ -582,7 +589,7 @@ int32_t inpWaitFor(int32_t l_Mask)
                         break;
                         case SDLK_F12:
                         {
-                            if (event.key.keysym.mod & KMOD_SHIFT)
+                            if (event.key.mod & SDL_KMOD_SHIFT)
                                 gfxScreenshotShadow();  // Shift+F12: save shadow surface (debug)
                             else
                                 gfxScreenshot();  // 2014-07-13 LucyG : guess what F12 does
@@ -647,29 +654,31 @@ int32_t inpWaitFor(int32_t l_Mask)
                             break;
                     }
                     break;
-                case SDL_MOUSEMOTION:
-                    event.motion.x = (event.motion.x - gfxScalingOffsetX) / gfxScalingFactor;
-                    event.motion.y = (event.motion.y - gfxScalingOffsetY) / gfxScalingFactor;
-                    if ((l_Mask & INP_LEFT) && (event.motion.x < IHandler.us_MouseX))
+                case SDL_EVENT_MOUSE_MOTION:
+                {
+                    int mx = ((int)event.motion.x - gfxScalingOffsetX) / gfxScalingFactor;
+                    int my = ((int)event.motion.y - gfxScalingOffsetY) / gfxScalingFactor;
+                    if ((l_Mask & INP_LEFT) && (mx < IHandler.us_MouseX))
                     {
                         action |= INP_MOUSE | INP_LEFT;
                     }
-                    else if ((l_Mask & INP_RIGHT) && (event.motion.x > IHandler.us_MouseX))
+                    else if ((l_Mask & INP_RIGHT) && (mx > IHandler.us_MouseX))
                     {
                         action |= INP_MOUSE | INP_RIGHT;
                     }
-                    if ((l_Mask & INP_UP) && (event.motion.y < IHandler.us_MouseY))
+                    if ((l_Mask & INP_UP) && (my < IHandler.us_MouseY))
                     {
                         action |= INP_MOUSE | INP_UP;
                     }
-                    else if ((l_Mask & INP_DOWN) && (event.motion.y > IHandler.us_MouseY))
+                    else if ((l_Mask & INP_DOWN) && (my > IHandler.us_MouseY))
                     {
                         action |= INP_MOUSE | INP_DOWN;
                     }
-                    IHandler.us_MouseX = event.motion.x;
-                    IHandler.us_MouseY = event.motion.y;
+                    IHandler.us_MouseX = mx;
+                    IHandler.us_MouseY = my;
                     break;
-                case SDL_MOUSEBUTTONDOWN:
+                }
+                case SDL_EVENT_MOUSE_BUTTON_DOWN:
                     if ((l_Mask & INP_LBUTTONP) && (event.button.button == SDL_BUTTON_LEFT))
                     {
                         action |= INP_MOUSE | INP_LBUTTONP;
@@ -678,10 +687,10 @@ int32_t inpWaitFor(int32_t l_Mask)
                     {
                         action |= INP_MOUSE | INP_RBUTTONP;
                     }
-                    IHandler.us_MouseX = (event.button.x - gfxScalingOffsetX) / gfxScalingFactor;
-                    IHandler.us_MouseY = (event.button.y - gfxScalingOffsetY) / gfxScalingFactor;
+                    IHandler.us_MouseX = ((int)event.button.x - gfxScalingOffsetX) / gfxScalingFactor;
+                    IHandler.us_MouseY = ((int)event.button.y - gfxScalingOffsetY) / gfxScalingFactor;
                     break;
-                case SDL_MOUSEBUTTONUP:
+                case SDL_EVENT_MOUSE_BUTTON_UP:
                     if ((l_Mask & INP_LBUTTONR) && (event.button.button == SDL_BUTTON_LEFT))
                     {
                         action |= INP_MOUSE | INP_LBUTTONR;
@@ -690,10 +699,10 @@ int32_t inpWaitFor(int32_t l_Mask)
                     {
                         action |= INP_MOUSE | INP_RBUTTONR;
                     }
-                    IHandler.us_MouseX = (event.button.x - gfxScalingOffsetX) / gfxScalingFactor;
-                    IHandler.us_MouseY = (event.button.y - gfxScalingOffsetY) / gfxScalingFactor;
+                    IHandler.us_MouseX = ((int)event.button.x - gfxScalingOffsetX) / gfxScalingFactor;
+                    IHandler.us_MouseY = ((int)event.button.y - gfxScalingOffsetY) / gfxScalingFactor;
                     break;
-                case SDL_MOUSEWHEEL:
+                case SDL_EVENT_MOUSE_WHEEL:
                     if (event.wheel.y >= 0)
                     {
                         action |= INP_MOUSEWHEEL | INP_UP;
@@ -703,10 +712,10 @@ int32_t inpWaitFor(int32_t l_Mask)
                         action |= INP_MOUSEWHEEL | INP_DOWN;
                     }
                     break;
-                case SDL_JOYDEVICEADDED:
+                case SDL_EVENT_JOYSTICK_ADDED:
                     inpOpenJoystickIfNeeded();
                     break;
-                case SDL_JOYDEVICEREMOVED:
+                case SDL_EVENT_JOYSTICK_REMOVED:
                     if (inpJoystick && (event.jdevice.which == inpJoystickId))
                     {
                         Log("Joystick disconnected.");
@@ -714,7 +723,7 @@ int32_t inpWaitFor(int32_t l_Mask)
                         inpOpenJoystickIfNeeded(); /* auto mode: switch to another one if present */
                     }
                     break;
-                case SDL_JOYHATMOTION: /* d-pad: emulate cursor keys */
+                case SDL_EVENT_JOYSTICK_HAT_MOTION: /* d-pad: emulate cursor keys */
                     if (event.jhat.which != inpJoystickId) break;
                     if ((l_Mask & INP_LEFT) && (event.jhat.value & SDL_HAT_LEFT))
                     {
@@ -733,7 +742,7 @@ int32_t inpWaitFor(int32_t l_Mask)
                         action |= INP_KEYBOARD | INP_DOWN;
                     }
                     break;
-                case SDL_JOYAXISMOTION: /* 2015-01-10 LucyG: emulate cursor keys with joystick */
+                case SDL_EVENT_JOYSTICK_AXIS_MOTION: /* 2015-01-10 LucyG: emulate cursor keys with joystick */
                     if (event.jaxis.which != inpJoystickId) break;
                     if (event.jaxis.axis == 0)
                     {  // X axis
@@ -758,21 +767,18 @@ int32_t inpWaitFor(int32_t l_Mask)
                         }
                     }
                     break;
-                case SDL_JOYBUTTONUP: /* 2015-01-10 LucyG: emulate RETURN/SPACE with (any) joystick button */
+                case SDL_EVENT_JOYSTICK_BUTTON_UP: /* 2015-01-10 LucyG: emulate RETURN/SPACE with (any) joystick button */
                     if (event.jbutton.which != inpJoystickId) break;
                     if (l_Mask & (INP_LBUTTONP | INP_LBUTTONR))
                     {
                         action |= INP_KEYBOARD | INP_LBUTTONP;
                     }
                     break;
-                case SDL_WINDOWEVENT:
-                    if ((event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) ||
-                        (event.window.event == SDL_WINDOWEVENT_EXPOSED))
-                    {
-                        gfxRepresentSDL();
-                    }
+                case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+                case SDL_EVENT_WINDOW_EXPOSED:
+                    gfxRepresentSDL();
                     break;
-                case SDL_QUIT:
+                case SDL_EVENT_QUIT:
                     if (l_Mask & INP_QUIT)
                     {
                         action |= INP_QUIT;

@@ -13,15 +13,13 @@
  ****************************************************************************/
 #include "sound/fx.h"
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 #include "base/base.h"
 #include "sound/mxr.h"
 
 #define clamp(x, lower, upper) ((x) < (lower) ? (lower) : (x) > (upper) ? (upper) : (x))
 
 MXR_Mixer *pAudioMixer = NULL;
-
-static int SfxChannelOn = FALSE;
 
 void InitAudio(void)
 {
@@ -43,23 +41,10 @@ void RemoveAudio(void)
     pAudioMixer = NULL;
 }
 
-void sndInitFX(void)
-{
-    SDL_LockAudio();
+/* the sound effect channel needs no state of its own (the old "channel on" flag was never read) */
+void sndInitFX(void) {}
 
-    SfxChannelOn = FALSE;
-
-    SDL_UnlockAudio();
-}
-
-void sndDoneFX(void)
-{
-    SDL_LockAudio();
-
-    SfxChannelOn = FALSE;
-
-    SDL_UnlockAudio();
-}
+void sndDoneFX(void) {}
 
 void sndPlayFX(const char *name)
 {
@@ -72,6 +57,5 @@ void sndPlayFX(const char *name)
         dskBuildPathName(SAMPLES_DIRECTORY, name, fileName);
         MXR_SetInput(pAudioMixer, MXR_INPUT_FX, MXR_CreateInputVOC(fileName));
         MXR_SetInputVolume(pAudioMixer, MXR_INPUT_FX, Config.SfxVolume);  // 2018-09-25
-        SfxChannelOn = TRUE;
     }
 }

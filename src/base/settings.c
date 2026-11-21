@@ -201,12 +201,25 @@ static void setChange(int entry, int dir)
     }
 }
 
+/* where the settings menu stores its file. In the browser only the saved games directory is kept in
+   IndexedDB, so the file goes there; moving that mount would lose the saved games of older versions. */
+void tcSettingsPath(char *path, size_t size)
+{
+#ifdef __EMSCRIPTEN__
+    char result[FILENAME_MAX];
+    dskBuildPathNameUser(DATADISK_DIRECTORY, CFG_USER_FILENAME, result);
+    snprintf(path, size, "%s", result);
+#else
+    snprintf(path, size, "%s%s", dskGetUserPath(), CFG_USER_FILENAME);
+#endif
+}
+
 void tcSaveSettings(void)
 {
     char path[FILENAME_MAX];
     FILE *file = NULL;
 
-    snprintf(path, sizeof(path), "%s%s", dskGetUserPath(), CFG_USER_FILENAME);
+    tcSettingsPath(path, sizeof(path));
 
     if (!(file = fopen(path, "w")))
     {

@@ -12,7 +12,7 @@
  ****************************************************************************/
 #include "sound/newsound.h"
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 #include "disk/disk.h"
 #include "sound/fx.h"
 #include "sound/mxr.h"

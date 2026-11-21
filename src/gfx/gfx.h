@@ -7,7 +7,7 @@
 #ifndef MODULE_GFX
 #define MODULE_GFX
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 #include "theclou.h"
 
 #ifndef MODULE_LIST
@@ -24,6 +24,8 @@ extern int gfxSaveScreenshotTo(const char *fileName);
 extern void gfxRepresentSDL(void);
 extern void gfxToggleFullscreen(void);
 extern void gfxApplyDisplayConfig(void);
+extern SDL_Surface *gfxCreateIndexedSurface(int width, int height);
+extern void gfxConvertEventCoordinates(SDL_Event *event);
 extern ubyte *gfxGetGfxBoardBase(void);
 extern void gfxInvalidate(void);
 extern void gfxSetDarkness(ubyte value);

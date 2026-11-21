@@ -6,7 +6,7 @@
 */
 #include "port/port.h"
 
-#include "SDL_endian.h"
+#include <SDL3/SDL_endian.h>
 
 /**
  * Convert little to native endian word.

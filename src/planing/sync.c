@@ -325,9 +325,9 @@ void plSync(ubyte animate, uint32_t targetTime, uint32_t times, ubyte direction)
                                             }
                                             else
                                             {
-                                                if ((((LSObject)dbGetObject(
+                                                if (((LSObject)dbGetObject(
                                                           ActionData(action, struct ActionUse *)->ItemId))
-                                                         ->Type == Item_Fenster))
+                                                         ->Type == Item_Fenster)
                                                 {
                                                     lsWalkThroughWindow(
                                                         (LSObject)dbGetObject(

@@ -7,9 +7,12 @@
 #ifndef MODULE_SETTINGS
 #define MODULE_SETTINGS
 
+#include <stddef.h>
+
 extern const char *tcSettingsMenuEntry(void); /* name of the entry in the main menu */
 extern void tcSettingsMenu(void);
 extern void tcSaveSettings(void);
+extern void tcSettingsPath(char *path, size_t size); /* settings file of the settings menu */
 extern unsigned char tcChooseGameMode(void); /* new game: original or Game+, 0 = cancelled */
 
 #endif

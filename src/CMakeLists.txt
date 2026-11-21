@@ -69,10 +69,8 @@ set(SOURCE_FILES
 
 add_executable(DerClou ${SOURCE_FILES})
 
-target_include_directories(DerClou PUBLIC ${CMAKE_CURRENT_LIST_DIR}
-                                          ${SDL2_INCLUDE_DIRS} ${SDL2_image_INCLUDE_DIRS})
-target_compile_options(DerClou PUBLIC ${SDL2_CFLAGS_OTHER} -Wall
-                                      -Wno-format-overflow)
+target_include_directories(DerClou PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_compile_options(DerClou PUBLIC -Wall -Wno-format-overflow)
 
 add_compile_options("$<$<CONFIG:DEBUG>:-g3 -ggdb>")
 add_compile_options("$<$<CONFIG:RELEASE>:-O2>")
@@ -80,15 +78,9 @@ add_link_options("$<$<CONFIG:RELEASE>:-s>")
 add_compile_definitions(CMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}"
                         INSTALL_PATH_BIN="${INSTALL_PATH_BIN}")
 
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-  if(TARGET SDL2::SDL2main)
-    # provides WinMain on Windows and calls our SDL_main
-    target_link_libraries(DerClou PRIVATE SDL2::SDL2main)
-  endif()
-  target_link_libraries(DerClou PRIVATE SDL2::SDL2 SDL2_image::SDL2_image)
-  if(UNIX AND NOT APPLE)
-    target_link_libraries(DerClou PRIVATE m)
-  endif()
+target_link_libraries(DerClou PRIVATE SDL3::SDL3)
+if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
+  target_link_libraries(DerClou PRIVATE m)
 endif()
 
 if(NOT DEFINED INSTALL_PATH_BIN)

@@ -6,7 +6,7 @@
 */
 #include "disk/disk.h"
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <ctype.h>
 #include <errno.h>
 #include <sys/stat.h>

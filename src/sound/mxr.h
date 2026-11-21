@@ -99,6 +99,8 @@ struct MXR_Input
 
 extern MXR_Mixer *MXR_CreateMixer(const MXR_Format *pFormat);
 extern void MXR_DestroyMixer(MXR_Mixer *pMixer);
+extern void MXR_LockAudio(void);
+extern void MXR_UnlockAudio(void);
 
 extern void MXR_SetInput(MXR_Mixer *pMixer, int32_t nInput, MXR_Input *pInput);
 

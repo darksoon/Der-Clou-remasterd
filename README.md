@@ -8,7 +8,7 @@ Dieses Projekt führt die besten Teile der bisherigen Community-Ports zusammen:
 | Herkunft | Was übernommen wurde |
 | --- | --- |
 | [Der Clou! Open Source Project (COSP) 0.8](https://sourceforge.net/projects/cosp) | SDL-Port, Sprachausgabe der CD von Festplatte, Modfiles |
-| [iljabauer/DerClou](https://github.com/iljabauer/DerClou) | Basis dieses Repositories: CMake, SDL2, Browser-Version (WebAssembly), PNG-Bilder, Spielstände im Browser, viele Fehlerkorrekturen |
+| [iljabauer/DerClou](https://github.com/iljabauer/DerClou) | Basis dieses Repositories: CMake, SDL2-Port, Browser-Version (WebAssembly), PNG-Bilder, Spielstände im Browser, viele Fehlerkorrekturen |
 | [vrza/derclou](https://github.com/vrza/derclou) | Versionserkennung, frei skalierbares Fenster, Vollbild-Taste, Joystick-Hotplug, Steuerkreuz |
 | [vcosta/derclou](https://github.com/vcosta/derclou), [midzer/derclou](https://github.com/midzer/derclou) | Ursprünglicher SDL2-Port und Emscripten-Experimente, als Referenz |
 
@@ -54,8 +54,11 @@ Der Benutzerordner ist unter Linux `~/.local/share/DerClou/`, unter Windows `%AP
 
 ## Bauen unter Linux (Debian/Ubuntu)
 
+Das Spiel nutzt SDL 3 (mindestens 3.4.20). Ist keine passende Version installiert, lädt CMake genau diese
+Version (mit Prüfsumme) und baut sie mit. Dafür braucht SDL die Entwicklerdateien seiner Linux-Treiber:
+
 ```
-sudo apt install build-essential cmake libsdl2-dev libsdl2-image-dev
+sudo apt install build-essential cmake ninja-build libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libwayland-dev wayland-protocols libdecor-0-dev libasound2-dev libpulse-dev libpipewire-0.3-dev
 ```
 
 ```
@@ -152,7 +155,8 @@ Zusammengeführt aus der Roadmap von iljabauer/DerClou und eigenen Zielen.
         - [x] Ton nach dem ersten Klick
         - [x] Kleinere Downloadgröße (Release ohne Debug-Infos)
 2. Grafik
-    - [x] Bilder per SDL_image laden, PNG möglich
+    - [x] Bilder ohne Zusatzbibliothek laden (ILBM eingebaut, PNG über SDL 3)
+    - [x] Umstieg auf SDL 3
     - [x] Frei skalierbares Fenster, Vollbild-Taste, wählbarer Filter
     - [ ] Bilder mit 640 Pixeln Breite, Basisauflösung 640 × 240
     - [ ] Mehr als 256 Farben (16 oder 32 Bit)

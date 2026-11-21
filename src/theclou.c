@@ -10,8 +10,8 @@
 #include <stdlib.h>
 
 /* Include the SDL main definition header */
-#include "SDL.h"
-#include "SDL_main.h"
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h> /* provides WinMain on Windows and calls main() */
 #include "base/base.h"
 
 /* Set a variable to tell if the stdio redirect has been enabled. */
@@ -70,12 +70,12 @@ static void cleanup_output(void)
 }
 
 /* This is where execution begins [console apps] */
-int SDL_main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     int status = 0;
 
-    /* Load SDL dynamic link library */
-    if (SDL_Init(SDL_INIT_NOPARACHUTE) < 0)
+    /* subsystems are started later where they are needed */
+    if (!SDL_Init(0))
     {
         printf("WinMain() error: %s", SDL_GetError());
         return 1;

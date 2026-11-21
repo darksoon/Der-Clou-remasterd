@@ -9,7 +9,7 @@
 #include <libgen.h>
 #include <string.h>
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 #include "base/settings.h"
 #include "intro/intro.h"
 
@@ -558,7 +558,7 @@ static void loadConfig(const char *rootPath)
     }
 
     /* settings chosen in the settings menu, stored in the user directory (also works in the browser) */
-    snprintf(config_file, sizeof(config_file), "%s%s", dskGetUserPath(), CFG_USER_FILENAME);
+    tcSettingsPath(config_file, sizeof(config_file));
     if (readConfigFile(config_file, 1))
     {
         Log("Settings: %s", config_file);
@@ -571,8 +571,6 @@ int tcStartGame(int argc, char **argv)
 #ifdef THECLOU_DEBUG_ALLOC
     MemInit();
 #endif
-
-    if (SDL_InitSubSystem(SDL_INIT_TIMER)) return (0);  // 2015-01-10 LucyG : SDL_Init is already called earlier
 
     strcpy(prgname, argv[0]);
 
@@ -600,11 +598,10 @@ int tcStartGame(int argc, char **argv)
     if (!rootPath)
     {
 #ifndef __EMSCRIPTEN__
-        char *basePath = SDL_GetBasePath();
+        const char *basePath = SDL_GetBasePath(); /* owned by SDL, must not be freed */
         if (basePath)
         {
             snprintf(rootPathBuf, sizeof(rootPathBuf), "%s", basePath);
-            SDL_free(basePath);
             /* strip the trailing separator, the path builders add their own */
             size_t len = strlen(rootPathBuf);
             if (len > 1 && (rootPathBuf[len - 1] == '/' || rootPathBuf[len - 1] == '\\')) rootPathBuf[len - 1] = '\0';

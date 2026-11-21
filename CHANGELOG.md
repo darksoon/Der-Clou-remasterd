@@ -3,6 +3,26 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.13.0 (21.11.2026)
+
+### Technik
+
+- Umstieg von SDL 2 auf SDL 3 (3.4.20). Ist keine passende Version installiert, baut CMake genau diese
+  Version mit (feste Prüfsumme), unter Linux und im Browser immer. Auf Linux ist SDL damit fest eingebaut
+  und nutzt X11, Wayland, PulseAudio, PipeWire oder ALSA, je nachdem, was vorhanden ist
+- SDL_image wird nicht mehr gebraucht: ILBM liest der eingebaute Decoder, PNG und BMP lädt SDL 3 selbst,
+  Screenshots speichert SDL 3 als PNG
+- Ton über die Audio-Streams von SDL 3 mit derselben Puffergröße wie bisher
+- Mausposition wird über die Darstellung von SDL 3 umgerechnet, damit Klicks auch bei skaliertem Fenster,
+  Vollbild und ganzzahliger Skalierung genau treffen
+- Alle Testpartien liefern mit SDL 3 dieselben Bilder und Referenzwerte wie mit SDL 2
+
+### Behoben
+
+- Browser-Version: Die Einstellungen gingen nach einem Neuladen verloren, weil nur der Ordner der
+  Spielstände in IndexedDB gespeichert wird. `settings.cfg` liegt im Browser jetzt dort
+- Kleinere Aufräumarbeiten, damit auch Clang (Browser-Build) keine Warnungen mehr meldet
+
 ## 0.12.1 (21.11.2026)
 
 ### Behoben

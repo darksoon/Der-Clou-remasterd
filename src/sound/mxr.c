@@ -10,7 +10,7 @@
 */
 #include "mxr.h"
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 #include "sound/fmopl.h"
 
 /******************************************************************************/
@@ -331,8 +331,6 @@ static void MXR__ResampleAndMixU8StereoToStereo(MXR_Mixer *pMixer, unsigned char
 }
 
 /******************************************************************************/
-typedef void (*SDL_AudioCallbackFunc)(void *, unsigned char *, int);
-
 static void MXR_ProcessMixer(MXR_Mixer *pMixer, unsigned char *pStream, int nStreamSize)
 {
     int i = 0;
@@ -449,6 +447,39 @@ static void MXR_ProcessMixer(MXR_Mixer *pMixer, unsigned char *pStream, int nStr
 
 /******************************************************************************/
 
+static SDL_AudioStream *pAudioStream = NULL;
+
+/* SDL 3 asks for "additional" bytes; the mixer fills them in blocks of at most MXR_BUFFER_SAMPLES */
+static void SDLCALL MXR_AudioStreamCallback(void *userdata, SDL_AudioStream *stream, int additional, int total)
+{
+    MXR_Mixer *pMixer = (MXR_Mixer *)userdata;
+    static unsigned char buffer[MXR_BUFFER_SAMPLES * 4]; /* up to 16 bit stereo */
+    int blockSize = MXR_BUFFER_SAMPLES * pMixer->fmt.nSampleSize;
+
+    (void)total;
+    while (additional > 0)
+    {
+        int size = (additional < blockSize) ? additional : blockSize;
+        size -= size % pMixer->fmt.nSampleSize;
+        if (size <= 0) size = pMixer->fmt.nSampleSize;
+
+        MXR_ProcessMixer(pMixer, buffer, size);
+        SDL_PutAudioStreamData(stream, buffer, size);
+        additional -= size;
+    }
+}
+
+/* the mixer state is shared with the audio callback */
+void MXR_LockAudio(void)
+{
+    if (pAudioStream) SDL_LockAudioStream(pAudioStream);
+}
+
+void MXR_UnlockAudio(void)
+{
+    if (pAudioStream) SDL_UnlockAudioStream(pAudioStream);
+}
+
 MXR_Mixer *MXR_CreateMixer(const MXR_Format *pFormat)
 {
     MXR_Mixer *pMixer = NULL;
@@ -474,27 +505,34 @@ MXR_Mixer *MXR_CreateMixer(const MXR_Format *pFormat)
     spec.freq = pMixer->fmt.nSamplesPerSec;
     if (pMixer->fmt.nBitsPerChannel == 8)
     {
-        spec.format = AUDIO_U8;
+        spec.format = SDL_AUDIO_U8;
     }
     else
     {
         pMixer->fmt.nBitsPerChannel = 16;
-        spec.format = AUDIO_S16;
+        spec.format = SDL_AUDIO_S16;
     }
     spec.channels = pMixer->fmt.nNumChannels;
-    spec.samples = MXR_BUFFER_SAMPLES;
-    spec.callback = (SDL_AudioCallbackFunc)MXR_ProcessMixer;
-    spec.userdata = pMixer;
 
-    if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
+    /* about the same latency as the old fixed buffer */
     {
+        char frames[16];
+        snprintf(frames, sizeof(frames), "%d", MXR_BUFFER_SAMPLES);
+        SDL_SetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, frames);
+    }
+
+    if (!SDL_InitSubSystem(SDL_INIT_AUDIO))
+    {
+        Log("SDL_InitSubSystem(audio): %s", SDL_GetError());
         MXR_MemFree(pMixer, sizeof(MXR_Mixer));
         return NULL;
     }
 
-    if (SDL_OpenAudio(&spec, NULL))
+    pAudioStream =
+        SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, MXR_AudioStreamCallback, pMixer);
+    if (!pAudioStream)
     {
-        Log("SDL_OpenAudio: %s", SDL_GetError());
+        Log("SDL_OpenAudioDeviceStream: %s", SDL_GetError());
         MXR_MemFree(pMixer, sizeof(MXR_Mixer));
         return NULL;
     }
@@ -502,7 +540,7 @@ MXR_Mixer *MXR_CreateMixer(const MXR_Format *pFormat)
     /* YM3812 emulation for the HSC player */
     YM3812Init(OPL_NUM_CHIPS, OPL_INTERNAL_FREQ, OPL_FREQUENCY);
 
-    SDL_PauseAudio(0);
+    SDL_ResumeAudioStreamDevice(pAudioStream);
 
     return pMixer;
 }
@@ -513,7 +551,11 @@ void MXR_DestroyMixer(MXR_Mixer *pMixer)
 {
     int i = 0;
 
-    SDL_CloseAudio();
+    if (pAudioStream)
+    {
+        SDL_DestroyAudioStream(pAudioStream); /* also closes the device */
+        pAudioStream = NULL;
+    }
 
     /* YM3812 emulation for the HSC player */
     YM3812Shutdown();
@@ -543,12 +585,12 @@ void MXR_SetInput(MXR_Mixer *pMixer, int32_t nInput, MXR_Input *pInput)
 {
     MXR_Input *pOldInput = NULL;
 
-    SDL_LockAudio();
+    MXR_LockAudio();
 
     pOldInput = pMixer->pInput[nInput];
     pMixer->pInput[nInput] = pInput;
 
-    SDL_UnlockAudio();
+    MXR_UnlockAudio();
 
     if (pOldInput && pOldInput->pDestroy)
     {
@@ -562,12 +604,12 @@ unsigned char MXR_SetOutputVolume(MXR_Mixer *pMixer, unsigned char nVolume)
 {
     unsigned char nOldVolume = 0;
 
-    SDL_LockAudio();
+    MXR_LockAudio();
 
     nOldVolume = pMixer->nVolume;
     pMixer->nVolume = nVolume;
 
-    SDL_UnlockAudio();
+    MXR_UnlockAudio();
 
     return nOldVolume;
 }
@@ -580,12 +622,12 @@ unsigned char MXR_SetInputVolume(MXR_Mixer *pMixer, int32_t nInput, unsigned cha
 
     if (pMixer->pInput[nInput])
     {  // 2018-09-25
-        SDL_LockAudio();
+        MXR_LockAudio();
 
         nOldVolume = pMixer->pInput[nInput]->nVolume;
         pMixer->pInput[nInput]->nVolume = nVolume;
 
-        SDL_UnlockAudio();
+        MXR_UnlockAudio();
     }
 
     return nOldVolume;

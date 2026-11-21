@@ -1205,7 +1205,7 @@ static void plActionUse(void)
                                             plMessage("WRONG_ABILITY", PLANING_MSG_REFRESH | PLANING_MSG_WAIT);
                                     }
                                 }
-                                else if ((((LSObject)dbGetObject(choice1))->Type == Item_Fenster))
+                                else if (((LSObject)dbGetObject(choice1))->Type == Item_Fenster)
                                 {
                                     if ((bProfidisk) && (Planing_BldId == Building_Postzug))
                                         plSay("PLANING_TRAIN", CurrentPerson);

@@ -678,9 +678,9 @@ static void plPlayerAction(void)
                                                 ((LSObject)dbGetObject(
                                                      ActionData(PD.action, struct ActionUse *)->ItemId))
                                                     ->Type);
-                                        else if ((((LSObject)dbGetObject(
+                                        else if (((LSObject)dbGetObject(
                                                        ActionData(PD.action, struct ActionUse *)->ItemId))
-                                                      ->Type == Item_Fenster))
+                                                      ->Type == Item_Fenster)
                                             PD.currLoudness[i] = PLANING_LOUDNESS_STD;
                                         else if (!plIgnoreLock(ActionData(PD.action, struct ActionUse *)->ItemId))
                                         {
@@ -812,9 +812,9 @@ static void plPlayerAction(void)
                                         }
                                         else
                                         {
-                                            if ((((LSObject)dbGetObject(
+                                            if (((LSObject)dbGetObject(
                                                       ActionData(PD.action, struct ActionUse *)->ItemId))
-                                                     ->Type == Item_Fenster))
+                                                     ->Type == Item_Fenster)
                                             {
                                                 uword xpos = 0;
                                                 uword ypos = 0;
