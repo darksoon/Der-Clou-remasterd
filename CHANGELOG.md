@@ -17,6 +17,11 @@ Verhalten zwischen Versionen noch ändern.
   Umwandeln der 256 Farben in das Fensterbild über vorbereitete Farbtabellen angewendet und kostet damit
   praktisch keine Rechenzeit, auch im Browser. Screenshots mit F12 zeigen das Bild mit Filter
 
+### Behoben
+
+- Beim Wechsel der Musik konnte der Haupt-Thread den AdLib-Chip zurücksetzen, während der Audio-Thread
+  gerade Ton daraus erzeugte. Zurücksetzen und Registerzugriffe laufen jetzt unter der Audio-Sperre
+
 ## 0.14.0 (21.11.2026)
 
 ### Neu

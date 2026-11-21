@@ -48,16 +48,21 @@ void oplSelect(int emulator)
     oplStart(emulator);
 }
 
+/* reset and writes also come from the main thread (a new song is opened while the old one plays),
+   so they take the audio lock; it is recursive, calls from the audio callback itself are fine */
 void oplReset(void)
 {
+    MXR_LockAudio();
     if (oplEmulator == OPL_EMULATOR_NUKED)
         OPL3_Reset(&oplNuked, OPL_FREQUENCY);
     else if (oplEmulator == OPL_EMULATOR_MAME)
         YM3812ResetChip(OPL_CHIP0);
+    MXR_UnlockAudio();
 }
 
 void oplWrite(int reg, int val)
 {
+    MXR_LockAudio();
     if (oplEmulator == OPL_EMULATOR_NUKED)
     {
         OPL3_WriteReg(&oplNuked, (uint16_t)reg, (uint8_t)val);
@@ -67,6 +72,7 @@ void oplWrite(int reg, int val)
         YM3812Write(OPL_CHIP0, 0x0388, reg);
         YM3812Write(OPL_CHIP0, 0x0389, val);
     }
+    MXR_UnlockAudio();
 }
 
 void oplGenerate(short *buffer, int samples)
