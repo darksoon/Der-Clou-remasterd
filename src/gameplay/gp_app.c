@@ -244,8 +244,47 @@ uint32_t tcBurglary(uint32_t buildingID)
     return succNr;
 }
 
+/* Game+: background sound by place, numbers as in LOCATION.LST; other places with a street
+   address (a comma in the name) get the street, the rest none */
+static void tcAmbienceForLocation(uint32_t locNr)
+{
+    NODE *node = (NODE *)GetNthNode(film->loc_names, locNr);
+    const char *file = NULL;
+
+    switch (locNr)
+    {
+        case 3: /* hotel room */
+            file = "HOTEL.WAV";
+            break;
+        case 48: /* hotel reception */
+            file = "LOBBY.WAV";
+            break;
+        case 4: /* Fat Man's Pub */
+        case 49: /* Walrus */
+            file = "PUB.WAV";
+            break;
+        case 7: /* police station */
+        case 59: /* police office */
+            file = "POLICE.WAV";
+            break;
+        case 0:
+        case 2:
+        case 51: /* car park */
+        case 55:
+        case 58: /* Victoria Station */
+            file = "STREET.WAV";
+            break;
+        default:
+            if (node && strchr(NODE_NAME(node), ',')) file = "STREET.WAV";
+            break;
+    }
+    sndSetLocationAmbience(file);
+}
+
 void tcRefreshLocationInTitle(uint32_t locNr)
 {
+    tcAmbienceForLocation(locNr);
+
     char date[TXT_KEY_LENGTH];
     char line[TXT_KEY_LENGTH];
     NODE *node = NULL;

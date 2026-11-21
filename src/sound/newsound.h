@@ -31,6 +31,7 @@ char *sndGetCurrSoundName(void);
 void sndRestartMusic(void);
 void sndUpdateAmbience(void);
 void sndSetWeatherAmbience(const char *file);
+void sndSetLocationAmbience(const char *file);
 void sndPlayWeatherFX(const char *file, int percent);
 
 #endif

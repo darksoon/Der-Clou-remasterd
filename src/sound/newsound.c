@@ -23,6 +23,9 @@ char currSoundName[256];
 static const char *currAmbience = NULL;
 /* Game+: the rain of a burglary night replaces the background sound of the music */
 static const char *weatherAmbience = NULL;
+/* Game+: the background sound of the place Matt is at, used while town music plays */
+static const char *locationAmbience = NULL;
+static int locationAmbienceSet = 0;
 
 static int sndPlusSoundsOn(void)
 {
@@ -54,8 +57,17 @@ static void sndSetAmbience(const char *file)
 /* the background sound for a piece of music: street, pub, hotel room, police */
 static void sndAmbienceForMusic(const char *name)
 {
+    /* music the town scenes play; story scenes often keep the street music indoors */
+    static const char *townMusic[] = {"street", "bar", "hotel", "gludo", "snd2", "cars", "shop", "dealer", "parker", "maloya"};
+    int town = 0;
+
+    for (size_t i = 0; i < sizeof(townMusic) / sizeof(townMusic[0]); i++)
+        if (!strncasecmp(name, townMusic[i], strlen(townMusic[i]))) town = 1;
+
     if (weatherAmbience)
         sndSetAmbience(weatherAmbience);
+    else if (town && locationAmbienceSet)
+        sndSetAmbience(locationAmbience);
     else if (!strncasecmp(name, "street", 6))
         sndSetAmbience("STREET.WAV");
     else if (!strncasecmp(name, "bar", 3))
@@ -74,6 +86,14 @@ void sndUpdateAmbience(void)
     currAmbience = NULL;
     MXR_SetInput(pAudioMixer, MXR_INPUT_AMBIENT, NULL);
     sndAmbienceForMusic(currSoundName);
+}
+
+/* Game+: the background sound of the current place (NULL for none), it wins over the music */
+void sndSetLocationAmbience(const char *file)
+{
+    locationAmbience = file;
+    locationAmbienceSet = 1;
+    if (pAudioMixer) sndAmbienceForMusic(currSoundName);
 }
 
 /* Game+: a looping weather sound (rain) for the burglary, NULL to end it */
