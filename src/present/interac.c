@@ -6,6 +6,7 @@
 */
 #include "present/interac.h"
 
+#include <SDL3/SDL.h>
 #include <stdint.h>
 
 #include "present/interac_p.h"
@@ -424,6 +425,8 @@ void DrawBubble(LIST *bubble, ubyte firstLine, ubyte activ, struct RastPort *rp,
 }
 
 /* number of bubbles on the screen right now (overlays stay hidden while one is open) */
+#define BUBBLE_SCROLL_MS 140 /* one line per step while the mouse is on the edge */
+
 static ubyte BubbleOpenCount = 0;
 ubyte IsBubbleOpen(void) { return BubbleOpenCount != 0; }
 
@@ -435,6 +438,8 @@ ubyte Bubble(LIST *bubble, ubyte activ, void (*func)(ubyte), uint32_t waitTime)
     int32_t l_max = GetNrOfNodes(bubble);
     uword x = 0;
     uword y = 0;
+    ubyte edgeScroll = 0;
+    uint32_t lastEdgeScroll = 0;
     ubyte newactiv = 0;
 
     SuspendAnim();
@@ -482,7 +487,12 @@ ubyte Bubble(LIST *bubble, ubyte activ, void (*func)(ubyte), uint32_t waitTime)
     {
         while (!ende)
         {
-            action = inpWaitFor(INP_UP | INP_DOWN | INP_LBUTTONP | INP_RBUTTONP | INP_LEFT | INP_RIGHT);
+            /* while the mouse rests on a scrolling edge, a short timer keeps the list moving */
+            inpSetWaitTicks(edgeScroll ? 6 : 0);
+            action = inpWaitFor(INP_UP | INP_DOWN | INP_LBUTTONP | INP_RBUTTONP | INP_LEFT | INP_RIGHT |
+                                (edgeScroll ? INP_TIME : 0));
+            if ((action & INP_TIME) && !(action & ~(uint32_t)INP_TIME)) action = INP_MOUSE;
+            edgeScroll = 0;
 
             ExtBubbleActionInfo = action;
 
@@ -520,24 +530,28 @@ ubyte Bubble(LIST *bubble, ubyte activ, void (*func)(ubyte), uint32_t waitTime)
 
                     if ((x >= X_OFFSET) && (x <= X_OFFSET + INT_BUBBLE_WIDTH))
                     {
+                        /* at the upper or lower edge the list scrolls one line at a time at a calm pace
+                           (the original ran through the whole list at once) */
                         if ((y < 4) && (firstVis > 0)) /* Scroll up */
                         {
-                            while ((y < 4) && (firstVis > 0))
+                            edgeScroll = 1;
+                            if ((SDL_GetTicks() - lastEdgeScroll) >= BUBBLE_SCROLL_MS)
                             {
+                                lastEdgeScroll = SDL_GetTicks();
                                 firstVis -= 1;
                                 activ = firstVis;
 
                                 DrawBubble(bubble, firstVis, activ, u_wrp, l_max);
 
                                 if (func) func(activ);
-
-                                y = inpGetMouseY(u_wrp);
                             }
                         }
                         else if ((y > 48) && (y <= 52) && (firstVis < (l_max - 5))) /* Scroll down */
                         {
-                            while ((y > 48) && (y <= 52) && (firstVis < (l_max - 5)))
+                            edgeScroll = 1;
+                            if ((SDL_GetTicks() - lastEdgeScroll) >= BUBBLE_SCROLL_MS)
                             {
+                                lastEdgeScroll = SDL_GetTicks();
                                 firstVis += 1;
                                 activ = firstVis + 4;
 
@@ -546,8 +560,6 @@ ubyte Bubble(LIST *bubble, ubyte activ, void (*func)(ubyte), uint32_t waitTime)
                                 DrawBubble(bubble, firstVis, activ, u_wrp, l_max);
 
                                 if (func) func(activ);
-
-                                y = inpGetMouseY(u_wrp);
                             }
                         }
                         else if ((y >= 4) && (y <= 48))

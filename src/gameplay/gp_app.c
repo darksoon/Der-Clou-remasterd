@@ -15,27 +15,46 @@ enum
     GP_TICKS_PER_DAY = 30
 };
 
+/* Waits while game time passes. A click, the Enter key or Esc skips the rest of the waiting: the time
+   still passes minute by minute, only without the pause (130 game minutes are 22 seconds otherwise). */
+static ubyte tcWaitTicks(int32_t ticks, ubyte skip)
+{
+    int32_t action = 0;
+
+    if (skip) return 1;
+
+    inpSetWaitTicks(ticks);
+    action = inpWaitFor(INP_TIME | INP_LBUTTONP);
+    inpSetWaitTicks(0L);
+
+    return (ubyte)((action & (INP_LBUTTONP | INP_ESC)) ? 1 : 0);
+}
+
 void tcAsTimeGoesBy(uint32_t untilMinute)
 {
+    ubyte skip = 0;
+
     untilMinute = untilMinute % 1440;
 
     while (GetMinute != untilMinute)
     {
-        inpDelay(GP_TICKS_PER_MINUTE);
+        skip = tcWaitTicks(GP_TICKS_PER_MINUTE, skip);
 
         AddVTime(1);
 
         if (!(GetMinute % 60)) ShowTime(0);
     }
+    if (skip) ShowTime(0);
 }
 
 void tcAsDaysGoBy(uint32_t day, uint32_t stepSize)
 {
     uint32_t add = 0;
+    ubyte skip = 0;
 
     while (GetDay < day)
     {
-        inpDelay(GP_TICKS_PER_DAY);
+        skip = tcWaitTicks(GP_TICKS_PER_DAY, skip);
 
         add = CalcRandomNr(stepSize - stepSize / 30, stepSize + stepSize / 30);
 

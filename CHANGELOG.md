@@ -3,6 +3,16 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.22.2 (21.11.2026)
+
+### Behoben
+
+- Sprechblasen mit Auswahl: Am oberen oder unteren Rand rollt die Liste jetzt Zeile für Zeile in
+  ruhigem Tempo. Bisher sprang sie bei der ersten Berührung des Randes bis ans Ende durch
+- Wartezeiten der Geschichte, etwa bis das Telefon im Hotelzimmer klingelt, lassen sich mit einem
+  Klick, der Eingabetaste oder Esc überspringen. Die Spielzeit vergeht dabei genauso, nur ohne Pause
+  (130 Spielminuten dauerten sonst gut 20 Sekunden, die längste Stelle über zwei Minuten)
+
 ## 0.22.1 (21.11.2026)
 
 ### Neu
