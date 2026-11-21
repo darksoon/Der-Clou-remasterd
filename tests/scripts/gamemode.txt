@@ -1,0 +1,35 @@
+# Game+ (needs fullenv=42 storyoff=42 difficulty=hard): choose Game+, save the game in the
+# first slot with F1, load it again; the mode must come back from the saved game
+wait 2500
+key Return
+# game mode: Game+
+wait 1500
+shot g01
+key Down
+wait 300
+key Return
+wait 3000
+shot g02
+# F1 opens the game menu: continue, end / save, load
+key F1
+wait 1500
+key Right
+wait 300
+key Return
+wait 1500
+shot g03
+key Return
+wait 3000
+key F1
+wait 1500
+key Right
+wait 300
+key Down
+wait 300
+key Return
+wait 1500
+shot g04
+key Return
+wait 4000
+shot g05
+quit

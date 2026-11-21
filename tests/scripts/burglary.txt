@@ -3,6 +3,9 @@
 # save the plan, start the burglary and play it back with fast forward (Tab)
 wait 2500
 key Return
+# game mode: original
+wait 1500
+key Return
 wait 3000
 click 119 183
 wait 2500

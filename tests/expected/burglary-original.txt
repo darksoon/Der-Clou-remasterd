@@ -1,0 +1,6 @@
+# Results of tests/scripts/burglary.txt in the original mode with DERCLOU_SEED=42.
+# The original mode must play exactly like 1994: if one of these lines changes, the game
+# behaviour changed. Such changes belong into Game+, not into the original mode.
+Game mode: original, difficulty normal
+Burglary played: 16 s burglary time
+Escape from building: escaped, -1 s left

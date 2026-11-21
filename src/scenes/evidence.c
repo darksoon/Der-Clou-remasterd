@@ -204,6 +204,11 @@ uint32_t tcStartEvidence(void)
 
         shownEvidence[i] = Recognition[i] = 0;
 
+        /* for the test games: the evidence must stay the same in the original mode */
+        Log("Evidence %u: %d %d %d %d %d %d %d = %u", (unsigned)i, (int)MyEvidence[i][0], (int)MyEvidence[i][1],
+            (int)MyEvidence[i][2], (int)MyEvidence[i][3], (int)MyEvidence[i][4], (int)MyEvidence[i][5],
+            (int)MyEvidence[i][6], (unsigned)totalEvidence[i]);
+
         tcPersonLearns(OL_NR(n));
     }
 
@@ -493,6 +498,9 @@ int32_t tcEscapeFromBuilding(uint32_t escBits)
         else
             escapeSucc = FAHN_ESCAPED;
     }
+
+    Log("Escape from building: %s, %d s left", (escapeSucc == FAHN_ESCAPED) ? "escaped" : "caught",
+        (timeLeft == INT_MAX) ? -1 : (int)timeLeft);
 
     if (escapeSucc == FAHN_ESCAPED)
     {

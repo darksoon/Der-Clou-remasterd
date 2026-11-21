@@ -3,6 +3,23 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.12.0 (21.11.2026)
+
+### Neu
+
+- Spielarten „Original“ und „Spiel+“: Nach „Neues Spiel starten“ fragt das Spiel, wie gespielt werden soll.
+  Die Wahl steht im Spielstand. Spielstände älterer Versionen laden als „Original“, und ältere Versionen
+  können neue Spielstände weiterhin laden
+- „Original“ spielt wie 1994 und bekommt nur Komfortfunktionen: Laufen per Rechtsklick, Zeitraffer,
+  Polizei-Countdown und das Einstellungsmenü. Sie ändern keine Spielwerte, die Wegsuche plant genau die Zeit
+  des kürzesten Wegs ein, den man auch von Hand gehen könnte
+- „Spiel+“ enthält alles, was das Spiel oder seine Balance verändert. Bisher ist das der Schwierigkeitsgrad:
+  Er wirkt nur noch in Spiel+, im Originalmodus gilt immer „normal“
+- Testpartien laufen mit festem Zufallsstartwert (`DERCLOU_SEED`) und sind damit wiederholbar. Die
+  Einbruchspartie im Originalmodus muss genau die Werte aus `tests/expected/burglary-original.txt` liefern,
+  auch wenn `difficulty = hard` gesetzt ist. Eine weitere Testpartie speichert ein Spiel in Spiel+ und lädt
+  es wieder
+
 ## 0.11.0 (21.11.2026)
 
 ### Neu

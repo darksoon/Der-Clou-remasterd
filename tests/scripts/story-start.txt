@@ -1,6 +1,9 @@
 # Story start: Victoria Station, Holland Street, Ugley Dog Hotel, choose a name
 wait 2500
 key Return
+# game mode: original
+wait 1500
+key Return
 wait 3000
 shot a01
 key Return

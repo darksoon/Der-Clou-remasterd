@@ -27,7 +27,8 @@ Dieses Projekt führt die besten Teile der bisherigen Community-Ports zusammen:
 - Linux als AppImage, macOS mit eingebetteten Bibliotheken, Windows mit allen DLLs
 - Planung per Mausklick: Rechtsklick im Gehen-Modus, die Person nimmt den schnellsten Weg
 - Zeitraffer beim Einbruch (Tab) und Polizei-Countdown nach einem lauten Alarm
-- Schwierigkeitsgrad leicht, normal (wie das Original) oder schwer
+- Zwei Spielarten, gewählt beim Start eines neuen Spiels und im Spielstand gespeichert: „Original“ spielt wie 1994 und bekommt nur Komfortfunktionen, „Spiel+“ enthält alles, was das Spiel oder seine Balance verändert
+- Schwierigkeitsgrad leicht, normal oder schwer (nur in Spiel+)
 - Einstellungsmenü im Hauptmenü: Lautstärken, Vollbild, Skalierung, Schwierigkeit, Polizei-Countdown, Zeitraffer und Gamepad, gespeichert im Benutzerordner (auch im Browser)
 - Skriptmodus für automatische Testpartien, die bei jeder Änderung in der CI laufen, bis hin zu einem kompletten Einbruch
 
@@ -163,6 +164,7 @@ Zusammengeführt aus der Roadmap von iljabauer/DerClou und eigenen Zielen.
     - [x] Zeitraffer beim Einbruch, Polizei-Countdown
     - [x] Schwierigkeitsgrad
     - [x] Einstellungsmenü im Hauptmenü
+    - [x] Spielarten „Original“ und „Spiel+“, Testpartie mit Referenzwerten sichert den Originalmodus ab
     - [ ] Bessere Übersicht im Planungsmodus (Sichtfelder der Wachen, Zeitleiste)
     - [ ] Werkzeug zum Lesen und Schreiben der Gebäude- und Datenbankdateien, Grundlage für neue Gebäude
     - [ ] Erweiterter Modus mit neuen Einbrüchen

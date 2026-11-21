@@ -355,6 +355,9 @@ ubyte tcSaveChangesInScenes(char *fileName)
             fprintf(file, "%d\n", film->gameplay[i].Geschehen);
         }
 
+        /* appended after the scenes: older versions stop reading before this line */
+        fprintf(file, "gamemode %d\n", (int)GameMode);
+
         dskClose(file);
         back = 1;
     }
@@ -389,6 +392,15 @@ ubyte tcLoadChangesInScenes(char *fileName)
             else
                 back = 0;
         }
+
+        /* saved games without this line are from older versions and play in the original mode */
+        GameMode = GAME_MODE_ORIGINAL;
+        if (dskGets(buffer, TXT_KEY_LENGTH - 1, file) && !strncmp(buffer, "gamemode ", 9))
+        {
+            GameMode = (atoi(buffer + 9) == GAME_MODE_PLUS) ? GAME_MODE_PLUS : GAME_MODE_ORIGINAL;
+        }
+        Log("Game mode of the saved game: %s", (GameMode == GAME_MODE_PLUS) ? "Game+" : "original");
+
         dskClose(file);
     }
     else

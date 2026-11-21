@@ -38,7 +38,7 @@ static const char *setLabel[SET_COUNT][4] = {
     {"Fullscreen", "Vollbild", "Plein \x82" "cran", "Pantalla completa"},
     {"Scaling", "Skalierung", "Lissage", "Escalado"},
     {"Whole pixels", "Ganze Pixel", "Pixels entiers", "P\xa1xeles enteros"},
-    {"Difficulty", "Schwierigkeit", "Difficult\x82", "Dificultad"},
+    {"Difficulty (Game+)", "Schwierigkeit (Spiel+)", "Difficult\x82 (Jeu+)", "Dificultad (Juego+)"},
     {"Police countdown", "Polizei-Countdown", "Chrono police", "Aviso polic\xa1" "a"},
     {"Fast forward", "Zeitraffer", "Avance rapide", "Avance r\xa0pido"},
     {"Gamepad", "Gamepad", "Manette", "Mando"},
@@ -293,4 +293,37 @@ void tcSettingsMenu(void)
     SetBubbleLeftRightExit(0);
 
     if (changed) tcSaveSettings();
+}
+
+static const char *modeChoice[2][4] = {
+    {"*Original: plays like 1994", "*Original: spielt wie 1994", "*Original: comme en 1994", "*Original: como en 1994"},
+    {"*Game+: with new features", "*Spiel+: mit Neuerungen", "*Jeu+: avec nouveaut\x82s", "*Juego+: con novedades"},
+};
+
+static const char *modeQuestion[4] = {"Which way do you want to play?", "Wie m\x94" "chtest du spielen?",
+                                      "Comment veux-tu jouer ?", "\xa8" "C\xa2mo quieres jugar?"};
+
+ubyte tcChooseGameMode(void)
+{
+    LIST *bubble = CreateList(0);
+    ubyte choice = 0;
+
+    CreateNode(bubble, 0, (char *)modeChoice[GAME_MODE_ORIGINAL][setLang()]);
+    CreateNode(bubble, 0, (char *)modeChoice[GAME_MODE_PLUS][setLang()]);
+
+    ShowMenuBackground();
+    PrintStatus((char *)modeQuestion[setLang()]);
+
+    SetPictID((uword)-1);
+    choice = Bubble(bubble, 0, NULL, 0);
+    RemoveList(bubble);
+
+    if (choice == GET_OUT) return 0;
+
+    GameMode = (choice == 1) ? GAME_MODE_PLUS : GAME_MODE_ORIGINAL;
+    Log("Game mode: %s, difficulty %s", (GameMode == GAME_MODE_PLUS) ? "Game+" : "original",
+        (CFG_DIFFICULTY_EFFECTIVE == CFG_DIFFICULTY_EASY)   ? "easy"
+        : (CFG_DIFFICULTY_EFFECTIVE == CFG_DIFFICULTY_HARD) ? "hard"
+                                                            : "normal");
+    return 1;
 }

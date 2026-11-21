@@ -2,6 +2,9 @@
 # open the plan of Bulstrode Chemistry Ltd, walk with right clicks (path finding), undo
 wait 2500
 key Return
+# game mode: original
+wait 1500
+key Return
 wait 3000
 click 119 183
 wait 2500

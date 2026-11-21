@@ -39,7 +39,9 @@ jobs:
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "fullenv = 42" "storyoff = 42"
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/walk-to.txt "fullenv = 42" "storyoff = 42"
-          EXPECT="Burglary played" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary.txt "fullenv = 42" "storyoff = 42"
+          # original mode: results must match the reference, the difficulty must not matter
+          EXPECT_FILE=tests/expected/burglary-original.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
+          EXPECT="Game mode of the saved game: Game+" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/gamemode.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
           export TEST_HOME="$(mktemp -d)"
           EXPECT="Settings saved" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
           EXPECT="Difficulty: hard" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings-reload.txt
@@ -81,7 +83,9 @@ jobs:
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "fullenv = 42" "storyoff = 42"
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/walk-to.txt "fullenv = 42" "storyoff = 42"
-          EXPECT="Burglary played" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary.txt "fullenv = 42" "storyoff = 42"
+          # original mode: results must match the reference, the difficulty must not matter
+          EXPECT_FILE=tests/expected/burglary-original.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
+          EXPECT="Game mode of the saved game: Game+" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/gamemode.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
           export TEST_HOME="$(mktemp -d)"
           EXPECT="Settings saved" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
           EXPECT="Difficulty: hard" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings-reload.txt

@@ -48,11 +48,21 @@ extern Configuration_t Config; /* base.c */
 #define CFG_DIFFICULTY_NORMAL 1
 #define CFG_DIFFICULTY_HARD 2
 
+/* game mode, chosen when a new game starts and stored in the saved game.
+   Original plays exactly like 1994 (only comfort features), Game+ contains everything that changes
+   the game or its balance. */
+#define GAME_MODE_ORIGINAL 0
+#define GAME_MODE_PLUS 1
+extern unsigned char GameMode; /* base.c */
+
+/* the difficulty only applies in Game+, the original mode always plays "normal" */
+#define CFG_DIFFICULTY_EFFECTIVE ((GameMode == GAME_MODE_PLUS) ? Config.Difficulty : CFG_DIFFICULTY_NORMAL)
+
 /* scales a game value by a percentage depending on the difficulty (100 = unchanged) */
 #define CFG_SCALE(value, easyPerc, hardPerc)                                                                  \
-    ((Config.Difficulty == CFG_DIFFICULTY_EASY)   ? ((int32_t)(value) * (easyPerc)) / 100                     \
-     : (Config.Difficulty == CFG_DIFFICULTY_HARD) ? ((int32_t)(value) * (hardPerc)) / 100                     \
-                                                  : (int32_t)(value))
+    ((CFG_DIFFICULTY_EFFECTIVE == CFG_DIFFICULTY_EASY)   ? ((int32_t)(value) * (easyPerc)) / 100              \
+     : (CFG_DIFFICULTY_EFFECTIVE == CFG_DIFFICULTY_HARD) ? ((int32_t)(value) * (hardPerc)) / 100              \
+                                                         : (int32_t)(value))
 #define CFG_FAST_FORWARD_DEFAULT 4
 #define CFG_USER_FILENAME "settings.cfg" /* written by the settings menu into the user directory */
 #define CFG_JOYSTICK_AUTO 255 /* usejoystick = auto: first joystick found, follows hotplug */

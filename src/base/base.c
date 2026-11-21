@@ -18,6 +18,7 @@
 #include "theclou.h"
 
 Configuration_t Config;
+unsigned char GameMode = GAME_MODE_ORIGINAL;
 
 void *StdBuffer1 = 0;
 
@@ -283,8 +284,11 @@ static ubyte StartupMenu(void)
     switch (activ)
     {
         case 0:  // New Game
-            InitData();
-            ret = 1;
+            if (tcChooseGameMode())
+            {
+                InitData();
+                ret = 1;
+            }
             break;
 
         case 1:  // Load Game

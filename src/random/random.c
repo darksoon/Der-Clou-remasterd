@@ -11,7 +11,9 @@ void rndInit(void)
 #ifndef __COSP__
     randomize(); /* Zufallszahl über Timer initialisieren */
 #else
-    srand((unsigned int)time(NULL));
+    /* DERCLOU_SEED makes automated test games repeatable */
+    const char *seed = getenv("DERCLOU_SEED");
+    srand(seed ? (unsigned int)strtoul(seed, NULL, 10) : (unsigned int)time(NULL));
 #endif
 }
 

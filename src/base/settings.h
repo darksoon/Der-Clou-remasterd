@@ -10,5 +10,6 @@
 extern const char *tcSettingsMenuEntry(void); /* name of the entry in the main menu */
 extern void tcSettingsMenu(void);
 extern void tcSaveSettings(void);
+extern unsigned char tcChooseGameMode(void); /* new game: original or Game+, 0 = cancelled */
 
 #endif
