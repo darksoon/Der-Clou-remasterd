@@ -85,7 +85,7 @@ Aufwand: S = unter einer Stunde, M = einige Stunden, L = Tage.
 
 ## Funktionen aus der Roadmap
 
-Größere Vorhaben, die keine Fehler sind, stehen in der Roadmap in der README: Bilder mit 640 Pixeln
+Größere Vorhaben, die keine Fehler sind, stehen in der [Roadmap](ROADMAP.md): Bilder mit 640 Pixeln
 Breite, mehr als 256 Farben, Musik als OGG, vollständige Sprachausgabe und eine bessere Übersicht im
 Planungsmodus.
 

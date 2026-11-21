@@ -280,8 +280,6 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [ linux, web ]
     runs-on: ubuntu-24.04
-    env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -301,12 +299,6 @@ jobs:
           force_orphan: true
           user_name: darksoon
           user_email: ratzemail@googlemail.com
-      - name: Publish to Vercel
-        if: env.VERCEL_TOKEN != ''
-        run: |
-          cd public
-          npx --yes vercel@latest link --yes --project der-clou-remastered --token "$VERCEL_TOKEN"
-          npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
 
   release:
     # A release is made for a tag v*, or automatically when VERSION names a version without a release yet.

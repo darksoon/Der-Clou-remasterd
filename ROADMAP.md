@@ -1,6 +1,6 @@
 # Roadmap: Der Clou! remastered
 
-Stand: Version 0.20.0. Die Roadmap ist nach den beiden Spielarten getrennt. Im Original gilt:
+Stand: Version 0.21.0. Die Roadmap ist nach den beiden Spielarten getrennt. Im Original gilt:
 Es spielt sich wie 1994. Erlaubt sind dort nur Fehlerkorrekturen, Technik und Komfort, der den
 Spielablauf nicht verändert und abschaltbar ist. Alles, was Regeln, Balance oder Inhalte ändert,
 gehört in Spiel+.
@@ -38,6 +38,7 @@ gehört in Spiel+.
 | O8 | Übersicht der Tasten im Einstellungsmenü | S |
 | O9 | Gamepad vollständig bedienbar, auch in der Planung | M |
 | O10 | GPU-Shader auf dem Desktop (im Browser bleibt der bisherige Filter) | M |
+| O11 | „Kanten glätten“ überarbeiten: Scale2x wirkt bei diesen Bildern seltsam, ein anderes Verfahren suchen (zum Beispiel xBR oder weiches Hochskalieren mit Schärfe) | M |
 
 ## Spiel+
 
