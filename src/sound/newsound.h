@@ -28,5 +28,6 @@ void sndStopSound(ubyte dummy);
 void sndFading(short int targetVol);
 
 char *sndGetCurrSoundName(void);
+void sndRestartMusic(void);
 
 #endif

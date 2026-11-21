@@ -6,6 +6,8 @@ set(SOURCE_FILES
     sound/fx.c
     sound/newsound.c
     sound/fmopl.c
+    sound/opl.c
+    sound/nuked/opl3.c
     anim/sysanim.c
     base/base.c
     base/settings.c

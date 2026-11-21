@@ -1,0 +1,6 @@
+# Results of tests/scripts/settings-reload.txt after tests/scripts/settings.txt (same TEST_HOME):
+# the saved difficulty is loaded again, the AdLib emulation can be switched while music plays.
+Difficulty: hard
+AdLib emulation: Nuked OPL3
+AdLib emulation: MAME fmopl
+Settings saved

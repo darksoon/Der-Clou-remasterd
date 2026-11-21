@@ -3,6 +3,16 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.15.0 (21.11.2026)
+
+### Neu
+
+- AdLib-Musik über Nuked OPL3 1.8, eine sehr genaue Nachbildung des Yamaha-Chips. Die Musik klingt damit
+  näher an einer echten AdLib-Karte als mit der bisherigen MAME-Emulation. Beide sind gleich laut
+- Einstellungsmenü: „AdLib-Musik: genau / klassisch“ schaltet im laufenden Spiel um, die Musik beginnt
+  dann neu. In `cosp.cfg` heißt die Option `opl = nuked | mame`
+- Nuked OPL3 liegt unverändert in `src/sound/nuked/` (LGPL 2.1 oder neuer), der Lizenztext ist in jedem Paket
+
 ## 0.14.0 (21.11.2026)
 
 ### Neu

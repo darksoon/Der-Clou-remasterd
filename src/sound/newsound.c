@@ -57,6 +57,17 @@ void sndPlaySound(char *name, uint32_t mode)
 
 char *sndGetCurrSoundName(void) { return currSoundName; }
 
+/* play the current music again from the start, e.g. after the AdLib emulation changed */
+void sndRestartMusic(void)
+{
+    char name[256];
+
+    if (!currSoundName[0]) return;
+    snprintf(name, sizeof(name), "%s", currSoundName);
+    currSoundName[0] = '\0';
+    sndPlaySound(name, 0);
+}
+
 // 2014-07-17 LucyG : called from inpDoPseudoMultiTasking
 void sndDoFading(void)
 {

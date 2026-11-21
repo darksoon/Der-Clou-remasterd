@@ -11,7 +11,7 @@
 #include "mxr.h"
 
 #include <SDL3/SDL.h>
-#include "sound/fmopl.h"
+#include "sound/opl.h"
 
 /******************************************************************************/
 
@@ -537,8 +537,8 @@ MXR_Mixer *MXR_CreateMixer(const MXR_Format *pFormat)
         return NULL;
     }
 
-    /* YM3812 emulation for the HSC player */
-    YM3812Init(OPL_NUM_CHIPS, OPL_INTERNAL_FREQ, OPL_FREQUENCY);
+    /* AdLib emulation for the HSC player */
+    oplInit();
 
     SDL_ResumeAudioStreamDevice(pAudioStream);
 
@@ -557,8 +557,8 @@ void MXR_DestroyMixer(MXR_Mixer *pMixer)
         pAudioStream = NULL;
     }
 
-    /* YM3812 emulation for the HSC player */
-    YM3812Shutdown();
+    /* AdLib emulation for the HSC player */
+    oplShutdown();
 
     if (SDL_WasInit(SDL_INIT_AUDIO) != 0)
     {

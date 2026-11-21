@@ -38,6 +38,7 @@ jobs:
           cp -r gamedata/. dist/DerClou/
           cp build/build/x64/DerClou dist/DerClou/
           cp README.md PublicLicenceContract.txt mame.txt dist/DerClou/
+          cp src/sound/nuked/LICENSE.txt dist/DerClou/LICENSE-Nuked-OPL3.txt
           tar -C dist -czf DerClou-linux-x64.tar.gz DerClou
       - name: Smoke test
         run: scripts/smoke-test.sh dist/DerClou/DerClou 10
@@ -59,7 +60,7 @@ jobs:
           MODFILES="$RUNNER_TEMP/mods" EXPECT="Modfile: .*PICTURES/MENU" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
           export TEST_HOME="$(mktemp -d)"
           EXPECT="Settings saved" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
-          EXPECT="Difficulty: hard" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings-reload.txt
+          EXPECT_FILE=tests/expected/settings-reload.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings-reload.txt
       - name: AppImage
         env:
           APPIMAGE_EXTRACT_AND_RUN: 1
@@ -69,6 +70,8 @@ jobs:
           chmod +x linuxdeploy
           mkdir -p AppDir/usr/bin
           cp -r gamedata/. AppDir/usr/bin/
+          cp README.md PublicLicenceContract.txt mame.txt AppDir/usr/bin/
+          cp src/sound/nuked/LICENSE.txt AppDir/usr/bin/LICENSE-Nuked-OPL3.txt
           ./linuxdeploy --appdir AppDir -e build/build/x64/DerClou \
             -d packaging/derclou.desktop -i packaging/derclou.png --output appimage
       - uses: actions/upload-artifact@v4
@@ -111,7 +114,7 @@ jobs:
           MODFILES="$RUNNER_TEMP/mods" EXPECT="Modfile: .*PICTURES/MENU" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
           export TEST_HOME="$(mktemp -d)"
           EXPECT="Settings saved" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
-          EXPECT="Difficulty: hard" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings-reload.txt
+          EXPECT_FILE=tests/expected/settings-reload.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings-reload.txt
 
   windows:
     runs-on: windows-latest
@@ -142,6 +145,7 @@ jobs:
           # bundle every DLL from the MSYS2 environment the exe depends on
           ldd dist/DerClou/DerClou.exe | grep -i '/ucrt64/' | awk '{print $3}' | xargs -r -I{} cp {} dist/DerClou/
           cp README.md PublicLicenceContract.txt mame.txt dist/DerClou/
+          cp src/sound/nuked/LICENSE.txt dist/DerClou/LICENSE-Nuked-OPL3.txt
           cd dist && zip -qr ../DerClou-windows-x64.zip DerClou
       - uses: actions/upload-artifact@v4
         with:
@@ -165,6 +169,7 @@ jobs:
           cp build/build/x64/DerClou dist/DerClou/
           dylibbundler -od -b -x dist/DerClou/DerClou -d dist/DerClou/libs -p @executable_path/libs
           cp README.md PublicLicenceContract.txt mame.txt dist/DerClou/
+          cp src/sound/nuked/LICENSE.txt dist/DerClou/LICENSE-Nuked-OPL3.txt
           cd dist && zip -qry ../DerClou-macos.zip DerClou
       - uses: actions/upload-artifact@v4
         with:
@@ -185,6 +190,8 @@ jobs:
           mkdir -p dist/web
           cp build-web/build/web/DerClou.* dist/web/
           cp dist/web/DerClou.html dist/web/index.html
+          cp PublicLicenceContract.txt mame.txt dist/web/
+          cp src/sound/nuked/LICENSE.txt dist/web/LICENSE-Nuked-OPL3.txt
           cd dist && zip -qr ../DerClou-web.zip web
       - uses: actions/upload-artifact@v4
         with:

@@ -1,5 +1,5 @@
 # Second start after settings.txt (same TEST_HOME): the saved settings are loaded again,
-# a click on the first line raises the music volume, display settings change at once
+# a click on the first line raises the music volume, display and AdLib settings change at once
 wait 2500
 key Right
 wait 300
@@ -10,6 +10,8 @@ click 150 8
 wait 800
 shot c02
 # display settings are applied at once: fullscreen on and off, smooth filter, whole pixels
+key Down
+wait 200
 key Down
 wait 200
 key Down
@@ -29,6 +31,16 @@ wait 200
 key Return
 wait 500
 shot c03
+# AdLib music: switch from Nuked OPL3 to MAME while the title music plays
+key Up
+wait 200
+key Up
+wait 200
+key Up
+wait 200
+key Return
+wait 1500
+shot c04
 key Escape
 wait 1000
 quit

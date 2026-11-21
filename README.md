@@ -29,6 +29,7 @@ Dieses Projekt führt die besten Teile der bisherigen Community-Ports zusammen:
 - Zeitraffer beim Einbruch (Tab) und Polizei-Countdown nach einem lauten Alarm
 - Zwei Spielarten, gewählt beim Start eines neuen Spiels und im Spielstand gespeichert: „Original“ spielt wie 1994 und bekommt nur Komfortfunktionen, „Spiel+“ enthält alles, was das Spiel oder seine Balance verändert
 - Schwierigkeitsgrad leicht, normal oder schwer (nur in Spiel+), die Werte stehen im Lua-Skript `PLUS/BALANCE.LUA`
+- AdLib-Musik wahlweise über Nuked OPL3 (klingt wie der echte Chip, Standard) oder die bisherige MAME-Emulation, umschaltbar im laufenden Spiel
 - Lua 5.5 als Skriptsprache für Spiel+, abgeschottet ohne Datei- und Systemzugriff. Der Originalmodus startet nie ein Skript
 - Einstellungsmenü im Hauptmenü: Lautstärken, Vollbild, Skalierung, Schwierigkeit, Polizei-Countdown, Zeitraffer und Gamepad, gespeichert im Benutzerordner (auch im Browser)
 - Skriptmodus für automatische Testpartien, die bei jeder Änderung in der CI laufen, bis hin zu einem kompletten Einbruch
@@ -145,7 +146,8 @@ Die Sprache wird an der Datei `TEXTS/TCMAINE?.TXT` erkannt (`E` Englisch, `D` De
 `S` Spanisch), Englisch hat Vorrang.
 
 Der enthaltene OPL-Emulator (fmopl) stammt aus MAME und steht unter dessen
-eigener, ebenfalls nichtkommerzieller Lizenz (`mame.txt`).
+eigener, ebenfalls nichtkommerzieller Lizenz (`mame.txt`). Nuked OPL3 von Nuke.YKT liegt unverändert in
+`src/sound/nuked/` und steht unter der GNU LGPL 2.1 oder neuer (`LICENSE-Nuked-OPL3.txt` in jedem Paket).
 
 ## Roadmap
 
@@ -165,6 +167,7 @@ Zusammengeführt aus der Roadmap von iljabauer/DerClou und eigenen Zielen.
     - [ ] Bilder mit 640 Pixeln Breite, Basisauflösung 640 × 240
     - [ ] Mehr als 256 Farben (16 oder 32 Bit)
 3. Ton und Musik
+    - [x] Genauere AdLib-Emulation (Nuked OPL3), alte Emulation wählbar
     - [ ] Musik als OGG oder ähnlich
     - [ ] Vollständige Sprachausgabe aller Dialoge (Deutsch, Englisch)
 4. Code

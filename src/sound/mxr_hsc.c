@@ -8,7 +8,7 @@
 **
 ** See "mxr.h" for details.
 */
-#include "fmopl.h"
+#include "sound/opl.h"
 #include "mxr.h"
 
 /******************************************************************************/
@@ -90,8 +90,7 @@ typedef struct
 
 static void ym3812_write(int reg, int val)
 {
-    YM3812Write(OPL_CHIP0, 0x0388, reg);
-    YM3812Write(OPL_CHIP0, 0x0389, val);
+    oplWrite(reg, val);
 }
 /******************************************************************************/
 
@@ -433,7 +432,7 @@ static void hscReset(HSC_File *pHSC)
     pHSC->hsc_in_process = TRUE;
     pHSC->hsc_valid_data = FALSE;
 
-    YM3812ResetChip(OPL_CHIP0);
+    oplReset();
 
     pHSC->hsc_in_process = FALSE;
 }
@@ -587,7 +586,7 @@ static uint32_t MXR_ProcessInputHSC(MXR_InputHSC *pInput, void *pStream, uint32_
         else
         {
             hsc_process_row(&pInput->hscFile);
-            YM3812UpdateOne(OPL_CHIP0, pInput->hscFile.hsc_buffer, HSC_BUFFER_SIZE);
+            oplGenerate(pInput->hscFile.hsc_buffer, HSC_BUFFER_SIZE);
             pInput->hscFile.hsc_buffer_samples = HSC_BUFFER_SIZE;
         }
     }

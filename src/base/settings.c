@@ -13,12 +13,15 @@
 #include "base/base.h"
 #include "gameplay/gp_app.h"
 #include "sound/fx.h"
+#include "sound/mxr.h"
+#include "sound/opl.h"
 
 enum
 {
     SET_MUSIC,
     SET_SFX,
     SET_VOICE,
+    SET_OPL,
     SET_FULLSCREEN,
     SET_FILTER,
     SET_INTEGER_SCALE,
@@ -35,6 +38,7 @@ static const char *setLabel[SET_COUNT][4] = {
     {"Music", "Musik", "Musique", "M\xa3sica"},
     {"Sound effects", "Ger\x84usche", "Effets sonores", "Efectos"},
     {"Speech", "Sprachausgabe", "Voix", "Voces"},
+    {"AdLib music", "AdLib-Musik", "Musique AdLib", "M\xa3sica AdLib"},
     {"Fullscreen", "Vollbild", "Plein \x82" "cran", "Pantalla completa"},
     {"Scaling", "Skalierung", "Lissage", "Escalado"},
     {"Whole pixels", "Ganze Pixel", "Pixels entiers", "P\xa1xeles enteros"},
@@ -59,6 +63,11 @@ static const char *setDifficulty[3][4] = {
     {"easy", "leicht", "facile", "f\xa0" "cil"},
     {"normal", "normal", "normal", "normal"},
     {"hard", "schwer", "difficile", "dif\xa1" "cil"},
+};
+
+static const char *setOpl[2][4] = {
+    {"classic", "klassisch", "classique", "cl\xa0sica"},
+    {"accurate", "genau", "fid\x8ale", "fiel"},
 };
 
 static const char *setAuto[4] = {"auto", "automatisch", "auto", "auto"};
@@ -125,6 +134,9 @@ static void setValueText(int entry, char *value, size_t size)
         case SET_VOICE:
             snprintf(value, size, "%d/10", setVolumeStep(Config.VoiceVolume));
             break;
+        case SET_OPL:
+            snprintf(value, size, "%s", setOpl[Config.OplEmulator ? 1 : 0][lang]);
+            break;
         case SET_FULLSCREEN:
             snprintf(value, size, "%s", setOnOff[Config.gfxFullScreen ? 1 : 0][lang]);
             break;
@@ -169,6 +181,13 @@ static void setChange(int entry, int dir)
             break;
         case SET_VOICE:
             Config.VoiceVolume = setStepVolume(Config.VoiceVolume, dir);
+            break;
+        case SET_OPL:
+            Config.OplEmulator = !Config.OplEmulator;
+            MXR_LockAudio();
+            oplSelect(Config.OplEmulator ? OPL_EMULATOR_NUKED : OPL_EMULATOR_MAME);
+            MXR_UnlockAudio();
+            sndRestartMusic(); /* the new chip starts empty */
             break;
         case SET_FULLSCREEN:
             Config.gfxFullScreen = !Config.gfxFullScreen;
@@ -231,6 +250,7 @@ void tcSaveSettings(void)
     fprintf(file, "musicvolume = %d\n", Config.MusicVolume);
     fprintf(file, "soundvolume = %d\n", Config.SfxVolume);
     fprintf(file, "voicevolume = %d\n", Config.VoiceVolume);
+    fprintf(file, "opl = %s\n", Config.OplEmulator ? "nuked" : "mame");
     fprintf(file, "fullscreen = %d\n", Config.gfxFullScreen ? 1 : 0);
     fprintf(file, "scalequality = %s\n", Config.gfxLinearFilter ? "linear" : "nearest");
     fprintf(file, "integerscale = %d\n", Config.gfxIntegerScale ? 1 : 0);

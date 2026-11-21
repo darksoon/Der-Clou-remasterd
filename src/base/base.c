@@ -493,6 +493,10 @@ static int readConfigFile(const char *config_file, int optional)
             {
                 Config.ShowPoliceTimer = atoi(pValue) ? 1 : 0;
             }
+            else if (!strcasecmp(pParam, "opl"))
+            {
+                Config.OplEmulator = (!strcasecmp(pValue, "mame") || !strcmp(pValue, "0")) ? 0 : 1;
+            }
             else if (!strcasecmp(pParam, "fastforward"))
             {
                 Config.FastForward = atoi(pValue);
@@ -568,6 +572,7 @@ static void loadConfig(const char *rootPath)
     Config.Difficulty = CFG_DIFFICULTY_NORMAL;
     Config.ShowPoliceTimer = 1;
     Config.FastForward = CFG_FAST_FORWARD_DEFAULT;
+    Config.OplEmulator = 1;
 
     snprintf(config_file, sizeof(config_file), "%s" DIR_SEPARATOR "%s", rootPath, "cosp.cfg");
     if (!readConfigFile(config_file, 0))
