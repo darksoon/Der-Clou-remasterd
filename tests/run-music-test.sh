@@ -19,6 +19,7 @@ export ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=0:verify_asan_link_order=0}"
 timeout -s KILL 180 "$EXE" > "$ROOT/game.log" 2>&1
 grep "AdLib emulation" "$ROOT/game.log"
 if grep -q "ERROR: AddressSanitizer" "$ROOT/game.log"; then cat "$ROOT/game.log"; echo "FAIL: AddressSanitizer error"; exit 1; fi
+if grep -q "runtime error:" "$ROOT/game.log"; then grep -m5 "runtime error:" "$ROOT/game.log"; echo "FAIL: undefined behaviour (UBSan)"; exit 1; fi
 if [ ! -s "$RAW" ]; then cat "$ROOT/game.log"; echo "FAIL: no audio recorded"; exit 1; fi
 
 # 16 bit stereo, 44100 Hz: every second from 9 to 14 must carry music

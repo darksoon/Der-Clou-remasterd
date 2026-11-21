@@ -770,8 +770,8 @@ INLINE void advance_lfo(FM_OPL *OPL)
 
     /* LFO */
     OPL->lfo_am_cnt += OPL->lfo_am_inc;
-    if (OPL->lfo_am_cnt >= (LFO_AM_TAB_ELEMENTS << LFO_SH)) /* lfo_am_table is 210 elements int32_t */
-        OPL->lfo_am_cnt -= (LFO_AM_TAB_ELEMENTS << LFO_SH);
+    if (OPL->lfo_am_cnt >= ((UINT32)LFO_AM_TAB_ELEMENTS << LFO_SH)) /* lfo_am_table is 210 elements int32_t */
+        OPL->lfo_am_cnt -= ((UINT32)LFO_AM_TAB_ELEMENTS << LFO_SH);
 
     tmp = lfo_am_table[OPL->lfo_am_cnt >> LFO_SH];
 
@@ -947,7 +947,7 @@ INLINE signed int op_calc(UINT32 phase, unsigned int env, signed int pm, unsigne
 {
     UINT32 p = 0;
 
-    p = (env << 4) + sin_tab[wave_tab + ((((signed int)((phase & ~FREQ_MASK) + (pm << 16))) >> FREQ_SH) & SIN_MASK)];
+    p = (env << 4) + sin_tab[wave_tab + ((((signed int)((phase & ~FREQ_MASK) + (pm * 65536))) >> FREQ_SH) & SIN_MASK)];
 
     if (p >= TL_TAB_LEN) return 0;
     return tl_tab[p];
@@ -991,7 +991,7 @@ INLINE void OPL_CALC_CH(OPL_CH *CH)
     if (env < ENV_QUIET)
     {
         if (!SLOT->FB) out = 0;
-        SLOT->op1_out[1] = op_calc1(SLOT->Cnt, env, (out << SLOT->FB), SLOT->wavetable);
+        SLOT->op1_out[1] = op_calc1(SLOT->Cnt, env, (out * (1 << SLOT->FB)), SLOT->wavetable);
     }
 
     /* SLOT 2 */
@@ -1065,7 +1065,7 @@ INLINE void OPL_CALC_RH(OPL_CH *CH, unsigned int noise)
     if (env < ENV_QUIET)
     {
         if (!SLOT->FB) out = 0;
-        SLOT->op1_out[1] = op_calc1(SLOT->Cnt, env, (out << SLOT->FB), SLOT->wavetable);
+        SLOT->op1_out[1] = op_calc1(SLOT->Cnt, env, (out * (1 << SLOT->FB)), SLOT->wavetable);
     }
 
     /* SLOT 2 */

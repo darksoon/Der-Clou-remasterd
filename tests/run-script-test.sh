@@ -4,7 +4,7 @@
 # MODFILES=<dir> provides replacement files (MODFILES directory).
 # TEST_HOME=<dir> uses that directory as home instead of a fresh one.
 # Screenshots taken by the script land in $SHOTDIR (default: tests/out/<script name>).
-# EXPECT=<grep pattern> additionally requires a line in the game log.
+# EXPECT=<extended grep pattern> additionally requires a line in the game log.
 # REJECT=<grep pattern> fails the test if the game log contains it.
 # EXPECT_FILE=<file> requires every line of that file (except # comments) literally in the log.
 set -u
@@ -35,10 +35,11 @@ STATUS=$?
 cat "$SHOTDIR/game.log"
 
 if grep -q "ERROR: AddressSanitizer" "$SHOTDIR/game.log"; then echo "FAIL: AddressSanitizer error"; exit 1; fi
+if grep -q "runtime error:" "$SHOTDIR/game.log"; then echo "FAIL: undefined behaviour (UBSan)"; grep -m5 "runtime error:" "$SHOTDIR/game.log"; exit 1; fi
 if ! grep -q "Script mode: end of script" "$SHOTDIR/game.log"; then echo "FAIL: script did not finish (exit $STATUS)"; exit 1; fi
 if ! grep -q "Window closed, quitting" "$SHOTDIR/game.log"; then echo "FAIL: no clean quit (exit $STATUS)"; exit 1; fi
-if [ -n "${EXPECT:-}" ] && ! grep -q "$EXPECT" "$SHOTDIR/game.log"; then echo "FAIL: log does not contain '$EXPECT'"; exit 1; fi
-if [ -n "${REJECT:-}" ] && grep -q "$REJECT" "$SHOTDIR/game.log"; then echo "FAIL: log contains '$REJECT'"; exit 1; fi
+if [ -n "${EXPECT:-}" ] && ! grep -qE "$EXPECT" "$SHOTDIR/game.log"; then echo "FAIL: log does not contain '$EXPECT'"; exit 1; fi
+if [ -n "${REJECT:-}" ] && grep -qE "$REJECT" "$SHOTDIR/game.log"; then echo "FAIL: log contains '$REJECT'"; exit 1; fi
 if [ -n "${EXPECT_FILE:-}" ]; then
   while IFS= read -r line; do
     case "$line" in ''|'#'*) continue ;; esac

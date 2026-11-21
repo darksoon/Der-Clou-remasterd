@@ -6,6 +6,7 @@
 set -u
 EXE="$1"
 PROFILE="${2:-full}"
+case "$PROFILE" in full|sanitizer) ;; *) echo "unknown profile: $PROFILE (full or sanitizer)"; exit 2 ;; esac
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 T=tests/run-script-test.sh
@@ -67,14 +68,14 @@ lane_burglary() {
     (
         export TEST_HOME="$(mktemp -d)"
         EXPECT_FILE=tests/expected/burglary-plus.txt $T "$EXE" tests/scripts/burglary-plus.txt "${ENV42[@]}"
-        EXPECT="Game mode of the saved game: Game+" $T "$EXE" tests/scripts/burglary-plus-load.txt
+        EXPECT="Game mode of the saved game: Game\\+" $T "$EXE" tests/scripts/burglary-plus-load.txt
     )
 }
 
 lane_weather() {
     if [ "$PROFILE" = full ]; then
         # Game+ night and weather: thunderstorm with lightning every 1.5 s, the burglary plays the same
-        EXPECT="Thunder (close)" EXPECT_FILE=tests/expected/burglary-weather.txt $T "$EXE" tests/scripts/burglary-weather.txt "${ENV42[@]}" "plusweather = storm" "plusflash = 1500"
+        EXPECT="Thunder \\(close\\)" EXPECT_FILE=tests/expected/burglary-weather.txt $T "$EXE" tests/scripts/burglary-weather.txt "${ENV42[@]}" "plusweather = storm" "plusflash = 1500"
         EXPECT_FILE=tests/expected/burglary-weather.txt REJECT="Weather|Light:" SHOTDIR=tests/out/burglary-weather-off $T "$EXE" tests/scripts/burglary-weather.txt "${ENV42[@]}" "plusweather = off"
     else
         # thunderstorm with the CRT picture and smooth edges
