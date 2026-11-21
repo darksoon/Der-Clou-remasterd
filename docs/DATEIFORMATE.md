@@ -374,8 +374,8 @@ und `Geschehen`, zuletzt `gamemode <n>` (0 Original, 1 Spiel+).
 
 | Dateien | Grund |
 | --- | --- |
-| `AUDIO/*.WAV`, `PLUS/VOICE/*.WAV` | Sprachausgabe als RIFF WAVE, ein Standardformat |
+| `AUDIO/*.WAV`, `PLUS/VOICE/*.WAV`, `PLUS/AMBIENT/*.WAV`, `PLUS/WEATHER/*.WAV` | Sprache und Geräusche als RIFF WAVE (PCM, 8 oder 16 Bit, Mono oder Stereo) |
 | `SOUNDS/*`, `SAMPLES/*` | Musik (HSC) und Klänge, keine Spieldaten im Sinne dieses Werkzeugs |
 | `PICTURES/*`, `INTROPIX/*` | Bilder und Animationen (IFF ILBM, IFF ANIM, PNG), dafür gibt es Bildwerkzeuge |
-| `PLUS/BALANCE.LUA` | Lua-Skript, reiner Text |
+| `PLUS/BALANCE.LUA`, `PLUS/NEWS.LUA`, `PLUS/WEATHER.LUA` | Lua-Skripte von Spiel+, reiner Text |
 | `cosp.cfg` | Einstellungen, reiner Text |

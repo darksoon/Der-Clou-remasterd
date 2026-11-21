@@ -100,6 +100,12 @@ Die Sprache wird an der Datei `TEXTS/TCMAINE?.TXT` erkannt (`E` Englisch, `D` De
 Der enthaltene OPL-Emulator (fmopl) stammt aus MAME und steht unter dessen
 eigener, ebenfalls nichtkommerzieller Lizenz (`mame.txt`). Nuked OPL3 von Nuke.YKT liegt unverändert in
 `src/sound/nuked/` und steht unter der GNU LGPL 2.1 oder neuer (`LICENSE-Nuked-OPL3.txt` in jedem Paket).
+Der vollständige Quellcode jedes Releases liegt hier, damit lässt sich das Spiel mit einer geänderten
+Fassung neu bauen. Lua von Lua.org, PUC-Rio steht unter der MIT-Lizenz (`LICENSE-Lua.txt` in jedem Paket).
+
+Die Dateien unter `gamedata/PLUS/` (Stimmen, Hintergrundgeräusche, Wetter und Lua-Skripte von Spiel+)
+wurden für dieses Projekt neu erstellt. Sie gehören nicht zum Original von neo Software und stehen
+unter denselben Bedingungen wie der Rest: kostenlose, nichtkommerzielle Weitergabe und Veränderung.
 
 ## CREDITS
 ```

@@ -104,10 +104,10 @@
 <div id="play">
 <main>
   <div id="stage">
-    <canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
+    <canvas id="canvas" tabindex="-1" role="application" aria-label="Der Clou! Spielfläche" oncontextmenu="event.preventDefault()"></canvas>
     <div id="overlay">
       <h2>Der Clou!</h2>
-      <p id="status">Lade Spieldaten …</p>
+      <p id="status" aria-live="polite">Lade Spieldaten …</p>
       <div id="progress"><div id="bar"></div></div>
       <button id="start">Klicken zum Starten</button>
       <p class="desk">Steuerung mit Maus und Tastatur: Pfeiltasten, <kbd>Enter</kbd>, <kbd>Esc</kbd>.
@@ -150,8 +150,20 @@
   var canvas = document.getElementById('canvas');
   var ready = false;
 
+  // the CI replaces this with the commit of the build, so program and data of one build belong together
+  var BUILD = '__DERCLOU_BUILD__';
+  function loadFailed(why) {
+    if (ready) return;
+    statusEl.textContent = 'Fehler beim Laden' + (why ? ' (' + why + ')' : '') + '. Bitte Seite neu laden.';
+    bar.style.width = '0';
+  }
+
   var Module = {
     canvas: canvas,
+    locateFile: function (path, prefix) {
+      return (prefix || '') + path + (BUILD.indexOf('__') === 0 ? '' : '?' + BUILD);
+    },
+    onAbort: function (what) { loadFailed(String(what || '').slice(0, 80)); },
     print: function (t) { console.log(t); },
     printErr: function (t) { console.warn(t); },
     setStatus: function (text) {
@@ -288,15 +300,21 @@
     var f = saveFile.files[0]; if (!f) return;
     f.text().then(function (text) {
       var data = JSON.parse(text);
-      if (!data || data.format !== 'derclou-saves' || !data.files) throw new Error('format');
-      if (!confirm('Die Spielstände in diesem Browser werden durch die aus der Datei ersetzt. Weiter?')) return;
-      var dir = Module.derclouSaveDir + (Module.derclouSaveDir.slice(-1) === '/' ? '' : '/');
-      Object.keys(data.files).forEach(function (name) {
-        if (!/^[A-Za-z0-9_.-]+$/.test(name)) return; /* plain file names only */
-        var bin = atob(data.files[name]), bytes = new Uint8Array(bin.length);
+      if (!data || data.format !== 'derclou-saves' || !data.files || typeof data.files !== 'object') throw new Error('format');
+      // check and decode everything first, write only when the whole file is good
+      var names = Object.keys(data.files), decoded = [];
+      if (!names.length || names.length > 200) throw new Error('count');
+      names.forEach(function (name) {
+        if (!/^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(name) || name.length > 64) throw new Error('name');
+        var bin = atob(data.files[name]);
+        if (bin.length > 4 * 1024 * 1024) throw new Error('size');
+        var bytes = new Uint8Array(bin.length);
         for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-        Module.FS.writeFile(dir + name, bytes);
+        decoded.push([name, bytes]);
       });
+      if (!confirm('Die Spielstände aus der Datei werden eingespielt. Gleichnamige Spielstände in diesem Browser werden überschrieben. Weiter?')) return;
+      var dir = Module.derclouSaveDir + (Module.derclouSaveDir.slice(-1) === '/' ? '' : '/');
+      decoded.forEach(function (d) { Module.FS.writeFile(dir + d[0], d[1]); });
       Module.FS.syncfs(false, function (err) {
         if (err) { alert('Speichern im Browser fehlgeschlagen.'); return; }
         alert('Spielstände eingespielt. Das Spiel startet neu.');
@@ -310,11 +328,11 @@
   document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
   document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
 
-  window.addEventListener('error', function () {
-    statusEl.textContent = 'Fehler beim Laden. Bitte Seite neu laden.';
-  });
+  window.addEventListener('error', function () { loadFailed(''); });
+  // a failed download of the game data rejects a promise inside the loader
+  window.addEventListener('unhandledrejection', function () { loadFailed('Spieldaten nicht erreichbar'); });
 </script>
-<script src="voices.js"></script>
+<script src="voices.js" onerror="console.warn('voices.js missing, playing without the Game+ voices')"></script>
 {{{ SCRIPT }}}
 </body>
 </html>

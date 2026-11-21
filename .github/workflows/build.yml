@@ -8,8 +8,14 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+# jobs only read the repository; the two publishing jobs ask for write access themselves
 permissions:
-  contents: write
+  contents: read
+
+# a newer push to the same branch waits for the running one, so an older run never publishes last
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   BUILD_TYPE: Release
@@ -26,6 +32,7 @@ jobs:
   # when something that can change the game was touched, for every release and when started by hand.
   changes:
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
     outputs:
       play: ${{ steps.diff.outputs.play }}
     steps:
@@ -52,6 +59,7 @@ jobs:
   linux:
     needs: changes
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -67,6 +75,7 @@ jobs:
           cp build/build/x64/DerClou dist/DerClou/
           cp README.md PublicLicenceContract.txt mame.txt dist/DerClou/
           cp src/sound/nuked/LICENSE.txt dist/DerClou/LICENSE-Nuked-OPL3.txt
+          cp LICENSE-Lua.txt dist/DerClou/
           tar -C dist -czf DerClou-linux-x64.tar.gz DerClou
       - name: Smoke test
         run: scripts/smoke-test.sh dist/DerClou/DerClou 10
@@ -82,16 +91,20 @@ jobs:
           APPIMAGE_EXTRACT_AND_RUN: 1
           LDAI_OUTPUT: DerClou-linux-x86_64.AppImage
         run: |
-          curl -sSLo linuxdeploy https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          # a fixed release with its checksum instead of the moving "continuous" build
+          curl -sSLo linuxdeploy https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20251107-1/linuxdeploy-x86_64.AppImage
+          echo "c20cd71e3a4e3b80c3483cef793cda3f4e990aca14014d23c544ca3ce1270b4d  linuxdeploy" | sha256sum -c -
           chmod +x linuxdeploy
           mkdir -p AppDir/usr/bin
           cp -r gamedata/. AppDir/usr/bin/
           cp README.md PublicLicenceContract.txt mame.txt AppDir/usr/bin/
           cp src/sound/nuked/LICENSE.txt AppDir/usr/bin/LICENSE-Nuked-OPL3.txt
+          cp LICENSE-Lua.txt AppDir/usr/bin/
           ./linuxdeploy --appdir AppDir -e build/build/x64/DerClou \
             -d packaging/derclou.desktop -i packaging/derclou.png --output appimage
       - uses: actions/upload-artifact@v4
         with:
+          retention-days: 14
           name: DerClou-linux-x64
           path: |
             DerClou-linux-x64.tar.gz
@@ -99,6 +112,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
+          retention-days: 14
           name: test-screenshots
           path: tests/out
 
@@ -106,6 +120,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.play == 'true'
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -119,6 +134,7 @@ jobs:
 
   windows:
     runs-on: windows-latest
+    timeout-minutes: 40
     defaults:
       run:
         shell: msys2 {0}
@@ -147,14 +163,22 @@ jobs:
           ldd dist/DerClou/DerClou.exe | grep -i '/ucrt64/' | awk '{print $3}' | xargs -r -I{} cp {} dist/DerClou/
           cp README.md PublicLicenceContract.txt mame.txt dist/DerClou/
           cp src/sound/nuked/LICENSE.txt dist/DerClou/LICENSE-Nuked-OPL3.txt
+          cp LICENSE-Lua.txt dist/DerClou/
+          # licence texts of the bundled DLLs (SDL, libiconv)
+          mkdir -p dist/DerClou/licenses
+          find /ucrt64/share/licenses -maxdepth 1 \( -iname '*sdl3*' -o -iname '*iconv*' \) -exec cp -r {} dist/DerClou/licenses/ \;
+          ls dist/DerClou/licenses
+          if [ -e dist/DerClou/libiconv-2.dll ] && ! ls dist/DerClou/licenses | grep -qi iconv; then echo "licence text of libiconv not found"; exit 1; fi
           cd dist && zip -qr ../DerClou-windows-x64.zip DerClou
       - uses: actions/upload-artifact@v4
         with:
+          retention-days: 14
           name: DerClou-windows-x64
           path: DerClou-windows-x64.zip
 
   macos:
     runs-on: macos-latest
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -171,17 +195,22 @@ jobs:
           dylibbundler -od -b -x dist/DerClou/DerClou -d dist/DerClou/libs -p @executable_path/libs
           cp README.md PublicLicenceContract.txt mame.txt dist/DerClou/
           cp src/sound/nuked/LICENSE.txt dist/DerClou/LICENSE-Nuked-OPL3.txt
+          cp LICENSE-Lua.txt dist/DerClou/
           cd dist && zip -qry ../DerClou-macos.zip DerClou
       - uses: actions/upload-artifact@v4
         with:
+          retention-days: 14
           name: DerClou-macos
           path: DerClou-macos.zip
 
   web:
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 7.0.0
       - name: Configure
         run: emcmake cmake -B build-web -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
       - name: Build
@@ -194,13 +223,19 @@ jobs:
           cp web/play/* dist/web/
           cp PublicLicenceContract.txt mame.txt dist/web/
           cp src/sound/nuked/LICENSE.txt dist/web/LICENSE-Nuked-OPL3.txt
+          cp LICENSE-Lua.txt dist/web/
+          # program and data of one build carry the same version in their address (no mixing from the cache)
+          sed -i "s/__DERCLOU_BUILD__/${GITHUB_SHA::10}/; s/\\(src=\"\\?\\)\\(DerClou\\|voices\\)\\.js/\\1\\2.js?${GITHUB_SHA::10}/g" dist/web/*.html
+          grep -q "DerClou.js?${GITHUB_SHA::10}" dist/web/index.html
           cd dist && zip -qr ../DerClou-web.zip web
       - uses: actions/upload-artifact@v4
         with:
+          retention-days: 14
           name: DerClou-web
           path: DerClou-web.zip
       - uses: actions/upload-artifact@v4
         with:
+          retention-days: 14
           name: site
           path: |
             web/site
@@ -210,6 +245,9 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [ linux, web ]
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -235,6 +273,9 @@ jobs:
     if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
     needs: [ linux, sanitizers, windows, macos, web ]
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Decide on release
@@ -253,6 +294,8 @@ jobs:
           # release notes: the CHANGELOG section of this version
           awk -v v="## ${tag#v} " 'index($0, v) == 1 {on = 1; next} /^## / {on = 0} on' CHANGELOG.md > notes.md
           cat notes.md
+          # a release without its CHANGELOG section is a mistake
+          test -s notes.md || { echo "CHANGELOG.md has no section for ${tag#v}"; exit 1; }
       - uses: actions/download-artifact@v4
         if: steps.ver.outputs.publish == 'true'
         with:
@@ -267,3 +310,4 @@ jobs:
           name: Der Clou! remastered ${{ steps.ver.outputs.tag }}
           body_path: notes.md
           files: artifacts/*
+          fail_on_unmatched_files: true
