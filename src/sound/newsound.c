@@ -21,19 +21,26 @@ char currSoundName[256];
 
 /* Game+: background sounds that go with the street and pub music */
 static const char *currAmbience = NULL;
+/* Game+: the rain of a burglary night replaces the background sound of the music */
+static const char *weatherAmbience = NULL;
+
+static int sndPlusSoundsOn(void)
+{
+    return (GameMode == GAME_MODE_PLUS) && Config.PlusAmbience && (Config.SfxVolume > 0);
+}
 
 static void sndSetAmbience(const char *file)
 {
     char path[256];
 
     if (!pAudioMixer) return;
-    if ((GameMode != GAME_MODE_PLUS) || !Config.PlusAmbience || (Config.SfxVolume <= 0)) file = NULL;
+    if (!sndPlusSoundsOn()) file = NULL;
     if (file == currAmbience) return;
 
     currAmbience = file;
     if (file)
     {
-        dskBuildPathName(PLUS_AMBIENT_DIRECTORY, file, path);
+        dskBuildPathName((file == weatherAmbience) ? PLUS_WEATHER_DIRECTORY : PLUS_AMBIENT_DIRECTORY, file, path);
         Log("Background sound: %s", path);
         MXR_SetInput(pAudioMixer, MXR_INPUT_AMBIENT, MXR_CreateInputWAVLoop(path));
         MXR_SetInputVolume(pAudioMixer, MXR_INPUT_AMBIENT, (unsigned char)Config.SfxVolume);
@@ -47,7 +54,9 @@ static void sndSetAmbience(const char *file)
 /* the background sound for a piece of music: street, pub, hotel room, police */
 static void sndAmbienceForMusic(const char *name)
 {
-    if (!strncasecmp(name, "street", 6))
+    if (weatherAmbience)
+        sndSetAmbience(weatherAmbience);
+    else if (!strncasecmp(name, "street", 6))
         sndSetAmbience("STREET.WAV");
     else if (!strncasecmp(name, "bar", 3))
         sndSetAmbience("PUB.WAV");
@@ -65,6 +74,34 @@ void sndUpdateAmbience(void)
     currAmbience = NULL;
     MXR_SetInput(pAudioMixer, MXR_INPUT_AMBIENT, NULL);
     sndAmbienceForMusic(currSoundName);
+}
+
+/* Game+: a looping weather sound (rain) for the burglary, NULL to end it */
+void sndSetWeatherAmbience(const char *file)
+{
+    weatherAmbience = file;
+    if (pAudioMixer) sndUpdateAmbience();
+}
+
+/* Game+: a single weather sound (thunder) on its own mixer input; volume in percent of the effects */
+void sndPlayWeatherFX(const char *file, int percent)
+{
+    char path[256];
+    int volume = 0;
+
+    if (!pAudioMixer) return;
+    if (!file || !sndPlusSoundsOn())
+    {
+        MXR_SetInput(pAudioMixer, MXR_INPUT_WEATHER, NULL);
+        return;
+    }
+
+    volume = (Config.SfxVolume * percent) / 100;
+    if (volume > SND_MAX_VOLUME) volume = SND_MAX_VOLUME;
+
+    dskBuildPathName(PLUS_WEATHER_DIRECTORY, file, path);
+    MXR_SetInput(pAudioMixer, MXR_INPUT_WEATHER, MXR_CreateInputWAV(path));
+    MXR_SetInputVolume(pAudioMixer, MXR_INPUT_WEATHER, (unsigned char)volume);
 }
 
 int currMusicVolume = 0;

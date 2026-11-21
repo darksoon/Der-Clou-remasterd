@@ -19,6 +19,7 @@
 #define SCRIPT_DIRECTORY "plus"
 #define SCRIPT_BALANCE "balance.lua"
 #define SCRIPT_NEWS "news.lua"
+#define SCRIPT_WEATHER "weather.lua"
 
 static lua_State *L = NULL;
 
@@ -88,6 +89,7 @@ void scrInit(void)
 
     scrRunFile(SCRIPT_DIRECTORY, SCRIPT_BALANCE);
     scrRunFile(SCRIPT_DIRECTORY, SCRIPT_NEWS);
+    scrRunFile(SCRIPT_DIRECTORY, SCRIPT_WEATHER);
 }
 
 void scrDone(void)
@@ -265,4 +267,74 @@ int scrNews(const ScrNewsInfo *info, char *lines, int maxLines, int lineSize)
     }
     lua_pop(L, 1);
     return count;
+}
+
+/* the weather names of PLUS/WEATHER.LUA, in the order of CFG_WEATHER_CLEAR .. CFG_WEATHER_FOG */
+static const char *scrWeatherName[] = {"clear", "cloudy", "rain", "storm", "fog"};
+#define SCR_WEATHER_COUNT ((int)(sizeof(scrWeatherName) / sizeof(scrWeatherName[0])))
+
+static int scrWeatherIndex(const char *name)
+{
+    int i = 0;
+
+    for (i = 0; name && (i < SCR_WEATHER_COUNT); i++)
+        if (!strcmp(name, scrWeatherName[i])) return i;
+    return -1;
+}
+
+int scrWeather(int32_t day, uint32_t building, uint32_t roll, uint32_t pick)
+{
+    lua_Integer weight[SCR_WEATHER_COUNT];
+    lua_Integer total = 0;
+    int result = -1;
+    int i = 0;
+
+    if (!L) scrInit();
+    if (!L) return -1;
+
+    /* night_weather(day, building, roll) may decide by itself */
+    if (lua_getglobal(L, "night_weather") == LUA_TFUNCTION)
+    {
+        lua_pushinteger(L, day);
+        lua_pushinteger(L, building);
+        lua_pushinteger(L, roll);
+        if (lua_pcall(L, 3, 1, 0) == LUA_OK)
+        {
+            if (lua_type(L, -1) == LUA_TSTRING) result = scrWeatherIndex(lua_tostring(L, -1));
+        }
+        else
+            Log("Lua error: %s", lua_tostring(L, -1));
+        lua_pop(L, 1);
+    }
+    else
+        lua_pop(L, 1);
+
+    if (result >= 0) return result;
+
+    /* otherwise the chances in weather[name] */
+    if (lua_getglobal(L, "weather") == LUA_TTABLE)
+    {
+        for (i = 0; i < SCR_WEATHER_COUNT; i++)
+        {
+            weight[i] = 0;
+            if (lua_getfield(L, -1, scrWeatherName[i]) == LUA_TNUMBER)
+            {
+                lua_Integer v = lua_tointeger(L, -1);
+                if ((v > 0) && (v <= 1000)) weight[i] = v;
+            }
+            lua_pop(L, 1);
+            total += weight[i];
+        }
+    }
+    lua_pop(L, 1);
+
+    if (total <= 0) return -1;
+
+    pick %= (uint32_t)total;
+    for (i = 0; i < SCR_WEATHER_COUNT; i++)
+    {
+        if (pick < (uint32_t)weight[i]) return i;
+        pick -= (uint32_t)weight[i];
+    }
+    return -1;
 }

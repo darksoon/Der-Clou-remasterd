@@ -98,6 +98,9 @@ jobs:
            EXPECT="Game mode of the saved game: Game+" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-plus-load.txt)
           # Game+ background sounds, never in the original
           EXPECT="Background sound: .*STREET" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start-plus.txt
+          # Game+ night and weather: thunderstorm with lightning every 1.5 s, the burglary plays the same
+          EXPECT="Thunder (close)" EXPECT_FILE=tests/expected/burglary-weather.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-weather.txt "fullenv = 42" "storyoff = 42" "plusweather = storm" "plusflash = 1500"
+          EXPECT_FILE=tests/expected/burglary-weather.txt REJECT="Weather|Light:" SHOTDIR=tests/out/burglary-weather-off tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-weather.txt "fullenv = 42" "storyoff = 42" "plusweather = off"
           # held arrow key repeats with the game's own timing
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/key-repeat.txt
           # smooth edges (Scale4x) with the CRT picture
@@ -168,6 +171,8 @@ jobs:
           (export TEST_HOME="$(mktemp -d)"
            EXPECT_FILE=tests/expected/burglary-plus.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-plus.txt "fullenv = 42" "storyoff = 42"
            EXPECT="Game mode of the saved game: Game+" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-plus-load.txt)
+          # Game+ night and weather (thunderstorm, CRT picture and smooth edges)
+          EXPECT_FILE=tests/expected/burglary-weather.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-weather.txt "fullenv = 42" "storyoff = 42" "plusweather = storm" "plusflash = 1500" "displayfilter = crt" "scale2x = 1"
           # smooth edges (Scale4x) with the CRT picture
           SHOTDIR=tests/out/story-smooth tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt "scale2x = 1" "displayfilter = crt"
           # Game+: balance from PLUS/BALANCE.LUA, mode restored from the saved game

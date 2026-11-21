@@ -1,0 +1,165 @@
+# Game+ burglary at night (needs fullenv=42 storyoff=42 plusweather=storm plusflash=1500): like
+# burglary-plus.txt, but the first burglar walks through the building before he goes to the car,
+# and the playback runs without fast forward at first, so the screenshots show the night light
+# inside, the rain on the street and the lightning
+wait 2500
+key Return
+# game mode: Game+
+wait 1500
+key Down
+wait 300
+key Return
+wait 3000
+click 119 183
+wait 2500
+click 20 183
+wait 2000
+click 20 171
+wait 2000
+key Return
+wait 2000
+click 20 171
+wait 2000
+key Down
+key Down
+key Down
+key Down
+key Down
+key Down
+wait 500
+shot j00
+key Return
+wait 2000
+click 95 171
+wait 2500
+click 93 183
+wait 2500
+shot j01
+key Return
+wait 2500
+click 183 183
+wait 6000
+shot k01
+key Return
+wait 2500
+key Return
+wait 1500
+rclick 60 20
+wait 5000
+shot p01
+rclick 319 127
+wait 5000
+rclick 319 120
+wait 5000
+rclick 236 86
+wait 3000
+click 160 60
+wait 2000
+click 250 159
+wait 2000
+shot e01
+key Down
+key Return
+wait 2000
+shot e02
+click 20 159
+wait 1500
+rclick 236 86
+wait 3000
+click 160 60
+wait 2000
+click 250 159
+wait 2000
+key Down
+key Down
+key Return
+wait 2000
+click 20 159
+wait 1500
+rclick 236 86
+wait 3000
+shot e03
+click 160 60
+wait 2000
+click 250 171
+wait 2000
+click 295 159
+wait 3000
+shot e04
+key Return
+wait 3000
+key Return
+wait 3000
+shot e05
+click 260 171
+wait 6000
+shot e06
+key Return
+wait 250
+shot n01
+wait 250
+shot n02
+wait 250
+shot n03
+wait 250
+shot n04
+wait 250
+shot n05
+wait 250
+shot n06
+wait 250
+shot n07
+wait 250
+shot n08
+wait 250
+shot n09
+wait 250
+shot n10
+wait 250
+shot n11
+wait 250
+shot n12
+wait 250
+shot n13
+wait 250
+shot n14
+wait 250
+shot n15
+wait 250
+shot n16
+wait 250
+shot n17
+wait 250
+shot n18
+wait 250
+shot n19
+wait 250
+shot n20
+wait 250
+shot n21
+wait 250
+shot n22
+wait 250
+shot n23
+wait 250
+shot n24
+wait 250
+shot n25
+wait 250
+shot n26
+wait 250
+shot n27
+wait 250
+shot n28
+wait 250
+shot n29
+wait 250
+shot n30
+wait 250
+shot n31
+wait 250
+shot n32
+key Tab
+wait 15000
+shot n99
+quit

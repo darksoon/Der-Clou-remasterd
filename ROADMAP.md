@@ -18,6 +18,8 @@ gehört in Spiel+.
   Wiederherstellen (Taste T)
 - Spiel+: Zeitung am Morgen nach dem Coup mit Schlagzeile per Lua (`PLUS/NEWS.LUA`)
 - Browser: Spielstände als Datei sichern und wieder einspielen
+- Spiel+ Einbruch bei Nacht: Taschenlampen, Laternen der Wachen, Mondlicht durch die Fenster,
+  Wetter (klar, bewölkt, Regen, Gewitter, Nebel) aus `PLUS/WEATHER.LUA`, nur Bild und Ton
 - Datenwerkzeug `tools/clou-data.py`: Datenbank, Gebäude, Wachenrouten, Pläne, Handlung und Texte
   verlustfrei als JSON lesen und schreiben, Formate in `docs/DATEIFORMATE.md`
 - Musik: Das Titelstück fordert einmal ein Instrument an, das es nicht gibt. Das geschieht bei
@@ -59,6 +61,6 @@ gehört in Spiel+.
 | P27 | Wiederholung des Einbruchs als Film, als Video speichern | M |
 | P28 | Mod-Auswahl im Menü, Farbschema für Farbenblinde, größere Schrift | M |
 | P29 | Zufällig erzeugte Gebäude aus Bausteinen | L |
-| P17 | Wetter (Regen, Nebel, klare Nacht) mit Wirkung auf Geräusche, Sicht der Wachen und Flucht, sichtbar und hörbar beim Einbruch | M |
+| P17 | Wirkung des Wetters auf den Ablauf: Regen übertönt Geräusche, Nebel verkürzt die Sicht der Wachen, nasse Straßen verlängern die Flucht (Bild und Ton gibt es schon) | M |
 | P18 | Zufällige neue Komplizen: Werte, Namen und Vorgeschichte per Lua, Porträts aus Einzelteilen | L |
 | P19 | Komplizen trainieren: Kurse gegen Geld und Zeit, Fortschritt durch Einbrüche | M |

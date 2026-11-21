@@ -34,5 +34,9 @@ typedef struct
 
 /* fills up to maxLines lines (game code page, at most lineSize - 1 bytes each); returns the count */
 extern int scrNews(const ScrNewsInfo *info, char *lines, int maxLines, int lineSize);
+/* Game+: weather of a burglary night from PLUS/WEATHER.LUA: 0 clear, 1 cloudy, 2 rain, 3 storm, 4 fog,
+   or -1 if the script gives none. roll (0..9999) and pick are the caller's own numbers for this night,
+   so the game's random numbers are never used. */
+extern int scrWeather(int32_t day, uint32_t building, uint32_t roll, uint32_t pick);
 
 #endif

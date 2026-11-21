@@ -6,6 +6,8 @@
 */
 #include "planing/graphics.h"
 
+#include "planing/night.h"
+
 void plPrintInfo(char *person)
 {
     char info[80];
@@ -73,6 +75,8 @@ void plDisplayTimer(uint32_t time, ubyte doSpotsImmediatly)
         oldTimer = CurrentTimer(plSys);
         lsMoveAllSpots(time);
     }
+
+    plNightShowWeather(); /* Game+ burglary: the weather of the night */
 }
 
 void plDisplayInfo(void)

@@ -34,6 +34,7 @@ Dieses Projekt führt die besten Teile der bisherigen Community-Ports zusammen:
 - Lua 5.5 als Skriptsprache für Spiel+, abgeschottet ohne Datei- und Systemzugriff. Der Originalmodus startet nie ein Skript
 - Einstellungsmenü im Hauptmenü: Lautstärken, Vollbild, Skalierung, Schwierigkeit, Polizei-Countdown, Zeitraffer und Gamepad, gespeichert im Benutzerordner (auch im Browser)
 - Spiel+: Die Planung zeigt Laufwege und Sichtbereiche der Wachen im Grundriss und eine Zeitleiste aller Einbrecher mit Rückgängig und Wiederholen
+- Spiel+: Der Einbruch spielt bei Nacht und Wetter. Die Räume sind dunkel, jeder Einbrecher trägt eine Taschenlampe, die Wachen eine Laterne, durch die Fenster fällt Mondlicht, und je nach Nacht ist es klar, bewölkt, regnerisch, neblig oder es gewittert (mit Blitz und Donner). Das ändert nur Bild und Ton, nie den Ablauf. Welches Wetter in welcher Nacht herrscht, bestimmt das Lua-Skript `PLUS/WEATHER.LUA`, abschaltbar im Einstellungsmenü („Nacht und Wetter (Spiel+)“, `plusweather` in `cosp.cfg`)
 - Skriptmodus für automatische Testpartien, die bei jeder Änderung in der CI laufen, bis hin zu einem kompletten Einbruch
 
 Die wichtigsten Optionen lassen sich im Hauptmenü unter „Einstellungen“ ändern. Dort gilt: Klick oder Eingabetaste schaltet weiter, die Pfeiltasten links und rechts verringern oder erhöhen, Rechtsklick oder Escape führt zurück. Die Auswahl landet als `settings.cfg` im Benutzerordner und wird nach `cosp.cfg` gelesen. Alle Optionen stehen kommentiert in `gamedata/cosp.cfg`.
@@ -43,8 +44,8 @@ wird statt der gleichnamigen Originaldatei geladen, zum Beispiel `MODFILES/PICTU
 `PICTURES/MENU`. Ordner- und Dateinamen werden großgeschrieben. Bilder dürfen statt ILBM auch PNG mit
 256-Farben-Palette sein, Name, Größe und Farbbereich müssen dem Original entsprechen. So lassen sich auch
 die Lua-Skripte von Spiel+ anpassen, zum Beispiel die Werte des Schwierigkeitsgrads in
-`MODFILES/PLUS/BALANCE.LUA`. Fehler in einem Skript stehen in `clou.log`, das Spiel nimmt dann die
-eingebauten Werte. Was noch zu tun ist, steht in [AUDIT.md](AUDIT.md).
+`MODFILES/PLUS/BALANCE.LUA` oder die Wetterchancen in `MODFILES/PLUS/WEATHER.LUA`. Fehler in einem
+Skript stehen in `clou.log`, das Spiel nimmt dann die eingebauten Werte. Was noch zu tun ist, steht in [AUDIT.md](AUDIT.md).
 
 ## Tasten
 

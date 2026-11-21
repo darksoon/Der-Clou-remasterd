@@ -6,6 +6,8 @@
 */
 #include "planing/player.h"
 
+#include "planing/night.h"
+
 // Menu ids - player
 enum
 {
@@ -1407,6 +1409,9 @@ int32_t plPlayer(uint32_t objId, uint32_t actionTime, ubyte (*actionFunc)(uint32
                     }
                 }
 
+                /* Game+: night light and weather, only the picture and the sound */
+                plNightEnter(objId);
+
                 /* start main loop */
                 inpSetFastForward(0);
                 playStart = SDL_GetTicks();
@@ -1553,6 +1558,7 @@ int32_t plPlayer(uint32_t objId, uint32_t actionTime, ubyte (*actionFunc)(uint32
                 }
 
                 SetMenuTimeOutFunc(NULL);
+                plNightLeave();
                 Log("Burglary played: %u s burglary time in %u ms", (unsigned)PD.realTime,
                     (unsigned)(SDL_GetTicks() - playStart));
                 inpSetFastForward(0);
@@ -1644,6 +1650,8 @@ int32_t plPlayer(uint32_t objId, uint32_t actionTime, ubyte (*actionFunc)(uint32
     }
 
     if (Search.BuildingId == Building_Starford_Kaserne) Search.KaserneOk = tcIsLastBurglaryOk();
+
+    plNightStopSound();
 
     plUnprepareRel();
     plUnprepareGfx();

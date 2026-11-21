@@ -30,5 +30,7 @@ void sndFading(short int targetVol);
 char *sndGetCurrSoundName(void);
 void sndRestartMusic(void);
 void sndUpdateAmbience(void);
+void sndSetWeatherAmbience(const char *file);
+void sndPlayWeatherFX(const char *file, int percent);
 
 #endif

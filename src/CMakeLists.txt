@@ -47,6 +47,7 @@ set(SOURCE_FILES
     planing/planer.c
     planing/player.c
     planing/plus.c
+    planing/night.c
     planing/prepare.c
     planing/support.c
     planing/sync.c
@@ -69,6 +70,7 @@ set(SOURCE_FILES
     intro/iffanim.c
     gfx/filter.c
     gfx/crt.c
+    gfx/light.c
     gfx/loadimage.c
     theclou.c)
 

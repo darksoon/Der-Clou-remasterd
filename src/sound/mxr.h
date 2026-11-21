@@ -62,12 +62,13 @@
 /*
 ** Maximum number of inputs
 */
-#define MXR_MAX_INPUTS 4  // 0 = music, 1 = soundfx, 2 = voice, 3 = background sounds (Game+)
+#define MXR_MAX_INPUTS 5  // 0 = music, 1 = soundfx, 2 = voice, 3 = background sounds, 4 = weather (Game+)
 
 #define MXR_INPUT_MUSIC 0
 #define MXR_INPUT_FX 1
 #define MXR_INPUT_VOICE 2
 #define MXR_INPUT_AMBIENT 3
+#define MXR_INPUT_WEATHER 4 /* thunder, so it never cuts off a sound effect or a voice */
 
 /******************************************************************************/
 

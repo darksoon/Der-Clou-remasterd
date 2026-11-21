@@ -497,6 +497,21 @@ static int readConfigFile(const char *config_file, int optional)
             {
                 Config.PlusAmbience = atoi(pValue) ? 1 : 0;
             }
+            else if (!strcasecmp(pParam, "plusweather"))
+            {
+                static const char *names[CFG_WEATHER_COUNT] = {"off", "auto", "clear", "cloudy", "rain", "storm", "fog"};
+                int i = 0;
+
+                Config.PlusWeather = CFG_WEATHER_AUTO;
+                for (i = 0; i < CFG_WEATHER_COUNT; i++)
+                    if (!strcasecmp(pValue, names[i])) Config.PlusWeather = (char)i;
+                if (!strcmp(pValue, "0")) Config.PlusWeather = CFG_WEATHER_OFF;
+            }
+            else if (!strcasecmp(pParam, "plusflash"))
+            {
+                Config.PlusFlashMs = atoi(pValue);
+                if (Config.PlusFlashMs < 0) Config.PlusFlashMs = 0;
+            }
             else if (!strcasecmp(pParam, "plusvoices"))
             {
                 Config.PlusVoices = atoi(pValue) ? 1 : 0;
@@ -587,6 +602,8 @@ static void loadConfig(const char *rootPath)
     Config.ShowPoliceTimer = 1;
     Config.PlusVoices = 1;
     Config.PlusAmbience = 1;
+    Config.PlusWeather = CFG_WEATHER_AUTO;
+    Config.PlusFlashMs = 0;
     Config.FastForward = CFG_FAST_FORWARD_DEFAULT;
     Config.OplEmulator = 1;
     Config.gfxDisplayFilter = 0;

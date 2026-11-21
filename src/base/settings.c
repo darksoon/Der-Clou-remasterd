@@ -34,6 +34,7 @@ enum
     SET_PLUS_VOICES,
     SET_SMOOTH_EDGES,
     SET_PLUS_AMBIENCE,
+    SET_PLUS_WEATHER,
     SET_BACK,
     SET_COUNT
 };
@@ -56,8 +57,22 @@ static const char *setLabel[SET_COUNT][4] = {
     {"New voices (Game+)", "Neue Stimmen (Spiel+)", "Nouvelles voix (Jeu+)", "Voces nuevas (Juego+)"},
     {"Smooth edges", "Kanten gl\x84tten", "Lisser les bords", "Suavizar bordes"},
     {"Background sounds (Game+)", "Hintergrundger\x84usche (Spiel+)", "Ambiance (Jeu+)", "Ambiente (Juego+)"},
+    {"Night and weather (Game+)", "Nacht und Wetter (Spiel+)", "Nuit et m\x82t\x82o (Jeu+)", "Noche y clima (Juego+)"},
     {"Back", "Zur\x81" "ck", "Retour", "Volver"},
 };
+
+/* \x94 = ö */
+static const char *setWeather[CFG_WEATHER_COUNT][4] = {
+    {"off", "aus", "non", "no"},
+    {"random", "zuf\x84llig", "au hasard", "al azar"},
+    {"clear", "klar", "claire", "despejada"},
+    {"cloudy", "bew\x94lkt", "nuageux", "nublado"},
+    {"rain", "Regen", "pluie", "lluvia"},
+    {"thunderstorm", "Gewitter", "orage", "tormenta"},
+    {"fog", "Nebel", "brouillard", "niebla"},
+};
+
+static const char *setWeatherKey[CFG_WEATHER_COUNT] = {"off", "auto", "clear", "cloudy", "rain", "storm", "fog"};
 
 static const char *setOnOff[2][4] = {
     {"off", "aus", "non", "no"},
@@ -186,6 +201,9 @@ static void setValueText(int entry, char *value, size_t size)
         case SET_PLUS_AMBIENCE:
             snprintf(value, size, "%s", setOnOff[Config.PlusAmbience ? 1 : 0][lang]);
             break;
+        case SET_PLUS_WEATHER:
+            snprintf(value, size, "%s", setWeather[(int)Config.PlusWeather % CFG_WEATHER_COUNT][lang]);
+            break;
         case SET_GAMEPAD:
             if (!Config.UseJoystick)
                 snprintf(value, size, "%s", setOnOff[0][lang]);
@@ -260,6 +278,9 @@ static void setChange(int entry, int dir)
             Config.PlusAmbience = !Config.PlusAmbience;
             sndUpdateAmbience();
             break;
+        case SET_PLUS_WEATHER:
+            Config.PlusWeather = (char)((Config.PlusWeather + CFG_WEATHER_COUNT + dir) % CFG_WEATHER_COUNT);
+            break;
         case SET_GAMEPAD:
             /* off and auto; a fixed joystick number from cosp.cfg is kept until it is changed */
             Config.UseJoystick = Config.UseJoystick ? 0 : CFG_JOYSTICK_AUTO;
@@ -316,6 +337,7 @@ void tcSaveSettings(void)
     fprintf(file, "plusvoices = %d\n", Config.PlusVoices ? 1 : 0);
     fprintf(file, "scale2x = %d\n", Config.gfxScaleNx ? 1 : 0);
     fprintf(file, "plusambience = %d\n", Config.PlusAmbience ? 1 : 0);
+    fprintf(file, "plusweather = %s\n", setWeatherKey[(int)Config.PlusWeather % CFG_WEATHER_COUNT]);
     if (Config.UseJoystick == CFG_JOYSTICK_AUTO)
         fprintf(file, "usejoystick = auto\n");
     else

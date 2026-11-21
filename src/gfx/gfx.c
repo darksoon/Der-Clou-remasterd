@@ -15,6 +15,7 @@
 #include "base/base.h"
 #include "gfx/crt.h"
 #include "gfx/filter.h"
+#include "gfx/light.h"
 
 static void gfxChooseScaleFilter(void);
 #include "memory/memory.h"
@@ -186,6 +187,14 @@ ubyte *gfxGetGfxBoardBase(void) { return (pShadowSurface->pixels); }
 
 void gfxInvalidate(void) { bGfxInvalidate = 1; }
 
+/* Game+ night: light the map area of a converted ARGB copy of SurfaceScreen */
+static void gfxApplyLight(uint32_t *pixels, int pitchPixels)
+{
+    if (!gfxLightActive()) return;
+    gfxLightApply((const uint8_t *)SurfaceScreen->pixels, SurfaceScreen->pitch, pixels, pitchPixels, gfxScalingFactor,
+                  (gfxScalingOffsetX > 0) ? gfxScalingOffsetX : 0, (gfxScalingOffsetY > 0) ? gfxScalingOffsetY : 0);
+}
+
 /* save the current screen as PNG (falls back to BMP if PNG saving is unavailable) */
 int gfxSaveScreenshotTo(const char *fileName)
 {
@@ -202,8 +211,22 @@ int gfxSaveScreenshotTo(const char *fileName)
                                             (uint32_t *)shot->pixels, shot->pitch / 4, shot->w, shot->h,
                                             gfxScalingFactor, Config.gfxDisplayFilter))
             {
+                gfxApplyLight((uint32_t *)shot->pixels, shot->pitch / 4); /* Game+ night light */
                 ok = SDL_SavePNG(shot, fileName);
             }
+            SDL_DestroySurface(shot);
+        }
+        if (ok) return 1;
+    }
+    else if (gfxLightActive())
+    {
+        /* the Game+ night light only exists in the 32 bit picture */
+        SDL_Surface *shot = SDL_ConvertSurface(SurfaceScreen, SDL_PIXELFORMAT_ARGB8888);
+        int ok = 0;
+        if (shot)
+        {
+            gfxApplyLight((uint32_t *)shot->pixels, shot->pitch / 4);
+            ok = SDL_SavePNG(shot, fileName);
             SDL_DestroySurface(shot);
         }
         if (ok) return 1;
@@ -475,6 +498,7 @@ void gfxDoneSDL(void)
         pShadowSurface = NULL;
     }
     if (NCH4Buffer) MemFree(NCH4Buffer, GFX_NCH4_BUFFER_SIZE);
+    gfxLightDone();
     if (gfxFilter_x4_Buffer)
     {
         MemFree(gfxFilter_x4_Buffer, 640 * 400);
@@ -494,9 +518,13 @@ static int gfxPresentWithDisplayFilter(void)
                                      (const uint8_t *)SDL_GetSurfacePalette(SurfaceScreen)->colors, (uint32_t *)pixels,
                                      pitch / 4, SurfaceScreen->w, SurfaceScreen->h, gfxScalingFactor,
                                      Config.gfxDisplayFilter);
+    if (ok) gfxApplyLight((uint32_t *)pixels, pitch / 4);
     SDL_UnlockTexture(ScreenTexture);
     return ok;
 }
+
+static uint64_t gfxLastFrameTicks = 0; /* when the picture was last shown */
+#define GFX_ANIMATED_FRAME_MS 30         /* about 33 frames per second for rain and lightning */
 
 void gfxUpdateSDL(struct RastPort *rp)
 {
@@ -516,7 +544,12 @@ void gfxUpdateSDL(struct RastPort *rp)
 
             /* NCH4Buffer is a copy made for this frame, so an overlay never reaches the shadow surface */
             if (gfxOverlay) gfxOverlay(NCH4Buffer, 320, 200);
+
+            /* Game+ night: light map for this frame (read only, see gfx/light.h) */
+            gfxLightPrepare(NCH4Buffer, 320, 200);
         }
+        else
+            gfxLightPrepare(NULL, 0, 0); /* only the scrolling map is ever lit */
 
         if (bGfxPaletteChanged)
         {
@@ -548,6 +581,7 @@ void gfxUpdateSDL(struct RastPort *rp)
             SDL_Surface *target = SDL_ConvertSurface(SurfaceScreen, SDL_PIXELFORMAT_ARGB8888);
             if (target)
             {
+                gfxApplyLight((uint32_t *)target->pixels, target->pitch / 4);
                 SDL_UpdateTexture(ScreenTexture, NULL, target->pixels, target->pitch);
                 SDL_DestroySurface(target);
             }
@@ -556,6 +590,7 @@ void gfxUpdateSDL(struct RastPort *rp)
         SDL_RenderPresent(Renderer);
     }
     bGfxInvalidate = 0;
+    gfxLastFrameTicks = SDL_GetTicks();
 }
 
 /********************************************************************
@@ -1418,6 +1453,9 @@ struct RastPort *gfxGetDestRP(int32_t l_DestX, int32_t l_DestY)
 void wfr()
 // für Bildschirmsync verwenden!!!
 {
+    /* an animated light (rain, lightning) needs new frames even if the game draws nothing */
+    if (gfxLightAnimated() && ((SDL_GetTicks() - gfxLastFrameTicks) >= GFX_ANIMATED_FRAME_MS)) bGfxInvalidate = 1;
+
     if (bGfxInvalidate || bGfxPaletteChanged)
     {
         gfxUpdateSDL(NULL);

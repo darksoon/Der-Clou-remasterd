@@ -45,6 +45,8 @@ typedef struct
     char FastForward;      /* simulation steps per frame while fast forward (Tab) is on */
     char gfxDisplayFilter; /* GFX_DISPLAY_FILTER_*: off, scanlines or CRT look */
     char OplEmulator;      /* AdLib music: 1 = Nuked OPL3 (accurate, default), 0 = MAME fmopl (classic) */
+    char PlusWeather;      /* Game+: night light and weather during the burglary, CFG_WEATHER_* */
+    int PlusFlashMs;       /* tests: a lightning every that many ms in a thunderstorm (0 = random) */
 } Configuration_t;
 extern Configuration_t Config; /* base.c */
 
@@ -70,6 +72,16 @@ extern int32_t cfgScale(int32_t value, const char *what, int easyPerc, int hardP
 #define CFG_FAST_FORWARD_DEFAULT 4
 #define CFG_USER_FILENAME "settings.cfg" /* written by the settings menu into the user directory */
 #define CFG_JOYSTICK_AUTO 255 /* usejoystick = auto: first joystick found, follows hotplug */
+
+/* plusweather: off, auto (chosen per night by PLUS/WEATHER.LUA) or one fixed weather */
+#define CFG_WEATHER_OFF 0
+#define CFG_WEATHER_AUTO 1
+#define CFG_WEATHER_CLEAR 2
+#define CFG_WEATHER_CLOUDY 3
+#define CFG_WEATHER_RAIN 4
+#define CFG_WEATHER_STORM 5
+#define CFG_WEATHER_FOG 6
+#define CFG_WEATHER_COUNT 7
 
 /*
  * MemAlloc/MemFree logging to
@@ -175,6 +187,7 @@ extern char bCDRom;
 #define AUDIO_DIRECTORY "audio"
 #define PLUS_VOICE_DIRECTORY "plus/voice"
 #define PLUS_AMBIENT_DIRECTORY "plus/ambient"
+#define PLUS_WEATHER_DIRECTORY "plus/weather"
 #define MODFILES_DIRECTORY "modfiles"
 
 #define DATADISK_DIRECTORY "datadisk"
