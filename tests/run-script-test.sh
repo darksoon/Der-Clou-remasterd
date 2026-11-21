@@ -2,6 +2,7 @@
 # Play an input script headless and check that the game survives it.
 # Usage: tests/run-script-test.sh <executable> <script> [extra cosp.cfg lines...]
 # Screenshots taken by the script land in $SHOTDIR (default: tests/out/<script name>).
+# EXPECT=<grep pattern> additionally requires a line in the game log.
 set -u
 EXE="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
 SCRIPT="$(cd "$(dirname "$2")" && pwd)/$(basename "$2")"
@@ -27,4 +28,5 @@ cat "$SHOTDIR/game.log"
 if grep -q "ERROR: AddressSanitizer" "$SHOTDIR/game.log"; then echo "FAIL: AddressSanitizer error"; exit 1; fi
 if ! grep -q "Script mode: end of script" "$SHOTDIR/game.log"; then echo "FAIL: script did not finish (exit $STATUS)"; exit 1; fi
 if ! grep -q "Window closed, quitting" "$SHOTDIR/game.log"; then echo "FAIL: no clean quit (exit $STATUS)"; exit 1; fi
+if [ -n "${EXPECT:-}" ] && ! grep -q "$EXPECT" "$SHOTDIR/game.log"; then echo "FAIL: log does not contain '$EXPECT'"; exit 1; fi
 echo "OK: $NAME ($(ls "$SHOTDIR"/*.png 2>/dev/null | wc -l) screenshots in $SHOTDIR)"

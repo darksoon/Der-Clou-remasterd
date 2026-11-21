@@ -663,7 +663,7 @@ int32_t tcCalcCarEscape(int32_t timeLeft)
         /* Vorsprung ist maximal die halbe Strecke (length * 500 m) und */
         /* mindestens 2000 Meter (damit man von der Fluct etwas sieht!) */
 
-        i = min(((unrealSpeed * timeLeft) / 5), length * 500);
+        i = (int32_t)min(((int64_t)unrealSpeed * timeLeft) / 5, (int64_t)length * 500); /* 64 bit: timeLeft may be "endless" */
         i = max(2000, i); /* mindestens 2000 Meter */
 
         j = 0;

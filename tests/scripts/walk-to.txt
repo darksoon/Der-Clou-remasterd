@@ -1,0 +1,54 @@
+# Planning (needs fullenv=42 storyoff=42): hire accomplices, pick a driver,
+# open the plan of Bulstrode Chemistry Ltd, walk with right clicks (path finding), undo
+wait 2500
+key Return
+wait 3000
+click 119 183
+wait 2500
+click 20 183
+wait 2000
+click 20 171
+wait 2000
+key Return
+wait 2000
+click 20 171
+wait 2000
+key Down
+key Down
+key Down
+key Down
+key Down
+key Down
+wait 500
+shot j00
+key Return
+wait 2000
+click 95 171
+wait 2500
+click 93 183
+wait 2500
+shot j01
+key Return
+wait 2500
+click 183 183
+wait 6000
+shot k01
+key Return
+wait 2500
+key Return
+wait 1500
+rclick 240 80
+wait 4000
+shot w01
+rclick 20 115
+wait 4000
+shot w02
+rclick 240 20
+wait 4000
+shot w03
+key Escape
+wait 1500
+shot w04
+key Escape
+wait 1500
+quit

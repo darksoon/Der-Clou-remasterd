@@ -639,3 +639,9 @@ void lsDoDoorRefresh(LSObject lso)
     gfxNCH4OLMCGAToNCH4Mask(LS_PREPARE_BUFFER, l_wrp->p_BitMap, drn->us_XOffset, drn->us_YOffset, lso->us_DestX,
                             lso->us_DestY, width, height, 320, 160);
 }
+
+void lsGetWindowPos(uword *x, uword *y)
+{
+    *x = ls->us_WindowXPos;
+    *y = ls->us_WindowYPos;
+}

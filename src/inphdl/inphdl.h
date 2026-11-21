@@ -67,6 +67,8 @@ extern void inpTurnMouse(uword us_NewStatus);       // 0 means off, 1 means on
 
 extern void inpDelay(int32_t l_Ticks);
 extern void inpSetKeyRepeat(unsigned char rate);
+extern ubyte inpFastForward(void);
+extern void inpSetFastForward(ubyte on);
 
 extern void setMouseCursor(ubyte fact);
 

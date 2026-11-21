@@ -37,6 +37,11 @@ struct IHandler
 
 struct IHandler IHandler;
 
+/* fast forward for the burglary playback, toggled with Tab */
+static ubyte inpFastForwardOn = 0;
+ubyte inpFastForward(void) { return inpFastForwardOn; }
+void inpSetFastForward(ubyte on) { inpFastForwardOn = on; }
+
 static SDL_Cursor *init_system_cursor(char *image[])
 {
     int i = 0;
@@ -505,6 +510,11 @@ int32_t inpWaitFor(int32_t l_Mask)
             {
                 case SDL_KEYDOWN:
                     sym = event.key.keysym.sym;
+                    if ((sym == SDLK_TAB) && !event.key.repeat)
+                    {
+                        inpFastForwardOn = !inpFastForwardOn;
+                        break;
+                    }
                     /* Alt+Enter: toggle fullscreen (handled here so Enter does not also confirm) */
                     if (((sym == SDLK_RETURN) || (sym == SDLK_KP_ENTER)) && (event.key.keysym.mod & KMOD_ALT))
                     {

@@ -16,6 +16,7 @@ enum
 };
 
 // Player defines
+#define PLANING_FAST_FORWARD 4 /* simulation steps per frame with fast forward */
 enum
 {
     PLANING_EXHAUST_MAX = 240,
@@ -254,6 +255,19 @@ static ubyte plCarTooFull(void)
     RemoveList(l);
 
     return ret;
+}
+
+static void plPlayerAction(void);
+
+/* one timer tick of the playback; with fast forward (Tab) several simulation steps run per frame */
+static void plPlayerTick(void)
+{
+    int steps = inpFastForward() ? PLANING_FAST_FORWARD : 1;
+
+    while (steps-- > 0 && !PD.ende)
+    {
+        plPlayerAction();
+    }
 }
 
 static void plPlayerAction(void)
@@ -1266,6 +1280,7 @@ int32_t plPlayer(uint32_t objId, uint32_t actionTime, ubyte (*actionFunc)(uint32
     LIST *l = NULL;
     ubyte activ = 0;
     ubyte i = 0;
+    uint32_t playStart = 0;
     uint32_t timeLeft = 0;
     uint32_t bitset = 0;
     uint32_t choice1 = 0;
@@ -1368,7 +1383,9 @@ int32_t plPlayer(uint32_t objId, uint32_t actionTime, ubyte (*actionFunc)(uint32
                 }
 
                 /* start main loop */
-                SetMenuTimeOutFunc(plPlayerAction);
+                inpSetFastForward(0);
+                playStart = SDL_GetTicks();
+                SetMenuTimeOutFunc(plPlayerTick);
 
                 while (!PD.ende)
                 {
@@ -1511,6 +1528,9 @@ int32_t plPlayer(uint32_t objId, uint32_t actionTime, ubyte (*actionFunc)(uint32
                 }
 
                 SetMenuTimeOutFunc(NULL);
+                Log("Burglary played: %u s burglary time in %u ms", (unsigned)PD.realTime,
+                    (unsigned)(SDL_GetTicks() - playStart));
+                inpSetFastForward(0);
                 inpSetWaitTicks(0); /* normales Ausmassß */
 
                 Search.LastAreaId = lsGetActivAreaID();

@@ -175,6 +175,7 @@ extern int32_t lsIsObjectSpecial(LSObject lso);
 extern int32_t lsIsLSObjectInActivArea(LSObject lso);
 
 extern ubyte lsIsCollision(uword x, uword y, ubyte direction); /* sprite needs it */
+extern void lsGetWindowPos(uword *x, uword *y);
 
 extern uint32_t lsGetCurrBuildingID(void);
 extern uint32_t lsGetActivAreaID(void);

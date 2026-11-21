@@ -103,12 +103,156 @@ static ubyte plRemLastAction(void)
     return 0;
 }
 
+/* one step of the current person in the given direction (LS_SCROLL_*):
+   1 = walked, 0 = blocked, -1 = no planning time left */
+static int plWalkStep(ubyte direction, struct Action **pAction)
+{
+    struct Action *action = *pAction;
+
+    if (lsInitScrollLandScape(direction, LS_SCROLL_PREPARE)) return 0;
+
+    if (!action || (action->Type != ACTION_GO))
+    {
+        if ((action = InitAction(plSys, ACTION_GO, (uint32_t)direction, 0L, 0L)))
+            PlanChanged = 1;
+        else
+            return -1;
+    }
+
+    if (ActionData(action, struct ActionGo *)->Direction == (uword)direction)
+    {
+        IncCurrentTimer(plSys, 1, 1);
+    }
+    else
+    {
+        if ((action = InitAction(plSys, ACTION_GO, direction, 0L, 1L)))
+            PlanChanged = 1;
+        else
+            return -1;
+    }
+
+    *pAction = action;
+
+    plSync(PLANING_ANIMATE_STD, GetMaxTimer(plSys), 1, 1);
+    plMove(CurrentPerson, direction);
+
+    lsScrollLandScape((ubyte)-1);
+    livDoAnims((AnimCounter++) % 2, 1);
+
+    plDisplayTimer(0, 0);
+    return 1;
+}
+
+/* Path finding for "walk here": breadth first search over the collision map of the current
+   area in steps of LS_STD_SCROLL_SPEED pixels, so the result is the fastest way in planning time. */
+#define PL_PATH_W (LS_MAX_AREA_WIDTH / LS_STD_SCROLL_SPEED)
+#define PL_PATH_H (LS_MAX_AREA_HEIGHT / LS_STD_SCROLL_SPEED)
+
+static int plFindPath(uword sx, uword sy, uword tx, uword ty, ubyte *path, int maxSteps)
+{
+    static const ubyte dirs[4] = {LS_SCROLL_LEFT, LS_SCROLL_RIGHT, LS_SCROLL_UP, LS_SCROLL_DOWN};
+    static const int ddx[4] = {-1, 1, 0, 0};
+    static const int ddy[4] = {0, 0, -1, 1};
+    static ubyte from[PL_PATH_W * PL_PATH_H]; /* 0 = unvisited, else 1 + index into dirs */
+    static uword queue[PL_PATH_W * PL_PATH_H];
+    const int sp = LS_STD_SCROLL_SPEED;
+    int head = 0, tail = 0;
+    int best = -1;
+    int32_t bestDist = 0x7fffffff;
+    int ox = sx % sp, oy = sy % sp; /* all reachable positions share the parity of the start */
+    int start = (sy / sp) * PL_PATH_W + (sx / sp);
+    int n = 0;
+
+    memset(from, 0, sizeof(from));
+    from[start] = 5;
+    queue[tail++] = (uword)start;
+
+    while (head < tail)
+    {
+        int cur = queue[head++];
+        int cx = (cur % PL_PATH_W) * sp + ox;
+        int cy = (cur / PL_PATH_W) * sp + oy;
+        int32_t dist = abs(cx - (int)tx) + abs(cy - (int)ty);
+        int i;
+
+        if (dist < bestDist)
+        {
+            bestDist = dist;
+            best = cur;
+            if (dist < sp) break;
+        }
+
+        for (i = 0; i < 4; i++)
+        {
+            int nx = cx + ddx[i] * sp;
+            int ny = cy + ddy[i] * sp;
+            int next;
+
+            if ((nx < 0) || (ny < 0) || (nx >= LS_MAX_AREA_WIDTH) || (ny >= LS_MAX_AREA_HEIGHT)) continue;
+            next = (ny / sp) * PL_PATH_W + (nx / sp);
+            if (from[next]) continue;
+            if (lsIsCollision((uword)nx, (uword)ny, dirs[i])) continue;
+            from[next] = (ubyte)(i + 1);
+            queue[tail++] = (uword)next;
+        }
+    }
+
+    if (best < 0 || best == start) return 0;
+
+    /* walk back from the goal, then reverse */
+    while (best != start)
+    {
+        int i = from[best] - 1;
+        int bx = (best % PL_PATH_W) * sp + ox - ddx[i] * sp;
+        int by = (best / PL_PATH_W) * sp + oy - ddy[i] * sp;
+
+        if (n >= maxSteps) return 0;
+        path[n++] = dirs[i];
+        best = (by / sp) * PL_PATH_W + (bx / sp);
+    }
+    for (int i = 0; i < n / 2; i++)
+    {
+        ubyte t = path[i];
+        path[i] = path[n - 1 - i];
+        path[n - 1 - i] = t;
+    }
+    return n;
+}
+
+/* walk the current person to a point the player clicked in the map; returns 0 if planning time ran out */
+static int plWalkTo(uword mouseX, uword mouseY, struct Action **pAction)
+{
+    static ubyte path[PL_PATH_W * PL_PATH_H];
+    uword wx = 0, wy = 0;
+    uword px = livGetXPos(Planing_Name[CurrentPerson]);
+    uword py = livGetYPos(Planing_Name[CurrentPerson]);
+    int tx, ty, steps, i;
+
+    if (mouseY >= 128) return 1; /* click in the menu area */
+
+    lsGetWindowPos(&wx, &wy);
+    tx = wx + mouseX - LS_PERSON_X_SIZE / 2;
+    ty = wy + mouseY - LS_PERSON_Y_SIZE / 2;
+    if (tx < 0) tx = 0;
+    if (ty < 0) ty = 0;
+
+    steps = plFindPath(px, py, (uword)tx, (uword)ty, path, (int)sizeof(path));
+    Log("Walk to %d/%d: %d steps", tx, ty, steps);
+
+    for (i = 0; i < steps; i++)
+    {
+        int r = plWalkStep(path[i], pAction);
+        if (r < 0) return 0;
+        if (r == 0) break; /* blocked unexpectedly, e.g. at the edge of the visible window */
+    }
+    return 1;
+}
+
 // actions
 static void plActionGo(void)
 {
     uint32_t choice = 0L;
     ubyte direction = 0;
-    ubyte collision = 0;
     struct Action *action = CurrentAction(plSys);
 
     plMessage("WALK", PLANING_MSG_REFRESH);
@@ -121,9 +265,22 @@ static void plActionGo(void)
     {
         direction = 0;
 
-        choice = inpWaitFor(INP_MOVEMENT | INP_LBUTTONP);
+        choice = inpWaitFor(INP_MOVEMENT | INP_LBUTTONP | INP_RBUTTONP);
 
         if (choice & INP_LBUTTONP) break;
+
+        if (choice & INP_RBUTTONP)
+        {
+            /* new: right click in the map walks there along the fastest way */
+            uword mx = 0, my = 0;
+            inpGetMouseXY(l_wrp, &mx, &my);
+            if (!plWalkTo(mx, my, &action))
+            {
+                plSay("PLANING_END", CurrentPerson);
+                break;
+            }
+            continue;
+        }
 
         if (!(choice & INP_MOUSE) && !(choice & INP_MOUSEWHEEL))
         {
@@ -141,53 +298,10 @@ static void plActionGo(void)
 
                 if (choice & INP_DOWN) direction += LS_SCROLL_DOWN;
 
-                /* 2014-07-06 LucyG
-                TODO: allow the character to change direction without walking if there's a collision
-                */
-                collision = lsInitScrollLandScape(direction, LS_SCROLL_PREPARE);
-                if (!collision)
+                if (plWalkStep(direction, &action) < 0)
                 {
-                    if (!action || (action->Type != ACTION_GO))
-                    {
-                        if ((action = InitAction(plSys, ACTION_GO, (uint32_t)direction, 0L, 0L)))
-                            PlanChanged = 1;
-                        else
-                        {
-                            plSay("PLANING_END", CurrentPerson);
-                            inpSetKeyRepeat((1 << 5) | 10);
-                            inpTurnMouse(1);
-                            inpTurnFunctionKey(1);
-                            return;
-                        }
-                    }
-
-                    if (ActionData(action, struct ActionGo *)->Direction == (uword)direction)
-                    {
-                        IncCurrentTimer(plSys, 1, 1);
-                    }
-                    else
-                    {
-                        if ((action = InitAction(plSys, ACTION_GO, direction, 0L, 1L)))
-                        {
-                            PlanChanged = 1;
-                        }
-                        else
-                        {
-                            plSay("PLANING_END", CurrentPerson);
-                            inpSetKeyRepeat((1 << 5) | 10);
-                            inpTurnMouse(1);
-                            inpTurnFunctionKey(1);
-                            return;
-                        }
-                    }
-
-                    plSync(PLANING_ANIMATE_STD, GetMaxTimer(plSys), 1, 1);
-                    plMove(CurrentPerson, direction);
-
-                    lsScrollLandScape((ubyte)-1);
-                    livDoAnims((AnimCounter++) % 2, 1);
-
-                    plDisplayTimer(0, 0);
+                    plSay("PLANING_END", CurrentPerson);
+                    break;
                 }
             }
         }
