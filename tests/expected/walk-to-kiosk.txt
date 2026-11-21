@@ -1,0 +1,7 @@
+# Results of tests/scripts/walk-to-kiosk.txt with DERCLOU_SEED=42.
+# Each right click aims into the closed shop of the Kiosk; the path must end outside:
+# in front of the closed door, left of the shop and right of the shop.
+Walk to 88/143: 28 steps
+Walk to: arrived at 88/162
+Walk to: arrived at 50/132
+Walk to: arrived at 130/102

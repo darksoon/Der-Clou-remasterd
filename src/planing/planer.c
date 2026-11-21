@@ -162,11 +162,43 @@ static int plWalkStep(ubyte direction, struct Action **pAction)
 #define PL_PATH_W (LS_MAX_AREA_WIDTH / LS_STD_SCROLL_SPEED)
 #define PL_PATH_H (LS_MAX_AREA_HEIGHT / LS_STD_SCROLL_SPEED)
 
+static const ubyte plPathDirs[4] = {LS_SCROLL_LEFT, LS_SCROLL_RIGHT, LS_SCROLL_UP, LS_SCROLL_DOWN};
+static const int plPathDx[4] = {-1, 1, 0, 0};
+static const int plPathDy[4] = {0, 0, -1, 1};
+
+/* Can the path finder step from (cx, cy) in direction i?
+   A real step (lsIsCollision at the target) only looks at a two pixel strip five and six pixels
+   ahead of the person's edge; the four pixels right in front of the edge were checked by the
+   previous steps of a straight approach. A person who comes in sideways along a wall skips
+   those checks and can then step over a thin wall (the shop front of the Kiosk, for example).
+   Keyboard walking keeps that 1994 behaviour; the path finder additionally requires that the
+   strips of the two straight approach steps before (at the current position and one step back)
+   are free, so it never walks through a wall the player could not walk through head on. */
+static int plPathBlocked(int cx, int cy, int i)
+{
+    const int sp = LS_STD_SCROLL_SPEED;
+    ubyte dir = plPathDirs[i];
+    int k;
+
+    if (lsIsCollision((uword)(cx + plPathDx[i] * sp), (uword)(cy + plPathDy[i] * sp), dir)) return 1;
+
+    for (k = 0; k <= 1; k++)
+    {
+        int x = cx - plPathDx[i] * sp * k;
+        int y = cy - plPathDy[i] * sp * k;
+
+        if ((x < 0) || (y < 0) || (x >= LS_MAX_AREA_WIDTH) || (y >= LS_MAX_AREA_HEIGHT)) continue;
+        /* only the pixels in the walking direction count here, not the area borders */
+        if (lsIsCollision((uword)x, (uword)y, dir) & dir) return 1;
+    }
+    return 0;
+}
+
 static int plFindPath(uword sx, uword sy, uword tx, uword ty, ubyte *path, int maxSteps)
 {
-    static const ubyte dirs[4] = {LS_SCROLL_LEFT, LS_SCROLL_RIGHT, LS_SCROLL_UP, LS_SCROLL_DOWN};
-    static const int ddx[4] = {-1, 1, 0, 0};
-    static const int ddy[4] = {0, 0, -1, 1};
+    const ubyte *dirs = plPathDirs;
+    const int *ddx = plPathDx;
+    const int *ddy = plPathDy;
     static ubyte from[PL_PATH_W * PL_PATH_H]; /* 0 = unvisited, else 1 + index into dirs */
     static uword queue[PL_PATH_W * PL_PATH_H];
     const int sp = LS_STD_SCROLL_SPEED;
@@ -205,7 +237,7 @@ static int plFindPath(uword sx, uword sy, uword tx, uword ty, ubyte *path, int m
             if ((nx < 0) || (ny < 0) || (nx >= LS_MAX_AREA_WIDTH) || (ny >= LS_MAX_AREA_HEIGHT)) continue;
             next = (ny / sp) * PL_PATH_W + (nx / sp);
             if (from[next]) continue;
-            if (lsIsCollision((uword)nx, (uword)ny, dirs[i])) continue;
+            if (plPathBlocked(cx, cy, i)) continue;
             from[next] = (ubyte)(i + 1);
             queue[tail++] = (uword)next;
         }
@@ -259,6 +291,7 @@ static int plWalkTo(uword mouseX, uword mouseY, struct Action **pAction)
         if (r < 0) return 0;
         if (r == 0) break; /* blocked unexpectedly, e.g. at the edge of the visible window */
     }
+    Log("Walk to: arrived at %d/%d", livGetXPos(Planing_Name[CurrentPerson]), livGetYPos(Planing_Name[CurrentPerson]));
     return 1;
 }
 
