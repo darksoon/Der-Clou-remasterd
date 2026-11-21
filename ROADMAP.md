@@ -16,6 +16,8 @@ gehört in Spiel+.
   automatisches Speichern vor jedem Einbruch in einem eigenen fünften Platz
 - Spiel+ Planung: Laufwege und Sichtbereich der Wachen (Taste W), Zeitleiste mit Rückgängig und
   Wiederherstellen (Taste T)
+- Spiel+: Zeitung am Morgen nach dem Coup mit Schlagzeile per Lua (`PLUS/NEWS.LUA`)
+- Browser: Spielstände als Datei sichern und wieder einspielen
 - Datenwerkzeug `tools/clou-data.py`: Datenbank, Gebäude, Wachenrouten, Pläne, Handlung und Texte
   verlustfrei als JSON lesen und schreiben, Formate in `docs/DATEIFORMATE.md`
 - Musik: Das Titelstück fordert einmal ein Instrument an, das es nicht gibt. Das geschieht bei
@@ -47,6 +49,16 @@ gehört in Spiel+.
 | P12 | Musik neu arrangiert (Probe als Jazz liegt vor, vorerst zurückgestellt) | L |
 | P15 | HD-Ebene für einzelne Bilder, erst als Test mit zwei, drei Orten | L |
 | P16 | Weichere Überblendungen zwischen Szenen | M |
+| P20 | Gebäude beobachten: Wachenwege und Sichtbereiche erst nach einer Nacht Auskundschaften (Der Clou! 2) | M |
+| P21 | Lärmbalken während des Einbruchs | S |
+| P22 | Ruf der Bande: bessere Hehlerpreise und Komplizen nach erfolgreichen Coups | M |
+| P23 | Tragkraft je Komplize, Lichtschranken und Kameras in neuen Gebäuden | L |
+| P24 | Licht mit Wirkung: dunkle Ecken verbergen, laute Böden verraten (wie Thief) | M |
+| P25 | Steigende Alarmstufe im Gebäude, Polizeidruck pro Stadtteil, Untertauchen | M |
+| P26 | Karriereübersicht mit Statistik und Erfolgen, Herausforderungen, Ironman | M |
+| P27 | Wiederholung des Einbruchs als Film, als Video speichern | M |
+| P28 | Mod-Auswahl im Menü, Farbschema für Farbenblinde, größere Schrift | M |
+| P29 | Zufällig erzeugte Gebäude aus Bausteinen | L |
 | P17 | Wetter (Regen, Nebel, klare Nacht) mit Wirkung auf Geräusche, Sicht der Wachen und Flucht, sichtbar und hörbar beim Einbruch | M |
 | P18 | Zufällige neue Komplizen: Werte, Namen und Vorgeschichte per Lua, Porträts aus Einzelteilen | L |
 | P19 | Komplizen trainieren: Kurse gegen Geld und Zeit, Fortschritt durch Einbrüche | M |

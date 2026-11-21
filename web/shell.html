@@ -94,6 +94,9 @@
 <header>
   <h1>Der Clou! <span>remastered</span></h1>
   <nav>
+    <button id="saveExport" title="Spielstände und Einstellungen als Datei herunterladen" disabled>Spielstände sichern</button>
+    <button id="saveImport" title="Gesicherte Spielstände wieder einspielen" disabled>Spielstände laden</button>
+    <input type="file" id="saveFile" accept=".json,application/json" hidden>
     <button id="fs" title="Vollbild">Vollbild</button>
     <a class="btn" href="https://github.com/darksoon/Der-Clou-remasterd" target="_blank" rel="noopener">GitHub</a>
   </nav>
@@ -250,6 +253,57 @@
   }
   ['pointerdown', 'pointermove', 'pointerup', 'pointercancel'].forEach(function (t) {
     stage.addEventListener(t, asRight, true);
+  });
+
+  // back up the saved games: in the browser they only live in this browser's storage
+  var exportBtn = document.getElementById('saveExport');
+  var importBtn = document.getElementById('saveImport');
+  var saveFile = document.getElementById('saveFile');
+  var saveTimer = setInterval(function () {
+    if (window.Module && Module.derclouSaveDir && Module.derclouUserDataReady) {
+      exportBtn.disabled = false; importBtn.disabled = false; clearInterval(saveTimer);
+    }
+  }, 500);
+  function b64(bytes) {
+    var s = ''; for (var i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(s);
+  }
+  exportBtn.addEventListener('click', function () {
+    var dir = Module.derclouSaveDir, files = {};
+    Module.FS.readdir(dir).forEach(function (name) {
+      if (name === '.' || name === '..') return;
+      var path = dir + (dir.slice(-1) === '/' ? '' : '/') + name;
+      if (Module.FS.isFile(Module.FS.stat(path).mode)) files[name] = b64(Module.FS.readFile(path));
+    });
+    var data = JSON.stringify({ format: 'derclou-saves', version: 1, files: files });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+    a.download = 'derclou-spielstaende-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    canvas.focus();
+  });
+  importBtn.addEventListener('click', function () { saveFile.click(); });
+  saveFile.addEventListener('change', function () {
+    var f = saveFile.files[0]; if (!f) return;
+    f.text().then(function (text) {
+      var data = JSON.parse(text);
+      if (!data || data.format !== 'derclou-saves' || !data.files) throw new Error('format');
+      if (!confirm('Die Spielstände in diesem Browser werden durch die aus der Datei ersetzt. Weiter?')) return;
+      var dir = Module.derclouSaveDir + (Module.derclouSaveDir.slice(-1) === '/' ? '' : '/');
+      Object.keys(data.files).forEach(function (name) {
+        if (!/^[A-Za-z0-9_.-]+$/.test(name)) return; /* plain file names only */
+        var bin = atob(data.files[name]), bytes = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        Module.FS.writeFile(dir + name, bytes);
+      });
+      Module.FS.syncfs(false, function (err) {
+        if (err) { alert('Speichern im Browser fehlgeschlagen.'); return; }
+        alert('Spielstände eingespielt. Das Spiel startet neu.');
+        location.reload();
+      });
+    }).catch(function () { alert('Diese Datei enthält keine gesicherten Spielstände.'); });
+    saveFile.value = '';
   });
 
   // no double-tap zoom or pinch on the game

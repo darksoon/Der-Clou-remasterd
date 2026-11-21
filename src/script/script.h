@@ -20,4 +20,19 @@ extern int scrBalancePercent(const char *what, int difficulty, int fallback);
    returns -1 if the script does not change this tool */
 extern int scrToolSkillPercent(const char *toolName);
 
+/* Game+: what the newspaper writes after a burglary, from news(info) in PLUS/NEWS.LUA */
+typedef struct
+{
+    const char *building; /* name in the game's code page */
+    int escaped;          /* 1 escaped, 0 caught */
+    int alarm;            /* 0 none, 1 silent, 2 loud */
+    int loot;             /* value of the loot taken, in pounds */
+    int knockedOut;       /* guards that were knocked out */
+    int day;              /* game day, also a stable seed for the script */
+    int lang;             /* 0 English, 1 German, 2 French, 3 Spanish */
+} ScrNewsInfo;
+
+/* fills up to maxLines lines (game code page, at most lineSize - 1 bytes each); returns the count */
+extern int scrNews(const ScrNewsInfo *info, char *lines, int maxLines, int lineSize);
+
 #endif

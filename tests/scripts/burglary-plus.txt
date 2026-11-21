@@ -98,4 +98,14 @@ wait 6000
 shot e08
 wait 15000
 shot e09
+# after the escape: the next morning's newspaper (Game+)
+key Return
+wait 3000
+shot n01
+key Return
+wait 3000
+shot n02
+key Return
+wait 3000
+shot n03
 quit

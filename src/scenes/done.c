@@ -368,6 +368,8 @@ void tcInitFahndung(void)
 
 void tcDoneFahndung(void)
 {
+    tcShowNewspaper(); /* Game+: the papers report on the burglary */
+
     if (tcStartEvidence())
     {
         tcDonePrison();

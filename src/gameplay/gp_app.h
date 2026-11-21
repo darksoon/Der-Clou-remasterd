@@ -81,6 +81,7 @@ extern void tcCutName(char *Name, char Sign, uint32_t maxLength);
 
 extern ubyte tcLoadTheClou(void);
 extern void tcSaveTheClou(int bAutoSave);
+extern void tcShowNewspaper(void);
 extern uint32_t tcBurglary(uint32_t buildingID);
 
 extern ubyte tcLoadChangesInScenes(char *fileName);

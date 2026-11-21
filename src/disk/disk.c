@@ -71,6 +71,7 @@ void dskInitUserDataPath(void)
             }
 
             FS.mount(IDBFS, {}, result);
+            Module.derclouSaveDir = result; /* the page can back up and restore this directory */
             Module.derclouUserDataReady = 0;
             FS.syncfs(true, function (err) {
                 if (err) {console.error("dskInitUserDataPath: syncing failed", err)}

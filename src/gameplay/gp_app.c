@@ -6,6 +6,8 @@
 */
 #include "gameplay/gp_app.h"
 
+#include "script/script.h"
+
 // 2018-09-26 LucyG: in-game time was too fast
 enum
 {
@@ -115,12 +117,77 @@ void tcMoveAPerson(uint32_t persID, uint32_t newLocID)
     hasSet(newLocID, persID);
 }
 
+/* Game+: value of the loot Matt's gang holds (the price is the parameter of the relation) */
+static int32_t tcLootValue(void)
+{
+    int32_t value = 0;
+    NODE *n = NULL;
+
+    hasAll(Person_Matt_Stuvysunt, OLF_PRIVATE_LIST, Object_Loot);
+    for (n = (NODE *)LIST_HEAD(ObjectListPrivate); NODE_SUCC(n); n = (NODE *)NODE_SUCC(n))
+        value += (int32_t)hasGet(Person_Matt_Stuvysunt, OL_NR(n));
+    RemoveList(ObjectListPrivate);
+    return value;
+}
+
+/* Game+: the next morning's newspaper reports on the burglary, written by PLUS/NEWS.LUA.
+   The facts are kept when the burglary ends and the paper is shown in the police office the next
+   morning, where the scene has a picture for the bubble. */
+static ScrNewsInfo tcNews;
+static char tcNewsBuilding[TXT_KEY_LENGTH];
+static int tcNewsPending = 0;
+
+static void tcRememberNewspaper(uint32_t buildingID, int32_t ret, int32_t lootBefore)
+{
+    int i = 0;
+
+    dbGetObjectName(buildingID, tcNewsBuilding);
+    tcNews.building = tcNewsBuilding;
+    tcNews.escaped = (ret == FAHN_ESCAPED);
+    tcNews.alarm = (Search.EscapeBits & FAHN_ALARM) ? 2 : (Search.EscapeBits & FAHN_QUIET_ALARM) ? 1 : 0;
+    tcNews.loot = max(0, tcLootValue() - lootBefore);
+    tcNews.knockedOut = 0;
+    for (i = 0; i < 4; i++)
+        if (Search.KillTime[i]) tcNews.knockedOut++;
+    tcNews.day = (int)GetDay;
+    tcNews.lang = (int)txtGetLanguage();
+    tcNewsPending = 1;
+}
+
+void tcShowNewspaper(void)
+{
+    char lines[8][64];
+    char date[TXT_KEY_LENGTH];
+    char head[TXT_KEY_LENGTH];
+    LIST *bubble = NULL;
+    int count = 0;
+    int i = 0;
+
+    if (!tcNewsPending || (GameMode != GAME_MODE_PLUS)) return;
+    tcNewsPending = 0;
+
+    if (!(count = scrNews(&tcNews, &lines[0][0], 8, 64))) return;
+    Log("Newspaper: %s", lines[0]);
+
+    bubble = CreateList(0);
+    BuildDate(GetDay, txtGetLanguage(), date);
+    snprintf(head, sizeof(head), "THE TIMES, %.40s", date);
+    CreateNode(bubble, 0L, head);
+    CreateNode(bubble, 0L, "");
+    for (i = 0; i < count; i++) CreateNode(bubble, 0L, lines[i]);
+
+    SetPictID((uword)-1);
+    Bubble(bubble, 0, NULL, 0L);
+    RemoveList(bubble);
+}
+
 uint32_t tcBurglary(uint32_t buildingID)
 /* wird von 2 Stellen aufgerufen! (story_9)! */
 {
     uint32_t succNr = 0;
     int32_t ret = 0;
     Building b = (Building)dbGetObject(buildingID);
+    int32_t lootBefore = (GameMode == GAME_MODE_PLUS) ? tcLootValue() : 0;
 
     if (buildingID == Building_Seniorenheim)
         ret = plPlayer(buildingID, 200, tcKarateOpa);
@@ -171,6 +238,8 @@ uint32_t tcBurglary(uint32_t buildingID)
         default:
             break;
     }
+
+    if ((GameMode == GAME_MODE_PLUS) && ret) tcRememberNewspaper(buildingID, ret, lootBefore);
 
     return succNr;
 }
