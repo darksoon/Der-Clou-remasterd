@@ -73,10 +73,14 @@ jobs:
       - name: Scripted play tests
         if: needs.changes.outputs.play == 'true'
         run: |
-          tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt
+          # the original never uses the new Game+ voices; Game+ does
+          REJECT="PLUS/VOICE" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt
+          EXPECT="Voice: .*PLUS/VOICE/HOTEL_ANT_11" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start-plus.txt
           # the title music must keep playing with both AdLib emulations
           tests/run-music-test.sh build/build/x64/DerClou "opl = nuked"
           tests/run-music-test.sh build/build/x64/DerClou "opl = mame"
+          # skipping the intro right away must still start the title music in the menu
+          MUSIC_SCRIPT=music-skip-intro tests/run-music-test.sh build/build/x64/DerClou "nointro = 0"
           SHOTDIR=tests/out/story-start-crt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt "displayfilter = crt"
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "fullenv = 42" "storyoff = 42"
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/walk-to.txt "fullenv = 42" "storyoff = 42"
@@ -225,7 +229,7 @@ jobs:
       - name: Package
         run: |
           mkdir -p dist/web
-          cp build-web/build/web/DerClou.* dist/web/
+          cp build-web/build/web/DerClou.* build-web/build/web/voices.* dist/web/
           cp dist/web/DerClou.html dist/web/index.html
           cp web/play/* dist/web/
           cp PublicLicenceContract.txt mame.txt dist/web/

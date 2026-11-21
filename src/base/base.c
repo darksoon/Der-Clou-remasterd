@@ -493,6 +493,10 @@ static int readConfigFile(const char *config_file, int optional)
             {
                 Config.ShowPoliceTimer = atoi(pValue) ? 1 : 0;
             }
+            else if (!strcasecmp(pParam, "plusvoices"))
+            {
+                Config.PlusVoices = atoi(pValue) ? 1 : 0;
+            }
             else if (!strcasecmp(pParam, "displayfilter"))
             {
                 Config.gfxDisplayFilter = !strcasecmp(pValue, "crt") || !strcmp(pValue, "2")         ? 2
@@ -577,6 +581,7 @@ static void loadConfig(const char *rootPath)
     Config.gfxIntegerScale = 0;
     Config.Difficulty = CFG_DIFFICULTY_NORMAL;
     Config.ShowPoliceTimer = 1;
+    Config.PlusVoices = 1;
     Config.FastForward = CFG_FAST_FORWARD_DEFAULT;
     Config.OplEmulator = 1;
     Config.gfxDisplayFilter = 0;
@@ -704,6 +709,9 @@ int tcStartGame(int argc, char **argv)
         if (!Config.NoIntro)
         {
             tcIntro();  // 2014-06-29 LucyG
+            /* the intro starts the title music with its third animation; skipped earlier, the
+               menu would stay silent */
+            sndPlaySound("title.bk", 0);
         }
         else
         {

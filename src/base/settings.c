@@ -30,6 +30,8 @@ enum
     SET_POLICE_TIMER,
     SET_FAST_FORWARD,
     SET_GAMEPAD,
+    SET_INTRO,
+    SET_PLUS_VOICES,
     SET_BACK,
     SET_COUNT
 };
@@ -48,6 +50,8 @@ static const char *setLabel[SET_COUNT][4] = {
     {"Police countdown", "Polizei-Countdown", "Chrono police", "Aviso polic\xa1" "a"},
     {"Fast forward", "Zeitraffer", "Avance rapide", "Avance r\xa0pido"},
     {"Gamepad", "Gamepad", "Manette", "Mando"},
+    {"Intro", "Intro", "Intro", "Intro"},
+    {"New voices (Game+)", "Neue Stimmen (Spiel+)", "Nouvelles voix (Jeu+)", "Voces nuevas (Juego+)"},
     {"Back", "Zur\x81" "ck", "Retour", "Volver"},
 };
 
@@ -166,6 +170,12 @@ static void setValueText(int entry, char *value, size_t size)
         case SET_FAST_FORWARD:
             snprintf(value, size, "%dx", Config.FastForward);
             break;
+        case SET_INTRO:
+            snprintf(value, size, "%s", setOnOff[Config.NoIntro ? 0 : 1][lang]);
+            break;
+        case SET_PLUS_VOICES:
+            snprintf(value, size, "%s", setOnOff[Config.PlusVoices ? 1 : 0][lang]);
+            break;
         case SET_GAMEPAD:
             if (!Config.UseJoystick)
                 snprintf(value, size, "%s", setOnOff[0][lang]);
@@ -225,6 +235,12 @@ static void setChange(int entry, int dir)
         case SET_FAST_FORWARD:
             Config.FastForward = (char)setStepFastForward(Config.FastForward, dir);
             break;
+        case SET_INTRO:
+            Config.NoIntro = !Config.NoIntro;
+            break;
+        case SET_PLUS_VOICES:
+            Config.PlusVoices = !Config.PlusVoices;
+            break;
         case SET_GAMEPAD:
             /* off and auto; a fixed joystick number from cosp.cfg is kept until it is changed */
             Config.UseJoystick = Config.UseJoystick ? 0 : CFG_JOYSTICK_AUTO;
@@ -277,6 +293,8 @@ void tcSaveSettings(void)
                                                                                      : "normal");
     fprintf(file, "policetimer = %d\n", Config.ShowPoliceTimer ? 1 : 0);
     fprintf(file, "fastforward = %d\n", Config.FastForward);
+    fprintf(file, "nointro = %d\n", Config.NoIntro ? 1 : 0);
+    fprintf(file, "plusvoices = %d\n", Config.PlusVoices ? 1 : 0);
     if (Config.UseJoystick == CFG_JOYSTICK_AUTO)
         fprintf(file, "usejoystick = auto\n");
     else
@@ -298,7 +316,7 @@ void tcSettingsMenu(void)
 
     for (i = 0; i < SET_COUNT; i++)
     {
-        if ((i == SET_VOICE) && !bCDRom) continue; /* only the CD-ROM version talks */
+        if (((i == SET_VOICE) || (i == SET_PLUS_VOICES)) && !bCDRom) continue; /* only the CD-ROM version talks */
         entries[count++] = i;
     }
 

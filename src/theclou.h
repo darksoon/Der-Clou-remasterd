@@ -39,6 +39,7 @@ typedef struct
     char gfxIntegerScale;  /* only scale the window content by whole numbers */
 
     char Difficulty;       /* CFG_DIFFICULTY_*, normal plays exactly like the original */
+    char PlusVoices;       /* Game+: new voices for characters the original leaves silent */
     char ShowPoliceTimer;  /* show the time until the police arrives once the alarm is loud */
     char FastForward;      /* simulation steps per frame while fast forward (Tab) is on */
     char gfxDisplayFilter; /* GFX_DISPLAY_FILTER_*: off, scanlines or CRT look */
@@ -171,6 +172,7 @@ extern char bCDRom;
 #define SOUND_DIRECTORY "sounds"
 #define SAMPLES_DIRECTORY "samples"
 #define AUDIO_DIRECTORY "audio"
+#define PLUS_VOICE_DIRECTORY "plus/voice"
 #define MODFILES_DIRECTORY "modfiles"
 
 #define DATADISK_DIRECTORY "datadisk"

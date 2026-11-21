@@ -84,6 +84,7 @@ if(EMSCRIPTEN)
   set(LINK_FLAGS "-sASYNCIFY -sALLOW_MEMORY_GROWTH=1 \
     -sINVOKE_RUN=0 -sEXPORTED_RUNTIME_METHODS=callMain,FS,ENV \
     --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/gamedata@/gamedata \
+    --exclude-file ${CMAKE_CURRENT_SOURCE_DIR}/gamedata/PLUS/VOICE \
     --shell-file ${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html \
     -lidbfs.js")
 

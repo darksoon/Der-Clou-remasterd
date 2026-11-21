@@ -3,6 +3,27 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.17.0 (21.11.2026)
+
+### Neu
+
+- Spiel+: Neue Stimmen für die Figuren, die im Original stumm bleiben. 75 Sätze der Geschichte sind
+  vertont, darunter Inspektor Gludo, Mr. Briggs, Sabien, Taxiunternehmer Dan Stanford, die
+  Hotelrezeption, Hehler Pooly, Danner, Grull, der Pate und die Polizei. Matt behält seine
+  Originalstimme, der Originalmodus bleibt unverändert. Die Dateien liegen in `PLUS/VOICE` und
+  lassen sich über `MODFILES/PLUS/VOICE` ersetzen
+- Einstellungsmenü: „Intro: an / aus“ und „Neue Stimmen (Spiel+): an / aus“
+  (`nointro` und `plusvoices` in `cosp.cfg`)
+- Im Browser liegen die neuen Stimmen in einer eigenen Datei `voices.data`, damit keine Datei die
+  Größengrenze von GitHub Pages überschreitet
+
+### Behoben
+
+- Wurde das Intro übersprungen, bevor die Titelmusik einsetzt, blieb das Hauptmenü stumm. Ein neuer
+  Test prüft das
+- Die Ladeanzeige im Browser zählte über 100 %, wenn der Server die Daten komprimiert schickt. Der
+  Text auf dem Startbildschirm wird bei kleinen Fenstern nicht mehr abgeschnitten
+
 ## 0.16.0 (21.11.2026)
 
 ### Neu

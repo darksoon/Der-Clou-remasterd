@@ -75,6 +75,14 @@ add_executable(DerClou ${SOURCE_FILES})
 if(EMSCRIPTEN)
   # relink when the page template changes
   set_target_properties(DerClou PROPERTIES LINK_DEPENDS "${CMAKE_SOURCE_DIR}/web/shell.html")
+  # the Game+ voices are a package of their own: together with the game data one file would pass the
+  # 100 MB limit of GitHub Pages. The page loads voices.js before the game starts.
+  add_custom_command(TARGET DerClou POST_BUILD
+    COMMAND ${EMSCRIPTEN_ROOT_PATH}/tools/file_packager voices.data
+            --preload ${CMAKE_SOURCE_DIR}/gamedata/PLUS/VOICE@/gamedata/PLUS/VOICE
+            --js-output=voices.js
+    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    COMMENT "Packing the Game+ voices")
 endif()
 
 target_include_directories(DerClou PUBLIC ${CMAKE_CURRENT_LIST_DIR})

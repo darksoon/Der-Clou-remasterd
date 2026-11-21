@@ -355,10 +355,17 @@ ubyte Say(uint32_t TextID, ubyte activ, uword person, char *text)
 
     dskBuildPathName(AUDIO_DIRECTORY, text, wavName);
     strcat(wavName, ".WAV");
+    /* Game+: lines the original leaves silent can have a voice in plus/voice */
+    if ((GameMode == GAME_MODE_PLUS) && Config.PlusVoices && (dskFileLength(wavName) <= 0))
+    {
+        dskBuildPathName(PLUS_VOICE_DIRECTORY, text, wavName);
+        strcat(wavName, ".WAV");
+    }
     if ((Config.VoiceVolume > 0) && (dskFileLength(wavName) > 0))
     {  // 2018-10-08
         sndFading(16);
 
+        Log("Voice: %s", wavName);
         MXR_SetInput(pAudioMixer, MXR_INPUT_VOICE, MXR_CreateInputWAV(wavName));
         MXR_SetInputVolume(pAudioMixer, MXR_INPUT_VOICE, Config.VoiceVolume);  // 2018-09-25
 

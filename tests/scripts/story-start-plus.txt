@@ -1,0 +1,32 @@
+# Story start in Game+: like story-start.txt, the new voices are used where the original is silent
+wait 2500
+key Return
+# game mode: Game+
+wait 1500
+key Down
+wait 300
+key Return
+wait 3000
+shot a01
+key Return
+wait 1500
+shot a02
+key Return
+wait 1500
+shot a03
+key Return
+wait 1500
+shot a04
+key Return
+wait 1500
+shot a05
+key Return
+wait 1500
+shot a06
+key Return
+wait 1500
+shot a07
+key Return
+wait 1500
+shot a08
+quit
