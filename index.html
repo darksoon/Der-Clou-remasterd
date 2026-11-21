@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Der Clou! remastered: die Einbruchssimulation von 1994 im Browser</title>
+<meta name="description" content="Der Clou! von neo Software (1994) neu aufbereitet: direkt im Browser spielen oder für Linux, Windows und macOS herunterladen. Kostenlos und quelloffen.">
+<meta property="og:title" content="Der Clou! remastered">
+<meta property="og:description" content="Die Einbruchssimulation von 1994, direkt im Browser spielbar.">
+<meta property="og:image" content="https://darksoon.github.io/Der-Clou-remasterd/img/station.png">
+<meta property="og:url" content="https://darksoon.github.io/Der-Clou-remasterd/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="de_DE">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="img/favicon.png">
+<style>
+  :root {
+    --green: #00402f;      /* menu background of the game */
+    --deep: #032a1f;
+    --menu: #8fd9a8;       /* selectable menu entries */
+    --chalk: #e0e0e0;      /* game text */
+    --brass: #d8b443;      /* portrait frames */
+    --brick: #9b3328;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--deep); color: var(--chalk); }
+  body { margin: 0; font: 400 1.15rem/1.65 var(--serif); }
+  img { display: block; max-width: 100%; height: auto; image-rendering: pixelated; }
+  a { color: var(--menu); }
+  a:hover { color: #fff; }
+  :focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
+
+  /* pixel text rendered from the game's own menu font (see script below) */
+  .px { font: 600 1rem/1 var(--serif); letter-spacing: .02em; }
+  .px canvas { display: block; image-rendering: pixelated; max-width: 100%; height: auto; }
+
+  /* --- the opening screen: like a scene in the game --- */
+  .screen { max-width: 1280px; margin: 0 auto; background: var(--green); }
+  .scene { position: relative; border-bottom: 3px solid var(--deep); }
+  .scene img { width: 100%; }
+  .clock { position: absolute; top: 3%; right: 2.5%; }
+  .status { display: flex; justify-content: center; padding: clamp(.8rem, 2.5vw, 1.6rem) 1rem .4rem; }
+  .gamemenu { display: flex; flex-wrap: wrap;
+    gap: .3rem 2.5rem; padding: .6rem clamp(1rem, 4vw, 3rem) clamp(1.4rem, 4vw, 2.4rem); margin: 0; list-style: none; }
+  .gamemenu a { display: inline-block; padding: .35rem .2rem; text-decoration: none; }
+  .gamemenu a .px canvas { filter: none; }
+  .title { padding: clamp(1.4rem, 4vw, 2.6rem) clamp(1rem, 4vw, 3rem) 0; }
+
+  /* --- reading column --- */
+  main { max-width: 1280px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 3rem) 4rem; }
+  section { margin-top: clamp(3rem, 8vw, 6rem); }
+  .lede { max-width: 38rem; font-size: 1.3rem; }
+  h2 { margin: 0 0 1.2rem; font-weight: 400; }
+  p { max-width: 38rem; }
+
+  .steps { list-style: none; margin: 2rem 0 0; padding: 0; display: grid; gap: 2.5rem; }
+  .steps li { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 1.5rem 2.5rem; align-items: center; }
+  .steps li:nth-child(even) figure { order: 2; }
+  .steps figure { margin: 0; border: 3px solid var(--green); background: var(--green); }
+  .steps h3 { margin: 0 0 .4rem; font-size: 1.35rem; font-weight: 600; color: var(--brass); }
+  .steps p { margin: 0; }
+
+  .new { columns: 2 22rem; column-gap: 3rem; padding: 0; margin: 1.5rem 0 0; list-style: none; }
+  .new li { break-inside: avoid; margin: 0 0 1rem; padding-left: 1rem; border-left: 2px solid var(--green); }
+  .new strong { color: var(--chalk); font-weight: 600; }
+
+  table { border-collapse: collapse; width: 100%; max-width: 50rem; margin-top: 1.5rem; }
+  th, td { text-align: left; padding: .7rem .8rem .7rem 0; border-bottom: 1px solid var(--green); vertical-align: top; }
+  th { font-weight: 600; color: var(--brass); }
+  td a { overflow-wrap: anywhere; }
+  .play-cta { display: inline-block; margin-top: 1.5rem; padding: .7rem 1.4rem; background: var(--brick);
+    color: #fff; text-decoration: none; border: 2px solid #c4584a; }
+  .play-cta:hover { background: #b23c2f; color: #fff; }
+
+  footer { border-top: 3px solid var(--green); padding: 2rem clamp(1rem, 4vw, 3rem); font-size: .95rem; color: #a9c6b8; }
+  footer p { max-width: 50rem; margin: 0 0 .6rem; }
+
+  @media (max-width: 760px) {
+    .steps li { grid-template-columns: 1fr; }
+    .steps li:nth-child(even) figure { order: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="screen">
+  <div class="scene">
+    <img src="img/station.png" width="640" height="400"
+         alt="Victoria Station im Spiel: Matt Stuvysunt erinnert sich an seine Ankunft in London.">
+  </div>
+  <div class="title">
+    <h1 class="px" data-scale="12" data-color="#e0e0e0">Der Clou!</h1>
+  </div>
+  <nav aria-label="Hauptmenü">
+    <ul class="gamemenu">
+      <li><a href="play/"><span class="px" data-scale="3" data-color="#8fd9a8" data-hover="#ffffff">Im Browser spielen</span></a></li>
+      <li><a href="#download"><span class="px" data-scale="3" data-color="#8fd9a8" data-hover="#ffffff">Herunterladen</span></a></li>
+      <li><a href="#bruch"><span class="px" data-scale="3" data-color="#8fd9a8" data-hover="#ffffff">So läuft ein Bruch</span></a></li>
+      <li><a href="https://github.com/darksoon/Der-Clou-remasterd"><span class="px" data-scale="3" data-color="#8fd9a8" data-hover="#ffffff">Quellcode</span></a></li>
+    </ul>
+  </nav>
+</div>
+
+<main>
+  <section>
+    <p class="lede">Matt Stuvysunt kommt 1953 nach London, ohne Geld und mit einem Plan:
+      der ganz große Coup. Der Clou! von neo Software ist die Einbruchssimulation von 1994,
+      in der du jeden Schritt deiner Bande sekundengenau planst und dann zusiehst,
+      ob dein Plan aufgeht.</p>
+    <p>Diese Version läuft auf heutigen Rechnern und direkt im Browser, mit dem
+      Original-Spiel, der deutschen Sprachausgabe der CD-Version und der Profidisk.</p>
+    <a class="play-cta" href="play/">Jetzt im Browser spielen</a>
+  </section>
+
+  <section id="bruch">
+    <h2 class="px" data-scale="5" data-color="#e0e0e0">So läuft ein Bruch</h2>
+    <ol class="steps">
+      <li>
+        <figure><img src="img/street.png" width="640" height="400" alt="Holland Street mit dem Ugley Dog Hotel und Fat Man's Pub."></figure>
+        <div><h3>London erkunden</h3>
+          <p>Fahr mit dem Taxi durch die Stadt, sprich mit Hehlern, Wirten und alten Bekannten
+            und halte die Ohren offen. Jede Begegnung kann ein Tipp für das nächste Ziel sein.</p></div>
+      </li>
+      <li>
+        <figure><img src="img/team.png" width="640" height="400" alt="Organisation des Einbruchs: Komplizen, Fahrer und Fluchtauto."></figure>
+        <div><h3>Die Bande zusammenstellen</h3>
+          <p>Elektroniker, Safeknacker, Fahrer: Jeder Komplize hat Stärken, Schwächen und
+            will seinen Anteil. Dazu kommen das passende Werkzeug und ein Fluchtauto.</p></div>
+      </li>
+      <li>
+        <figure><img src="img/plan.png" width="640" height="400" alt="Planungsmodus: Grundriss eines Gebäudes, Matt steht am Eingang."></figure>
+        <div><h3>Den Plan ausarbeiten</h3>
+          <p>Im Grundriss legst du für jeden Komplizen fest, wohin er geht, wann er wartet und
+            was er öffnet. Wachen drehen ihre Runden, Alarmanlagen warten nur auf einen Fehler.</p></div>
+      </li>
+      <li>
+        <figure><img src="img/night.png" width="640" height="400" alt="Einbruch bei Nacht und Gewitter in Spiel+: Taschenlampen und Lichtkegel im dunklen Gebäude."></figure>
+        <div><h3>Zuschlagen</h3>
+          <p>Dann läuft der Plan ab, und du kannst nur noch zusehen. Geht alles gut, wartet die Beute
+            beim Hehler. Wenn nicht, wartet Scotland Yard.</p></div>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <h2 class="px" data-scale="5" data-color="#e0e0e0">Was neu ist</h2>
+    <ul class="new">
+      <li><strong>Original oder Spiel+.</strong> Spiel wie 1994 mit ein paar Komfortfunktionen, oder mit allen Neuerungen und wählbarer Schwierigkeit.</li>
+      <li><strong>Einbruch bei Nacht.</strong> In Spiel+ leuchten Taschenlampen durch dunkle Räume, Mondlicht fällt durch die Fenster, und es regnet, gewittert oder liegt Nebel über der Straße.</li>
+      <li><strong>Die Wachen im Blick.</strong> Spiel+ zeigt in der Planung Laufwege und Sichtbereiche der Wachen und eine Zeitleiste aller Komplizen mit Rückgängig.</li>
+      <li><strong>Die Zeitung am Morgen danach.</strong> In Spiel+ steht dein Coup in der Zeitung, je nachdem, wie er lief.</li>
+      <li><strong>Neue Stimmen und Geräusche.</strong> Spiel+ vertont weitere Sätze der Geschichte, auf der Straße, im Pub und im Hotel hört man die Umgebung.</li>
+      <li><strong>Planen per Mausklick.</strong> Rechtsklick in den Grundriss, und dein Komplize nimmt den schnellsten Weg dorthin.</li>
+      <li><strong>Zeitraffer und Countdown.</strong> Tab spult den Einbruch vor, nach einem Alarm siehst du, wie viel Zeit bis zur Polizei bleibt.</li>
+      <li><strong>Auf Handy und Tablet.</strong> Im Browser mit Bedienfeld für Touch, als Web-App installierbar, Spielstände lassen sich als Datei sichern.</li>
+      <li><strong>Klingt wie damals.</strong> Die AdLib-Musik läuft über eine genaue Emulation des echten Chips.</li>
+      <li><strong>Erkennt deine Version.</strong> Standard oder Profidisk, Diskette oder CD-ROM, Deutsch, Englisch, Französisch oder Spanisch.</li>
+      <li><strong>Getestet.</strong> Bei jeder Änderung spielen automatische Partien vom Spielbeginn bis zum fertigen Einbruch durch.</li>
+    </ul>
+  </section>
+
+  <section id="download">
+    <h2 class="px" data-scale="5" data-color="#e0e0e0">Herunterladen</h2>
+    <p>Alle Pakete enthalten die deutschen Spieldaten. Einfach entpacken und starten.</p>
+    <table>
+      <thead><tr><th scope="col">System</th><th scope="col">Datei</th><th scope="col">Hinweis</th></tr></thead>
+      <tbody>
+        <tr><td>Windows</td><td><a href="https://github.com/darksoon/Der-Clou-remasterd/releases/latest/download/DerClou-windows-x64.zip">DerClou-windows-x64.zip</a></td><td>DerClou.exe starten</td></tr>
+        <tr><td>Linux</td><td><a href="https://github.com/darksoon/Der-Clou-remasterd/releases/latest/download/DerClou-linux-x86_64.AppImage">DerClou-linux-x86_64.AppImage</a></td><td>ausführbar machen und starten</td></tr>
+        <tr><td>macOS</td><td><a href="https://github.com/darksoon/Der-Clou-remasterd/releases/latest/download/DerClou-macos.zip">DerClou-macos.zip</a></td><td>für Macs mit Apple-Chip, beim ersten Start mit Rechtsklick öffnen</td></tr>
+        <tr><td>Browser</td><td><a href="play/">Direkt spielen</a></td><td>rund 95 MB Download beim ersten Start</td></tr>
+      </tbody>
+    </table>
+    <p>Ältere Versionen und Änderungen stehen auf der <a href="https://github.com/darksoon/Der-Clou-remasterd/releases">Release-Seite</a>.</p>
+  </section>
+</main>
+
+<footer>
+  <p>Basierend auf der Originalversion von neo Software. Details darüber finden Sie unter www.neo.at.</p>
+  <p>Der Clou! remastered ist ein nichtkommerzielles Fanprojekt. Es baut auf der Arbeit des
+    Clou! Open Source Project und der Ports von Ilja Bauer, Vladimir Vrzić und Vasco Costa auf.
+    Quellcode und Spieldaten stehen unter der <a href="https://github.com/darksoon/Der-Clou-remasterd/blob/main/PublicLicenceContract.txt">Lizenz von neo Software</a>.</p>
+</footer>
+
+<script>
+/* Draws text with the 5x9 menu font of the game (img/font.png: 64 glyphs per row, from code 32). */
+(function () {
+  var map = { 'ü': 0x81, 'ä': 0x84, 'Ä': 0x8e, 'ö': 0x94, 'Ö': 0x99, 'Ü': 0x9a, 'ß': 0xe1 };
+  var font = new Image();
+  font.onload = function () {
+    document.querySelectorAll('.px').forEach(function (el) {
+      var text = el.textContent.trim();
+      var scale = parseInt(el.dataset.scale || '3', 10);
+      var cv = document.createElement('canvas');
+      cv.width = text.length * 5 * scale; cv.height = 9 * scale;
+      cv.setAttribute('aria-hidden', 'true');
+      function paint(color) {
+        var ctx = cv.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+        ctx.clearRect(0, 0, cv.width, cv.height);
+        for (var i = 0; i < text.length; i++) {
+          var code = map[text[i]] || text.charCodeAt(i);
+          var g = code - 32;
+          if (g < 0 || g > 255) continue;
+          ctx.drawImage(font, (g % 64) * 5, Math.floor(g / 64) * 9, 5, 9, i * 5 * scale, 0, 5 * scale, 9 * scale);
+        }
+        ctx.globalCompositeOperation = 'source-in';
+        ctx.fillStyle = color; ctx.fillRect(0, 0, cv.width, cv.height);
+        ctx.globalCompositeOperation = 'source-over';
+      }
+      paint(el.dataset.color || '#e0e0e0');
+      var label = document.createElement('span');
+      label.textContent = text;
+      label.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)';
+      el.textContent = '';
+      el.appendChild(label); el.appendChild(cv);
+      if (el.dataset.hover) {
+        var link = el.closest('a');
+        if (link) {
+          var on = function () { paint(el.dataset.hover); }, off = function () { paint(el.dataset.color); };
+          link.addEventListener('mouseenter', on); link.addEventListener('mouseleave', off);
+          link.addEventListener('focus', on); link.addEventListener('blur', off);
+        }
+      }
+    });
+  };
+  font.src = 'img/font.png';
+})();
+</script>
+</body>
+</html>
