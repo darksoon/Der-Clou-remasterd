@@ -3,6 +3,25 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.10.0 (21.11.2026)
+
+### Neu
+
+- Planung: Im Gehen-Modus läuft die Person per Rechtsklick auf den schnellsten Weg zum angeklickten Punkt
+  (Wegsuche über die Kollisionskarte). Das spart beim Planen hunderte Tastendrücke, die geplante Zeit
+  entspricht genau dem kürzesten Weg. Ein Hinweis unter der Frage „Wohin soll ich gehen?“ erklärt die Bedienung
+- Einbruch: Tab schaltet den Zeitraffer ein und aus (vierfache Geschwindigkeit)
+- Einbruch: Sobald der Alarm laut ist, zeigt die Statuszeile, wie lange es noch bis zur Polizei dauert
+  (`policetimer = 0` blendet das aus)
+- Schwierigkeitsgrad `difficulty = easy | normal | hard` in `cosp.cfg`. Normal entspricht genau dem Original.
+  Leicht: Die Polizei braucht nach einem Alarm 25 % länger, Hehler zahlen 15 % mehr. Schwer: Die Polizei
+  ist 20 % schneller, Hehler zahlen 15 % weniger
+- Neuer automatischer Test, der einen kompletten Einbruch plant, speichert, ausführt und auswertet
+
+### Behoben
+
+- Der Vorsprung bei der Flucht wurde ohne Alarm mit einem Überlauf berechnet (undefiniertes Verhalten)
+
 ## 0.9.0 (20.11.2026)
 
 Erste Version von Der Clou! remastered. Grundlage ist iljabauer/DerClou, ergänzt um die Verbesserungen aus

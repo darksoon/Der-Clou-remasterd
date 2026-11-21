@@ -256,6 +256,17 @@ static void plActionGo(void)
     struct Action *action = CurrentAction(plSys);
 
     plMessage("WALK", PLANING_MSG_REFRESH);
+    {
+        /* hint for the new way of walking */
+        static const char *hint[] = {"Right click: walk there   Left click: done",
+                                     "Rechtsklick: hingehen   Linksklick: fertig",
+                                     "Clic droit: y aller   Clic gauche: fini",
+                                     "Clic derecho: ir   Clic izquierdo: listo"};
+        ubyte lang = txtGetLanguage();
+        gfxSetRect(2, 320);
+        gfxSetPens(m_wrp, 248, GFX_SAME_PEN, GFX_SAME_PEN);
+        gfxPrint(m_wrp, (char *)hint[lang <= 3 ? lang : 1], 26, GFX_PRINT_CENTER);
+    }
 
     inpTurnFunctionKey(0);
     inpTurnMouse(0);

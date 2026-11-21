@@ -25,7 +25,10 @@ Dieses Projekt führt die besten Teile der bisherigen Community-Ports zusammen:
 - Logdatei und Screenshots liegen im Benutzerordner, nicht mehr im Spielordner
 - Browser-Version mit Startseite, Ton nach dem ersten Klick, Einbruchspläne bleiben nach einem Neuladen erhalten
 - Linux als AppImage, macOS mit eingebetteten Bibliotheken, Windows mit allen DLLs
-- Skriptmodus für automatische Testpartien, die bei jeder Änderung in der CI laufen
+- Planung per Mausklick: Rechtsklick im Gehen-Modus, die Person nimmt den schnellsten Weg
+- Zeitraffer beim Einbruch (Tab) und Polizei-Countdown nach einem lauten Alarm
+- Schwierigkeitsgrad leicht, normal (wie das Original) oder schwer
+- Skriptmodus für automatische Testpartien, die bei jeder Änderung in der CI laufen, bis hin zu einem kompletten Einbruch
 
 Alle Optionen stehen kommentiert in `gamedata/cosp.cfg`. Was noch zu tun ist, steht in [AUDIT.md](AUDIT.md).
 
@@ -35,6 +38,8 @@ Alle Optionen stehen kommentiert in `gamedata/cosp.cfg`. Was noch zu tun ist, st
 | --- | --- |
 | F11 oder Alt+Enter | Vollbild ein und aus |
 | F12 | Screenshot als PNG im Benutzerordner unter `screenshots` |
+| Rechtsklick (Planung, Gehen) | Person läuft auf dem schnellsten Weg zum angeklickten Punkt |
+| Tab (Einbruch) | Zeitraffer ein und aus |
 | Umschalt+F12 | Screenshot des internen Bildpuffers (BMP, zur Fehlersuche) |
 
 Der Benutzerordner ist unter Linux `~/.local/share/DerClou/`, unter Windows `%APPDATA%\DerClou\` und unter macOS
@@ -153,7 +158,12 @@ Zusammengeführt aus der Roadmap von iljabauer/DerClou und eigenen Zielen.
     - [x] Logdatei im Benutzerverzeichnis statt im aktuellen Ordner
     - [x] Automatische Testpartien in der CI
 5. Spiel
-    - [ ] Bessere Übersicht im Planungsmodus
+    - [x] Laufen per Mausklick mit Wegsuche im Planungsmodus
+    - [x] Zeitraffer beim Einbruch, Polizei-Countdown
+    - [x] Schwierigkeitsgrad
+    - [ ] Bessere Übersicht im Planungsmodus (Sichtfelder der Wachen, Zeitleiste)
+    - [ ] Werkzeug zum Lesen und Schreiben der Gebäude- und Datenbankdateien, Grundlage für neue Gebäude
+    - [ ] Erweiterter Modus mit neuen Einbrüchen
 
 ## CREDITS
 ```
