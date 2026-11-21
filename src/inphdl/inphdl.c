@@ -42,6 +42,10 @@ static ubyte inpFastForwardOn = 0;
 ubyte inpFastForward(void) { return inpFastForwardOn; }
 void inpSetFastForward(ubyte on) { inpFastForwardOn = on; }
 
+/* optional handler for extra keys (only installed by Game+ screens) */
+static inpKeyHookFunc inpKeyHook = NULL;
+void inpSetKeyHook(inpKeyHookFunc hook) { inpKeyHook = hook; }
+
 static SDL_Cursor *init_system_cursor(char *image[])
 {
     int i = 0;
@@ -589,6 +593,17 @@ int32_t inpWaitFor(int32_t l_Mask)
                     {
                         if (!event.key.repeat) gfxToggleFullscreen();
                         break;
+                    }
+                    if (inpKeyHook && !event.key.repeat)
+                    {
+                        int used = inpKeyHook(sym);
+
+                        if (used == INP_HOOK_RETURN)
+                        {
+                            if (l_Mask & INP_KEYBOARD) action |= INP_KEYBOARD;
+                            break;
+                        }
+                        if (used == INP_HOOK_USED) break;
                     }
                     if ((l_Mask & INP_LEFT) && (sym == SDLK_LEFT))
                     {

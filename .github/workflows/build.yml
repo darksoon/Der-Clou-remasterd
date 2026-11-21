@@ -85,7 +85,9 @@ jobs:
           # skipping the intro right away must still start the title music in the menu
           MUSIC_SCRIPT=music-skip-intro tests/run-music-test.sh build/build/x64/DerClou "nointro = 0"
           SHOTDIR=tests/out/story-start-crt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt "displayfilter = crt"
-          tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "fullenv = 42" "storyoff = 42"
+          REJECT="Planner: " tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "fullenv = 42" "storyoff = 42"
+          # Game+ planner: guard routes and view areas, timeline with undo and redo
+          EXPECT="Planner: redo action" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning-plus.txt "fullenv = 42" "storyoff = 42"
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/walk-to.txt "fullenv = 42" "storyoff = 42"
           # original mode: results must match the reference, the difficulty must not matter
           # (and it must never start Lua)
@@ -155,7 +157,9 @@ jobs:
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt
           tests/run-music-test.sh build/build/x64/DerClou "opl = nuked"
           SHOTDIR=tests/out/story-start-crt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt "displayfilter = crt"
-          tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "fullenv = 42" "storyoff = 42"
+          REJECT="Planner: " tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "fullenv = 42" "storyoff = 42"
+          # Game+ planner: guard routes and view areas, timeline with undo and redo
+          EXPECT="Planner: redo action" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning-plus.txt "fullenv = 42" "storyoff = 42"
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/walk-to.txt "fullenv = 42" "storyoff = 42"
           # original mode: results must match the reference, the difficulty must not matter
           # (and it must never start Lua)

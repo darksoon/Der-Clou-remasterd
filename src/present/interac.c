@@ -423,6 +423,10 @@ void DrawBubble(LIST *bubble, ubyte firstLine, ubyte activ, struct RastPort *rp,
     gfxBlit(&RefreshRP, X_OFFSET, 3, rp, X_OFFSET, 3, INT_BUBBLE_WIDTH - 3, 46, GFX_ONE_STEP);
 }
 
+/* number of bubbles on the screen right now (overlays stay hidden while one is open) */
+static ubyte BubbleOpenCount = 0;
+ubyte IsBubbleOpen(void) { return BubbleOpenCount != 0; }
+
 ubyte Bubble(LIST *bubble, ubyte activ, void (*func)(ubyte), uint32_t waitTime)
 {
     ubyte firstVis = 0;
@@ -434,6 +438,8 @@ ubyte Bubble(LIST *bubble, ubyte activ, void (*func)(ubyte), uint32_t waitTime)
     ubyte newactiv = 0;
 
     SuspendAnim();
+
+    BubbleOpenCount++;
 
     gfxPrepareRefresh();
 
@@ -658,6 +664,8 @@ ubyte Bubble(LIST *bubble, ubyte activ, void (*func)(ubyte), uint32_t waitTime)
     SetPictID(MATT_PICTID);
 
     gfxRefresh();
+
+    BubbleOpenCount--;
 
     ContinueAnim();
 

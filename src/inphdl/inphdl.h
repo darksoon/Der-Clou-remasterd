@@ -73,4 +73,13 @@ extern void inpSetFastForward(ubyte on);
 
 extern void setMouseCursor(ubyte fact);
 
+/* extra keys: the hook gets every key press (not repeats) before the game does and returns
+   INP_HOOK_UNUSED, INP_HOOK_USED (key swallowed) or INP_HOOK_RETURN (key swallowed and
+   inpWaitFor returns INP_KEYBOARD, if that was asked for) */
+#define INP_HOOK_UNUSED 0
+#define INP_HOOK_USED 1
+#define INP_HOOK_RETURN 2
+typedef int (*inpKeyHookFunc)(int32_t key);
+extern void inpSetKeyHook(inpKeyHookFunc hook);
+
 #endif

@@ -140,6 +140,15 @@ int gfxScalingFactor = 1;
 
 static gfxFilterFunc gfxFilter = gfxFilter_x1_Copy;
 
+/* optional overlay drawn into the composed picture only (never into the surfaces the game logic reads) */
+static gfxOverlayFunc gfxOverlay = NULL;
+
+void gfxSetOverlay(gfxOverlayFunc func)
+{
+    gfxOverlay = func;
+    bGfxInvalidate = 1;
+}
+
 ubyte gfxPaletteGlobal[256 * 4];
 
 /************************************************/
@@ -504,6 +513,9 @@ void gfxUpdateSDL(struct RastPort *rp)
             gfxNCH4PutNCH4ToMCGA(src + gfxNCH4GetCurrScrollOffset(), NCH4Buffer, 0, 0, 0, 0, 320, 128, 160, 320);
             gfxNCH4PutNCH4ToMCGA(src, NCH4Buffer + (320 * 128), 0, 0, 0, 0, 320, 72, 160, 320);
             src = NCH4Buffer;
+
+            /* NCH4Buffer is a copy made for this frame, so an overlay never reaches the shadow surface */
+            if (gfxOverlay) gfxOverlay(NCH4Buffer, 320, 200);
         }
 
         if (bGfxPaletteChanged)

@@ -87,5 +87,6 @@ extern ubyte AnimCounter;
 extern ubyte PlanChanged;
 
 void plPlaner(uint32_t objId);
+ubyte plUndoLastAction(void);
 
 #endif

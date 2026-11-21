@@ -6,6 +6,8 @@
 */
 #include "planing/planer.h"
 
+#include "planing/plus.h"
+
 // Menu ids - planing
 enum
 {
@@ -97,6 +99,18 @@ static ubyte plRemLastAction(void)
         plDisplayTimer(0, 1);
         plDisplayInfo();
 
+        return 1;
+    }
+
+    return 0;
+}
+
+/* Game+ timeline: undo the current person's last action like Esc while walking */
+ubyte plUndoLastAction(void)
+{
+    if (plRemLastAction())
+    {
+        PlanChanged = 1;
         return 1;
     }
 
@@ -349,7 +363,9 @@ static void plActionWait(void)
         inpTurnFunctionKey(0);
         inpTurnMouse(0);
 
+        plPlusMenuContext(1);
         activ = Menu(menu, bitset, activ, NULL, 0);
+        plPlusMenuContext(0);
 
         inpTurnMouse(1);
         inpTurnFunctionKey(1);
@@ -1335,7 +1351,9 @@ static void plAction(void)
         inpTurnFunctionKey(0);
         inpTurnMouse(0);
 
+        plPlusMenuContext(1);
         activ = Menu(menu, bitset, activ, NULL, 0);
+        plPlusMenuContext(0);
 
         inpTurnMouse(1);
         inpTurnFunctionKey(1);
@@ -1775,6 +1793,8 @@ void plPlaner(uint32_t objId)
     AnimCounter = 0;
     PlanChanged = 0;
 
+    plPlusEnter();
+
     if ((Planing_BldId == Building_Starford_Kaserne) && !(GamePlayMode & GP_LEVEL_DESIGN))
     {
         // im Falle Starford Kaserne muß der Plan geladen werden
@@ -1802,7 +1822,9 @@ void plPlaner(uint32_t objId)
         inpTurnFunctionKey(0);
         inpTurnMouse(0);
 
+        plPlusMenuContext(1);
         activ = Menu(menu, bitset, activ, NULL, 0);
+        plPlusMenuContext(0);
 
         inpTurnMouse(1);
         inpTurnFunctionKey(1);
@@ -1868,6 +1890,8 @@ void plPlaner(uint32_t objId)
     }
 
     plSaveChanged(objId);
+
+    plPlusLeave();
 
     plUnprepareRel();
     plUnprepareGfx();

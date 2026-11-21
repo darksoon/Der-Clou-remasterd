@@ -30,6 +30,10 @@ extern ubyte *gfxGetGfxBoardBase(void);
 extern void gfxInvalidate(void);
 extern void gfxSetDarkness(ubyte value);
 
+/* overlay callback: draws into the composed 320 x 200 picture of the scrolling (NCH4) mode */
+typedef void (*gfxOverlayFunc)(ubyte *pixels, int width, int height);
+extern void gfxSetOverlay(gfxOverlayFunc func);
+
 #define GFX_NO_MEM_HANDLE ((uword)-1)
 
 /* defines für gfxPrint */

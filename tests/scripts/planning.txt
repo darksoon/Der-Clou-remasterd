@@ -35,6 +35,11 @@ key Return
 wait 2500
 click 183 183
 wait 6000
+# the Game+ keys for guards and timeline must do nothing in the original
+key w
+wait 300
+key t
+wait 300
 shot k01
 key Return
 wait 2500

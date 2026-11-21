@@ -46,6 +46,7 @@ set(SOURCE_FILES
     planing/main.c
     planing/planer.c
     planing/player.c
+    planing/plus.c
     planing/prepare.c
     planing/support.c
     planing/sync.c

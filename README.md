@@ -33,6 +33,7 @@ Dieses Projekt führt die besten Teile der bisherigen Community-Ports zusammen:
 - AdLib-Musik wahlweise über Nuked OPL3 (klingt wie der echte Chip, Standard) oder die bisherige MAME-Emulation, umschaltbar im laufenden Spiel
 - Lua 5.5 als Skriptsprache für Spiel+, abgeschottet ohne Datei- und Systemzugriff. Der Originalmodus startet nie ein Skript
 - Einstellungsmenü im Hauptmenü: Lautstärken, Vollbild, Skalierung, Schwierigkeit, Polizei-Countdown, Zeitraffer und Gamepad, gespeichert im Benutzerordner (auch im Browser)
+- Spiel+: Die Planung zeigt Laufwege und Sichtbereiche der Wachen im Grundriss und eine Zeitleiste aller Einbrecher mit Rückgängig und Wiederholen
 - Skriptmodus für automatische Testpartien, die bei jeder Änderung in der CI laufen, bis hin zu einem kompletten Einbruch
 
 Die wichtigsten Optionen lassen sich im Hauptmenü unter „Einstellungen“ ändern. Dort gilt: Klick oder Eingabetaste schaltet weiter, die Pfeiltasten links und rechts verringern oder erhöhen, Rechtsklick oder Escape führt zurück. Die Auswahl landet als `settings.cfg` im Benutzerordner und wird nach `cosp.cfg` gelesen. Alle Optionen stehen kommentiert in `gamedata/cosp.cfg`.
@@ -53,6 +54,8 @@ eingebauten Werte. Was noch zu tun ist, steht in [AUDIT.md](AUDIT.md).
 | F12 | Screenshot als PNG im Benutzerordner unter `screenshots` |
 | Rechtsklick (Planung, Gehen) | Person läuft auf dem schnellsten Weg zum angeklickten Punkt |
 | Tab (Einbruch) | Zeitraffer ein und aus |
+| W (Planung, Spiel+) | Laufwege und Sichtbereiche der Wachen ein und aus (in Spiel+ zu Beginn an) |
+| T (Planungsmenüs, Spiel+) | Zeitleiste des Plans. Dort macht Z (oder die Rücktaste) die letzte Aktion der aktuellen Person rückgängig, Y stellt sie wieder her, T, Esc oder ein Klick schließt |
 | Umschalt+F12 | Screenshot des internen Bildpuffers (BMP, zur Fehlersuche) |
 
 Der Benutzerordner ist unter Linux `~/.local/share/DerClou/`, unter Windows `%APPDATA%\DerClou\` und unter macOS
