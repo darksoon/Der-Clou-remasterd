@@ -9,6 +9,24 @@ Aufwand: S = unter einer Stunde, M = einige Stunden, L = Tage.
 „Bestätigt“ heißt: im laufenden Spiel oder mit einem Befehl nachgestellt. „Gelesen“ heißt: aus dem
 Code abgeleitet.
 
+## Stand mit Version 0.22.0
+
+| ID | Stand |
+| --- | --- |
+| H1, H2, H3, H4, H6 | Erledigt |
+| H5 | Offen: feste Zufallsfolge für Tests und zweite Referenzpartie fürs Original (Roadmap O5). Einen Einbruch mit Alarm und Festnahme gibt es jetzt als Test in Spiel+ |
+| H7 | Erledigt in der README; die Bedingungen der Quelle der Tondateien prüft der Projektinhaber |
+| M1, M2, M3, M4, M5, M7, M8, M9, M10, M11, M13, M14, M16 | Erledigt |
+| M6 | Offen: Modfiles wirken weiter auch im Original |
+| M12 | Offen: Größe der Browser-Daten und des Verlaufs |
+| M15 | Offen: Werkzeug-Infos am Bildschirm nachweisen |
+| M17 | Offen: Entscheidung zum Polizei-Countdown im Original |
+| N2, N3, N5, N8, N10, N11, N12, N13 | Erledigt (N10: die Sprachlautstärke bleibt ohne CD-Daten verborgen; N12 ohne Fortschrittsbalken) |
+| N14 | Erledigt bis auf die Versionsangabe lokaler Builds |
+| N1, N4, N6, N7, N9, N15 | Offen |
+
+Der Bericht zur Version 0.21.0 folgt unverändert.
+
 ## Kurzfassung
 
 - Die Trennung der Spielarten hält. Lua, Schwierigkeit, neue Stimmen, Hintergrundgeräusche, Nacht und

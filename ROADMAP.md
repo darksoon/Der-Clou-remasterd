@@ -1,6 +1,6 @@
 # Roadmap: Der Clou! remastered
 
-Stand: Version 0.21.0. Die Roadmap ist nach den beiden Spielarten getrennt. Im Original gilt:
+Stand: Version 0.22.0. Die Roadmap ist nach den beiden Spielarten getrennt. Im Original gilt:
 Es spielt sich wie 1994. Erlaubt sind dort nur Fehlerkorrekturen, Technik und Komfort, der den
 Spielablauf nicht verändert und abschaltbar ist. Alles, was Regeln, Balance oder Inhalte ändert,
 gehört in Spiel+.

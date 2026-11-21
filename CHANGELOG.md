@@ -3,6 +3,64 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.22.0 (21.11.2026)
+
+Diese Version behebt die Befunde des neuen Audits ([AUDIT.md](AUDIT.md)).
+
+### Behoben
+
+- Screenshots (F12) sind nicht mehr durchsichtig und werden in jedem Bildbetrachter richtig angezeigt
+- Ersetzte Tondateien (Stimmen, Geräusche, Musik, Intro) aus `MODFILES` werden jetzt wirklich abgespielt
+- WAV-Dateien mit 44,1 oder 48 kHz, in Stereo oder mit zusätzlichen Infoblöcken, wie sie Audacity
+  schreibt, funktionieren. Nicht unterstützte Formate stehen im Protokoll, statt das Spiel abstürzen
+  zu lassen
+- Ein ersetztes Bild, das kein Bild mit 256-Farben-Palette ist, oder eine beschädigte Bilddatei bringt
+  das Spiel nicht mehr zum Absturz: Es nimmt das Originalbild und vermerkt den Fehler im Protokoll
+- Das Spiel startet auch ohne Tongerät, dann ohne Ton
+- Sehr lange Pfade zum Spielordner funktionieren unter Linux und macOS, unter Windows bleibt die Grenze
+  von 260 Zeichen
+- Spiel+: Fehlerhafte oder bösartige Lua-Skripte können das Spiel nicht mehr abbrechen oder
+  einfrieren. Skripte haben eine Grenze für Laufzeit und Speicher; bei einem Fehler steht die Meldung
+  im Protokoll, und das Spiel läuft mit den eingebauten Werten weiter. Für Mods: `string.find`,
+  `match`, `gmatch` und `gsub` nehmen nur kurze Texte und einfache Muster an, `__gc` in Metatabellen
+  ist nicht erlaubt
+- Original: Das Lademenü im laufenden Spiel zeigt wieder nur die vier Spielstände von 1994. Der
+  automatische Spielstand von Spiel+ erscheint nur in Spiel+ und im Hauptmenü
+- Original: Pläne aus Spiel+ mit Werkzeugeinsätzen, die nach den Regeln von 1994 nicht möglich sind,
+  werden mit einem Hinweis abgelehnt
+- Zeitraffer (Tab) wirkt nur noch während des Einbruchs und beginnt immer mit normalem Tempo. Ein
+  `>>` in der Statuszeile zeigt, dass er läuft
+- Spiel+: Nach einer Festnahme erscheint ebenfalls die Zeitung. Die Texte sind überarbeitet: Der
+  Gebäudename steht für sich („Tatort: Kiosk.“), die Beute hat Tausenderpunkte, Französisch und
+  Spanisch lesen die englische Ausgabe. Eine alte Schlagzeile überlebt das Laden eines anderen Spiels
+  nicht mehr
+- Organisation: „keine Fähigkeiten“ steht beim richtigen Komplizen statt in der ersten Spalte
+- Zeitleiste (Spiel+): „Wiederherstellen“ statt „Wiederholen“. Nach einer anderen Änderung am Plan
+  lässt sich nichts Altes mehr wiederherstellen
+- Einstellungen: „Neue Stimmen (Spiel+)“ ist immer sichtbar, die Einträge für Spiel+ stehen zusammen
+  am Ende. Vollbild (F11) und die Lautstärketasten werden gespeichert und wirken auch auf die
+  Hintergrundgeräusche
+- Browser: Bricht der Download der Spieldaten ab, zeigt die Seite einen Fehler, statt endlos zu laden.
+  Nach einem neuen Release mischt der Browser nicht mehr neues Programm mit alten Daten. Das
+  Einspielen gesicherter Spielstände prüft die Datei erst vollständig
+- Webseite: keine Schrift mehr von einem fremden Server, Name und Downloadgröße berichtigt
+
+### Lizenz
+
+- Der Lizenztext von Lua liegt in jedem Paket, die Lizenztexte der mitgelieferten Bibliotheken im
+  Windows-Paket. Die README nennt die Bedingungen für die neuen Dateien unter `PLUS/`
+
+### Technik
+
+- Die Verbote der Testpartien („Original startet nie Lua“ und andere) konnten wegen eines Fehlers im
+  Suchmuster nie anschlagen. Jetzt greifen sie, und die Sanitizer-Läufe scheitern auch bei
+  undefiniertem Verhalten. Vier solche Stellen im alten MAME-Emulator sind behoben
+- Neue Tests: ungewöhnliche Mod-Dateien, fehlendes Tongerät und langer Pfad
+  (`tests/run-robustness-test.sh`), bösartige Lua-Skripte (`tests/run-lua-hostile-test.sh`), Einbruch
+  mit Festnahme, Lademenü im Original, Prüfung der Screenshots auf Durchsichtigkeit
+- CI: Schreibrechte nur für Release und Webseite, feste Versionen mit Prüfsumme, Zeitlimits, kein
+  Release ohne Abschnitt im Änderungsprotokoll
+
 ## 0.21.0 (21.11.2026)
 
 ### Neu

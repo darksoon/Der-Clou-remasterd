@@ -66,6 +66,8 @@ Spielstände, Pläne, Screenshots, `settings.cfg` und `clou.log` liegen unter Li
 Eine Datei unter `MODFILES/` im Spielordner wird statt der gleichnamigen Originaldatei geladen, zum
 Beispiel `MODFILES/PICTURES/MENU` statt `PICTURES/MENU` oder `MODFILES/PLUS/WEATHER.LUA` für eigene
 Wetterchancen. Die Originaldaten bleiben unberührt. Bilder dürfen PNG mit 256-Farben-Palette sein.
+Tondateien sind WAV (PCM, 8 oder 16 Bit, Mono oder Stereo, bis 48 kHz). Lua-Skripte laufen abgeschottet
+und mit einer Grenze für Laufzeit und Speicher; Fehler stehen in `clou.log`.
 Gebäude, Wachenrouten und die Datenbank lassen sich mit `tools/clou-data.py` als JSON bearbeiten
 (siehe [Entwicklung](docs/ENTWICKLUNG.md) und [Dateiformate](docs/DATEIFORMATE.md)).
 
