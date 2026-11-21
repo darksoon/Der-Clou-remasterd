@@ -83,6 +83,7 @@ extern ubyte tcLoadTheClou(void);
 extern ubyte tcLoadTheClouFromMainMenu(void);
 extern void tcSaveTheClou(int bAutoSave);
 extern void tcShowNewspaper(void);
+extern void tcClearNewspaper(void);
 extern uint32_t tcBurglary(uint32_t buildingID);
 
 extern ubyte tcLoadChangesInScenes(char *fileName);

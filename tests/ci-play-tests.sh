@@ -73,6 +73,8 @@ lane_burglary() {
         # a running original game keeps the four slots of 1994, although the list has the fifth entry
         EXPECT="Load menu: 4 entries" REJECT="Load menu: 5 entries" $T "$EXE" tests/scripts/load-menu-original.txt "${ENV42[@]}"
     )
+    # Game+: after an arrest the newspaper reports it before the prison scene
+    EXPECT_FILE=tests/expected/burglary-plus-arrest.txt $T "$EXE" tests/scripts/burglary-plus-arrest.txt "${ENV42[@]}"
 }
 
 lane_weather() {
@@ -86,6 +88,8 @@ lane_weather() {
     fi
     # unusual replacement files (sounds, pictures), no audio device, long path of the game directory
     tests/run-robustness-test.sh "$EXE"
+    # hostile Lua scripts (error in a metamethod, endless loops, memory) must not stop the game
+    tests/run-lua-hostile-test.sh "$EXE"
 }
 
 mkdir -p tests/out

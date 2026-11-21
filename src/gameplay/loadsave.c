@@ -176,6 +176,7 @@ ubyte tcLoadIt(char activ)
 
     /* alte Daten löschen */
 
+    tcClearNewspaper(); /* Game+: a newspaper not yet shown belongs to the game that is left */
     tcResetOrganisation();
 
     RemRelations((uint32_t)DB_tcMain_OFFSET, (uint32_t)DB_tcMain_SIZE);

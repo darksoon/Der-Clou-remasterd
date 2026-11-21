@@ -1,5 +1,6 @@
 -- Der Clou! remastered: the newspaper after a burglary in Game+.
--- news(info) returns the lines of the article (UTF-8, at most about 44 characters per line).
+-- news(info) returns the lines of the article (UTF-8, at most 49 characters per line,
+-- that is the width of the bubble; the longest building name has 24 characters).
 -- info.building  name of the building
 -- info.escaped   true if the gang got away
 -- info.alarm     "none", "silent" or "loud"
@@ -13,10 +14,12 @@ local function pick(list, info, salt)
   return list[((info.day * 7 + salt) % #list) + 1]
 end
 
-local function pounds(value)
-  local s = tostring(value)
-  local out = s:reverse():gsub("(%d%d%d)", "%1."):reverse()
-  return (out:gsub("^%.", "")) .. " Pfund"
+-- 1234567 -> "1.234.567" (German) or "1,234,567" (English)
+local function amount(value, separator)
+  local s = tostring(math.floor(value))
+  local out = s:reverse():gsub("(%d%d%d)", "%1" .. separator):reverse()
+  if out:sub(1, 1) == separator then out = out:sub(2) end
+  return out
 end
 
 local de = {
@@ -47,47 +50,67 @@ local en = {
   clean = { "MASTER COUP: NOBODY NOTICED A THING", "VANISHED WITHOUT A TRACE" },
 }
 
+-- The name of the building always stands alone ("Tatort: Kiosk."), so the sentences read right
+-- for every name.
 function news(info)
-  local english = (info.lang == "en")
-  local t = english and en or de
+  local german = (info.lang == "de") -- French and Spanish read the English paper
+  local t = german and de or en
   local lines = {}
 
   if not info.escaped then
     lines[1] = pick(t.caught, info, 1)
-    if english then
-      lines[2] = "Last night the police arrested burglars"
-      lines[3] = "at " .. info.building .. "."
-    else
+    if german then
       lines[2] = "In der vergangenen Nacht nahm die Polizei"
-      lines[3] = "Einbrecher bei " .. info.building .. " fest."
-      lines[4] = "Inspektor Gludo spricht von einem"
-      lines[5] = "Meisterstück der Ermittlungsarbeit."
+      lines[3] = "eine Einbrecherbande auf frischer Tat fest."
+      lines[4] = "Tatort: " .. info.building .. "."
+      lines[5] = "Inspektor Gludo spricht von einem"
+      lines[6] = "Meisterstück der Ermittlungsarbeit."
+    else
+      lines[2] = "Last night the police arrested a gang of"
+      lines[3] = "burglars in the act."
+      lines[4] = "Scene of the crime: " .. info.building .. "."
+      lines[5] = "Inspector Gludo calls it a masterpiece"
+      lines[6] = "of detective work."
     end
     return lines
   end
 
   local kind = (info.alarm == "loud") and "loud" or (info.alarm == "silent") and "silent" or "clean"
   lines[1] = pick(t[kind], info, 3)
-  if english then
-    lines[2] = "Burglars struck " .. info.building .. " last night."
-    if info.loot > 0 then lines[3] = "The loot is said to be worth " .. info.loot .. " pounds." end
+
+  if german then
+    lines[2] = "In der Nacht schlugen unbekannte Einbrecher zu."
+    lines[3] = "Tatort: " .. info.building .. "."
+    if info.loot > 0 then
+      lines[4] = "Der Schaden soll bei " .. amount(info.loot, ".") .. " Pfund liegen."
+    else
+      lines[4] = "Gestohlen wurde offenbar nichts."
+    end
+    if info.knocked_out > 0 then
+      lines[#lines + 1] = "Ein Wachmann wurde überwältigt."
+    end
+    if kind == "clean" then
+      lines[#lines + 1] = "Scotland Yard tappt im Dunkeln."
+    else
+      lines[#lines + 1] = "Die Polizei bittet um Hinweise."
+    end
     return lines
   end
 
-  lines[2] = "Unbekannte drangen letzte Nacht bei"
-  lines[3] = info.building .. " ein."
+  lines[2] = "Unknown burglars struck last night."
+  lines[3] = "Scene of the crime: " .. info.building .. "."
   if info.loot > 0 then
-    lines[4] = "Der Schaden soll bei " .. pounds(info.loot) .. " liegen."
+    lines[4] = "The loot is said to be worth " .. amount(info.loot, ",") .. " pounds."
   else
-    lines[4] = "Gestohlen wurde offenbar nichts."
+    lines[4] = "Apparently nothing was stolen."
   end
   if info.knocked_out > 0 then
-    lines[#lines + 1] = "Ein Wachmann wurde überwältigt."
+    lines[#lines + 1] = "A guard was overpowered."
   end
   if kind == "clean" then
-    lines[#lines + 1] = "Scotland Yard tappt im Dunkeln."
+    lines[#lines + 1] = "Scotland Yard is groping in the dark."
   else
-    lines[#lines + 1] = "Die Polizei bittet um Hinweise."
+    lines[#lines + 1] = "The police are asking for information."
   end
   return lines
 end

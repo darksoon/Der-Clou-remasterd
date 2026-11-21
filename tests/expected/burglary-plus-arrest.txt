@@ -1,0 +1,4 @@
+# Results of tests/scripts/burglary-plus-arrest.txt: a guard raises the alarm, the gang is caught
+# on the run and the newspaper reports the arrest before the prison scene.
+Escape from building: escaped
+Newspaper: SCOTLAND YARD SCHNAPPT DIE GANOVEN

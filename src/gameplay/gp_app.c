@@ -131,8 +131,8 @@ static int32_t tcLootValue(void)
 }
 
 /* Game+: the next morning's newspaper reports on the burglary, written by PLUS/NEWS.LUA.
-   The facts are kept when the burglary ends and the paper is shown in the police office the next
-   morning, where the scene has a picture for the bubble. */
+   The facts are kept when the burglary ends and the paper is shown in the scene that follows,
+   where the bubble is visible: the police office after an escape, the prison after an arrest. */
 static ScrNewsInfo tcNews;
 static char tcNewsBuilding[TXT_KEY_LENGTH];
 static int tcNewsPending = 0;
@@ -153,6 +153,9 @@ static void tcRememberNewspaper(uint32_t buildingID, int32_t ret, int32_t lootBe
     tcNews.lang = (int)txtGetLanguage();
     tcNewsPending = 1;
 }
+
+/* a newspaper that was not shown belongs to the game that was played before */
+void tcClearNewspaper(void) { tcNewsPending = 0; }
 
 void tcShowNewspaper(void)
 {
@@ -742,8 +745,17 @@ void InitTaxiLocations(void)
     }
 }
 
+/* Game+: the gang was caught, the papers report on it before the years in prison begin */
+static void tcDonePrisonScene(void)
+{
+    tcShowNewspaper();
+    tcDonePrison();
+}
+
 void LinkScenes(void)
 {
+    tcClearNewspaper(); /* the scenes are set up again before every new or loaded game */
+
     (GetLocScene(8))->Done = DoneTaxi;
     (GetLocScene(51))->Done = DoneParking;
     (GetLocScene(50))->Done = DoneGarage;
@@ -806,7 +818,7 @@ void LinkScenes(void)
     SetFunc(GetScene(SCENE_TERROR), NULL, tcDoneTerror);
     SetFunc(GetScene(SCENE_CONFESSING), NULL, tcDoneConfessingSabien);
 
-    SetFunc(GetScene(SCENE_PRISON), tcInitPrison, tcDonePrison);
+    SetFunc(GetScene(SCENE_PRISON), tcInitPrison, tcDonePrisonScene);
 
     SetFunc(GetScene(SCENE_SOUTH_WITHOUT), NULL, tcDoneSouthhamptonWithoutSabien);
     SetFunc(GetScene(SCENE_SOUTH_UNKNOWN), NULL, tcDoneSouthhamptonSabienUnknown);
