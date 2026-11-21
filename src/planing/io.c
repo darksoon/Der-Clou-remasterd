@@ -103,6 +103,102 @@ LIST *plLoadTools(FILE *fh)
     return l;
 }
 
+/* ------------------------------------------------------------------------
+ * Plans are files per building and do not know the mode they were made in. Game+ can lower
+ * the skill a tool needs (PLUS/BALANCE.LUA), and the planner only checks the skill when the
+ * action is planned. So a plan made in Game+ could be loaded in an original game with a tool
+ * action the rules of 1994 refuse. In the original mode every tool action of a loaded plan is
+ * checked again, the same way the planner does it; a plan made in the original mode always passes.
+ * ------------------------------------------------------------------------ */
+
+/* texts in the game font: \x84 = ae, \x81 = ue, \x82 = e acute */
+static const char *plAbilityMissing[4][2] = {
+    {"This plan asks for skills my team does not", "have. That goes for..."},
+    {"F\x81r diesen Plan reichen die F\x84higkeiten im", "Team nicht aus. Das betrifft..."},
+    {"Ce plan demande des capacit\x82s que mon", "\x82quipe n'a pas. Cela concerne..."},
+    {"Este plan exige habilidades que mi equipo", "no tiene. Se trata de..."}};
+
+static LIST *plAbilityList = NULL; /* burglars whose saved tool actions fail the check */
+
+static ubyte plAbilityListed(uint32_t persId)
+{
+    struct ObjectNode *n = NULL;
+
+    for (n = (struct ObjectNode *)LIST_HEAD(plAbilityList); NODE_SUCC(n); n = (struct ObjectNode *)NODE_SUCC(n))
+        if (OL_NR(n) == persId) return 1;
+    return 0;
+}
+
+static void plCheckSavedUse(uint32_t persId, uint32_t itemId, uint32_t toolId)
+{
+    LIST *requires = NULL;
+    NODE *n = NULL;
+    ubyte ok = 1;
+
+    /* stairs carry an area and guards are fought without a skill value: only real tool work counts */
+    if (!persId || !toolId || !itemId) return;
+    if (!dbIsObject(persId, Object_Person) || !dbIsObject(toolId, Object_Tool)) return;
+    if (dbIsObject(itemId, Object_Police)) return;
+
+    toolRequiresAll(toolId, OLF_PRIVATE_LIST, Object_Ability);
+    requires = ObjectListPrivate;
+
+    for (n = LIST_HEAD(requires); NODE_SUCC(n); n = (NODE *)NODE_SUCC(n))
+    {
+        if (!has(persId, OL_NR(n)) || (hasGet(persId, OL_NR(n)) < tcToolRequirement(toolId, OL_NR(n))))
+        {
+            ok = 0;
+            break;
+        }
+    }
+
+    RemoveList(requires);
+
+    if (!ok && !plAbilityListed(persId))
+    {
+        char name[TXT_KEY_LENGTH];
+
+        dbGetObjectName(toolId, name);
+        Log("Plan refused: burglar %u lacks the skill for %s", (unsigned)persId, name);
+        dbAddObjectNode(plAbilityList, persId, OLF_INCLUDE_NAME);
+    }
+}
+
+/* NULL if the plan fits, otherwise the message to show (like LoadSystem and plLoadTools) */
+LIST *plCheckPlanAbilities(FILE *fh, uint32_t objId)
+{
+    LIST *l = NULL;
+    ubyte lang = txtGetLanguage();
+
+    /* Game+ made the plan under its own rules; the plan of the barracks is part of the story */
+    if (!fh || (GameMode == GAME_MODE_PLUS) || (objId == Building_Starford_Kaserne)) return NULL;
+    if (GamePlayMode & (GP_GUARD_DESIGN | GP_LEVEL_DESIGN)) return NULL;
+
+    if (lang > 3) lang = 1;
+
+    plAbilityList = (LIST *)CreateList(0L);
+    ScanSavedUseActions(fh, plCheckSavedUse);
+
+    if (LIST_EMPTY(plAbilityList))
+    {
+        RemoveList(plAbilityList);
+    }
+    else
+    {
+        struct ObjectNode *n = NULL;
+
+        l = (LIST *)CreateList(0L);
+        CreateNode(l, 0L, (char *)plAbilityMissing[lang][0]);
+        CreateNode(l, 0L, (char *)plAbilityMissing[lang][1]);
+        for (n = (struct ObjectNode *)LIST_HEAD(plAbilityList); NODE_SUCC(n); n = (struct ObjectNode *)NODE_SUCC(n))
+            dbAddObjectNode(l, OL_NR(n), OLF_INCLUDE_NAME);
+        RemoveList(plAbilityList);
+    }
+
+    plAbilityList = NULL;
+    return l;
+}
+
 ubyte plOpen(uint32_t objId, ubyte mode, FILE **fh)
 {
     if (GamePlayMode & GP_GUARD_DESIGN)
@@ -309,6 +405,16 @@ void plLoad(uint32_t objId)
             }
 
             if ((l = plLoadTools(fh)))
+            {
+                inpTurnESC(0);
+                Bubble(l, 0, NULL, 0L);
+                inpTurnESC(1);
+                RemoveList(l);
+
+                goon = 0;
+            }
+
+            if (goon && (l = plCheckPlanAbilities(fh, objId)))
             {
                 inpTurnESC(0);
                 Bubble(l, 0, NULL, 0L);

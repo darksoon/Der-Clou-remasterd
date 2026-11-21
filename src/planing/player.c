@@ -266,7 +266,7 @@ static uint32_t plPoliceTime(void) { return (uint32_t)CFG_SCALE(PD.bldObj->Polic
 /* once the alarm is loud the burglars know the police is coming: show how long they have */
 static void plDisplayPoliceTimer(void)
 {
-    static const char *label[] = {"Police in", "Polizei in", "Police dans", "Policia en"};
+    static const char *label[] = {"Police in", "Polizei in", "Police dans", "Polic\xa1" "a en"};
     char info[40];
     int32_t left;
     ubyte lang = txtGetLanguage();
@@ -283,6 +283,28 @@ static void plDisplayPoliceTimer(void)
     gfxSetRect(110, 108);
     gfxSetPens(m_wrp, 249, GFX_SAME_PEN, GFX_SAME_PEN);
     gfxPrint(m_wrp, info, 2, GFX_PRINT_CENTER);
+}
+
+/* ">>" at the right end of the middle part of the status line while fast forward is on. The
+   weather label and the police countdown are centred in that part and end before x 207. Nothing
+   is drawn as long as fast forward was never switched on, so the picture of the original stays. */
+static ubyte plFastForwardShown = 0;
+
+static void plDisplayFastForward(void)
+{
+    ubyte on = inpFastForward();
+
+    if (!on && !plFastForwardShown) return;
+
+    gfxSetPens(m_wrp, 0, 0, 0);
+    gfxRectFill(m_wrp, 207, 0, 218, 10);
+    if (on)
+    {
+        gfxSetRect(207, 11);
+        gfxSetPens(m_wrp, 249, GFX_SAME_PEN, GFX_SAME_PEN);
+        gfxPrint(m_wrp, ">>", 2, GFX_PRINT_CENTER);
+    }
+    plFastForwardShown = on;
 }
 
 /* one timer tick of the playback; with fast forward (Tab) several simulation steps run per frame */
@@ -307,6 +329,7 @@ static void plPlayerAction(void)
 
     plDisplayTimer(PD.realTime, 0);
     plDisplayPoliceTimer();
+    plDisplayFastForward();
 
     if (PD.sndState && (PD.timer > (PD.maxTimer * 20) / 100) && (PD.bldId != Building_Starford_Kaserne))
     {
@@ -1328,7 +1351,7 @@ int32_t plPlayer(uint32_t objId, uint32_t actionTime, ubyte (*actionFunc)(uint32
     {
         if (!(l = LoadSystem(fh, plSys)))
         {
-            if (!(l = plLoadTools(fh)))
+            if (!(l = plLoadTools(fh)) && !(l = plCheckPlanAbilities(fh, objId)))
             {
                 PD.ende = 0;
                 PD.timer = 0L;
@@ -1412,8 +1435,9 @@ int32_t plPlayer(uint32_t objId, uint32_t actionTime, ubyte (*actionFunc)(uint32
                 /* Game+: night light and weather, only the picture and the sound */
                 plNightEnter(objId);
 
-                /* start main loop */
-                inpSetFastForward(0);
+                /* start main loop; Tab toggles fast forward from here until the playback ends */
+                inpAllowFastForward(1);
+                plFastForwardShown = 0;
                 playStart = SDL_GetTicks();
                 SetMenuTimeOutFunc(plPlayerTick);
 
@@ -1561,7 +1585,8 @@ int32_t plPlayer(uint32_t objId, uint32_t actionTime, ubyte (*actionFunc)(uint32
                 plNightLeave();
                 Log("Burglary played: %u s burglary time in %u ms", (unsigned)PD.realTime,
                     (unsigned)(SDL_GetTicks() - playStart));
-                inpSetFastForward(0);
+                inpAllowFastForward(0);
+                plDisplayFastForward(); /* takes the marker away again */
                 inpSetWaitTicks(0); /* normales Ausmassß */
 
                 Search.LastAreaId = lsGetActivAreaID();

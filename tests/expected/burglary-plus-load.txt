@@ -1,0 +1,4 @@
+# Results of tests/scripts/burglary-plus-load.txt after tests/scripts/burglary-plus.txt (same TEST_HOME):
+# the load menu of the main menu offers the autosave as fifth entry, the game loads as Game+.
+Load menu: 5 entries
+Game mode of the saved game: Game+

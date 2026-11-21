@@ -199,6 +199,50 @@ static void gfxApplyLight(uint32_t *pixels, int pitchPixels)
                   (gfxScalingOffsetX > 0) ? gfxScalingOffsetX : 0, (gfxScalingOffsetY > 0) ? gfxScalingOffsetY : 0);
 }
 
+/* screenshots are opaque: the alpha bytes of the 32 bit copies are not defined by the game */
+static void gfxMakeShotOpaque(SDL_Surface *shot)
+{
+    int x = 0;
+    int y = 0;
+
+    for (y = 0; y < shot->h; y++)
+    {
+        uint32_t *row = (uint32_t *)((uint8_t *)shot->pixels + (size_t)y * (size_t)shot->pitch);
+
+        for (x = 0; x < shot->w; x++) row[x] |= 0xff000000u;
+    }
+}
+
+/* The game palette carries no alpha (every entry has 0), which a PNG writer stores as a fully
+   transparent tRNS chunk. Save the 8 bit picture through a second surface that shares the pixels
+   and has the same colours with alpha 255: still a small palette PNG, nothing is converted. */
+static int gfxSavePalettePNG(const char *fileName)
+{
+    SDL_Palette *screenPalette = SDL_GetSurfacePalette(SurfaceScreen);
+    SDL_Surface *shot = NULL;
+    SDL_Palette *palette = NULL;
+    SDL_Color colors[256];
+    int count = 0;
+    int i = 0;
+    int ok = 0;
+
+    if (!screenPalette) return 0;
+    count = (screenPalette->ncolors < 256) ? screenPalette->ncolors : 256;
+    for (i = 0; i < count; i++)
+    {
+        colors[i] = screenPalette->colors[i];
+        colors[i].a = 255;
+    }
+
+    shot = SDL_CreateSurfaceFrom(SurfaceScreen->w, SurfaceScreen->h, SurfaceScreen->format, SurfaceScreen->pixels,
+                                 SurfaceScreen->pitch);
+    if (!shot) return 0;
+    palette = SDL_CreateSurfacePalette(shot);
+    if (palette && SDL_SetPaletteColors(palette, colors, 0, count)) ok = SDL_SavePNG(shot, fileName);
+    SDL_DestroySurface(shot);
+    return ok;
+}
+
 /* save the current screen as PNG (falls back to BMP if PNG saving is unavailable) */
 int gfxSaveScreenshotTo(const char *fileName)
 {
@@ -216,6 +260,7 @@ int gfxSaveScreenshotTo(const char *fileName)
                                             gfxScalingFactor, Config.gfxDisplayFilter))
             {
                 gfxApplyLight((uint32_t *)shot->pixels, shot->pitch / 4); /* Game+ night light */
+                gfxMakeShotOpaque(shot);
                 ok = SDL_SavePNG(shot, fileName);
             }
             SDL_DestroySurface(shot);
@@ -230,12 +275,13 @@ int gfxSaveScreenshotTo(const char *fileName)
         if (shot)
         {
             gfxApplyLight((uint32_t *)shot->pixels, shot->pitch / 4);
+            gfxMakeShotOpaque(shot);
             ok = SDL_SavePNG(shot, fileName);
             SDL_DestroySurface(shot);
         }
         if (ok) return 1;
     }
-    if (SDL_SavePNG(SurfaceScreen, fileName)) return 1;
+    if (gfxSavePalettePNG(fileName)) return 1;
     Log("PNG screenshot failed (%s), saving BMP", SDL_GetError());
     return SDL_SaveBMP(SurfaceScreen, fileName);
 }

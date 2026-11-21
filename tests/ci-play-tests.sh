@@ -65,10 +65,13 @@ lane_burglary() {
     # (and it must never start Lua)
     REJECT="Lua|Autosave" EXPECT_FILE=tests/expected/burglary-original.txt $T "$EXE" tests/scripts/burglary.txt "${ENV42[@]}" "difficulty = hard"
     # Game+: autosave in the extra fifth slot before the burglary, it loads again as Game+
+    # (the load menu of the main menu shows the fifth slot)
     (
         export TEST_HOME="$(mktemp -d)"
         EXPECT_FILE=tests/expected/burglary-plus.txt $T "$EXE" tests/scripts/burglary-plus.txt "${ENV42[@]}"
-        EXPECT="Game mode of the saved game: Game\\+" $T "$EXE" tests/scripts/burglary-plus-load.txt
+        EXPECT_FILE=tests/expected/burglary-plus-load.txt $T "$EXE" tests/scripts/burglary-plus-load.txt
+        # a running original game keeps the four slots of 1994, although the list has the fifth entry
+        EXPECT="Load menu: 4 entries" REJECT="Load menu: 5 entries" $T "$EXE" tests/scripts/load-menu-original.txt "${ENV42[@]}"
     )
 }
 

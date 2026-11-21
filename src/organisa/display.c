@@ -248,9 +248,9 @@ void tcDisplayAbilities(uint32_t personNr, uint32_t displayData)
     }
     else
     {
-        i = 0;  // 2014-06-30 LucyG: i is used, but was never initialised
+        /* in the column of this member, like the bars above (it used to be printed in the first column) */
         txtGetFirstLine(BUSINESS_TXT, "PLAN_NO_CAPABILITY", line);
-        gfxSetRect(ORG_DISP_GUY_WIDTH * i + 5, ORG_DISP_GUY_WIDTH - 5);
+        gfxSetRect(ORG_DISP_GUY_WIDTH * displayData + 5, ORG_DISP_GUY_WIDTH - 5);
         gfxSetDrMd(&RefreshRP, GFX_JAM_1);
         gfxPrint(&RefreshRP, line, ORG_DISP_ABILITIES_Y + ORG_DISP_LINE, GFX_PRINT_LEFT);
     }

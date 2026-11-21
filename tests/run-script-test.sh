@@ -9,6 +9,7 @@
 # EXPECT=<extended grep pattern> additionally requires a line in the game log.
 # REJECT=<grep pattern> fails the test if the game log contains it.
 # EXPECT_FILE=<file> requires every line of that file (except # comments) literally in the log.
+# Every screenshot of the run must be opaque (tests/check-png-opaque.py).
 set -u
 EXE="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
 SCRIPT="$(cd "$(dirname "$2")" && pwd)/$(basename "$2")"
@@ -32,6 +33,7 @@ export DERCLOU_ROOTDIR="$ROOT" DERCLOU_SCRIPT="$SCRIPT" DERCLOU_SHOTDIR="$SHOTDI
 export DERCLOU_SEED="${DERCLOU_SEED-42}"
 export ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=0:verify_asan_link_order=0}"
 
+STAMP="$(mktemp)" # screenshots newer than this file are from this run
 timeout -s KILL 300 "$EXE" > "$SHOTDIR/game.log" 2>&1
 STATUS=$?
 cat "$SHOTDIR/game.log"
@@ -48,4 +50,9 @@ if [ -n "${EXPECT_FILE:-}" ]; then
     if ! grep -qF -- "$line" "$SHOTDIR/game.log"; then echo "FAIL: log does not contain '$line' (from $EXPECT_FILE)"; exit 1; fi
   done < "$EXPECT_FILE"
 fi
+# screenshots must be opaque: a transparent picture looks empty in most viewers
+NEWSHOTS=()
+while IFS= read -r f; do NEWSHOTS+=("$f"); done < <(find "$SHOTDIR" -maxdepth 1 -name '*.png' -newer "$STAMP" | sort)
+rm -f "$STAMP"
+if [ "${#NEWSHOTS[@]}" -gt 0 ] && ! python3 "$REPO/tests/check-png-opaque.py" "${NEWSHOTS[@]}"; then echo "FAIL: transparent screenshot"; exit 1; fi
 echo "OK: $NAME ($(ls "$SHOTDIR"/*.png 2>/dev/null | wc -l) screenshots in $SHOTDIR)"

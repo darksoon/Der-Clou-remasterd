@@ -96,6 +96,7 @@ ubyte IsHandlerCleared(struct System *sys);
 
 void SaveHandler(FILE *fh, struct System *sys, uint32_t id);
 ubyte LoadHandler(FILE *fh, struct System *sys, uint32_t id);
+void ScanSavedUseActions(FILE *fh, void (*func)(uint32_t id, uint32_t itemId, uint32_t toolId));
 
 uint32_t plGetUsedMem(void);
 

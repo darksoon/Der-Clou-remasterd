@@ -315,7 +315,7 @@ static ubyte StartupMenu(void)
 
         case 1:  // Load Game
             txtReset(OBJECTS_TXT);
-            if (tcLoadTheClou())
+            if (tcLoadTheClouFromMainMenu())
             {
                 film->StartScene = SceneArgs.ReturnValue;
                 ret = 1;

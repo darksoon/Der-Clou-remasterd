@@ -16,6 +16,17 @@ wait 300
 key Return
 wait 500
 shot b03
+# the Game+ settings stand together at the end: twelve lines down to the difficulty
+key Down
+wait 200
+key Down
+wait 200
+key Down
+wait 200
+key Down
+wait 200
+key Down
+wait 200
 key Down
 wait 200
 key Down
@@ -33,6 +44,7 @@ wait 300
 key Right
 wait 500
 shot b04
+# down to the last line (back)
 key Down
 wait 200
 key Down

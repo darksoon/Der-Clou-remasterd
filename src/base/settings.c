@@ -39,6 +39,12 @@ enum
     SET_COUNT
 };
 
+/* order in the menu: the general settings first, the ones that only matter in Game+ together at the end */
+static const int setOrder[SET_COUNT] = {
+    SET_MUSIC,        SET_SFX,           SET_VOICE,          SET_OPL,           SET_FULLSCREEN,   SET_FILTER,
+    SET_DISPLAY_FILTER, SET_INTEGER_SCALE, SET_SMOOTH_EDGES, SET_POLICE_TIMER,  SET_FAST_FORWARD, SET_GAMEPAD,
+    SET_INTRO,        SET_DIFFICULTY,    SET_PLUS_VOICES,    SET_PLUS_AMBIENCE, SET_PLUS_WEATHER, SET_BACK};
+
 /* texts in the game font: \x81 = ü, \x84 = ä, \x82 = é, \x90 = É, \xa0 = á, \xa1 = í, \xa2 = ó, \x8a = è */
 static const char *setLabel[SET_COUNT][4] = {
     {"Music", "Musik", "Musique", "M\xa3sica"},
@@ -359,8 +365,9 @@ void tcSettingsMenu(void)
 
     for (i = 0; i < SET_COUNT; i++)
     {
-        if (((i == SET_VOICE) || (i == SET_PLUS_VOICES)) && !bCDRom) continue; /* only the CD-ROM version talks */
-        entries[count++] = i;
+        /* Only the CD-ROM version has the original speech. The new Game+ voices do not need it. */
+        if ((setOrder[i] == SET_VOICE) && !bCDRom) continue;
+        entries[count++] = setOrder[i];
     }
 
     ShowMenuBackground();

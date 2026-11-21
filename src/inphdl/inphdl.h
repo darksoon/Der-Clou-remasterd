@@ -70,6 +70,7 @@ extern void inpDelay(int32_t l_Ticks);
 extern void inpSetKeyRepeat(unsigned char rate);
 extern ubyte inpFastForward(void);
 extern void inpSetFastForward(ubyte on);
+extern void inpAllowFastForward(ubyte allowed); /* Tab only counts while the burglary playback runs */
 
 extern void setMouseCursor(ubyte fact);
 

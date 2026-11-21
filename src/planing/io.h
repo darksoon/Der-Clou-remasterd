@@ -78,6 +78,7 @@ void plSave(uint32_t objId);
 void plSaveChanged(uint32_t objId);
 
 LIST *plLoadTools(FILE *fh);
+LIST *plCheckPlanAbilities(FILE *fh, uint32_t objId);
 void plSaveTools(FILE *fh);
 
 #endif

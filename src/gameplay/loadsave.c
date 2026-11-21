@@ -17,6 +17,8 @@
 /* slot index of the Game+ autosave, after the four slots of the original */
 #define GAME_AUTOSAVE_SLOT 4
 
+static ubyte tcLoadFromMainMenu = 0; /* the load menu was opened from the main menu */
+
 void tcSaveTheClou(int bAutoSave)
 {
     char line[TXT_KEY_LENGTH];
@@ -259,10 +261,22 @@ ubyte tcBackToStartupMenu(void)
     return 0;
 }
 
+/* the main menu loads before any game runs: every saved game is offered there */
+ubyte tcLoadTheClouFromMainMenu(void)
+{
+    ubyte loaded = 0;
+
+    tcLoadFromMainMenu = 1;
+    loaded = tcLoadTheClou();
+    tcLoadFromMainMenu = 0;
+    return loaded;
+}
+
 ubyte tcLoadTheClou(void)
 {
     char line[TXT_KEY_LENGTH];
     char loaded = 0;
+    ubyte showAuto = 0;
     LIST *games = (LIST *)CreateList(0);
     LIST *origin = (LIST *)CreateList(0);
     uint32_t activ = 0;
@@ -286,8 +300,12 @@ ubyte tcLoadTheClou(void)
 
         inpTurnFunctionKey(0);
         inpTurnESC(1);
-        /* 15: the four slots of the original, 31 also shows the Game+ autosave slot once it exists */
-        activ = (uint32_t)Menu(games, (GetNrOfNodes(games) > GAME_AUTOSAVE_SLOT) ? 31L : 15L, 0, NULL, 0L);
+        /* 15: the four slots of the original, 31 also shows the Game+ autosave slot once it exists.
+           A running original game keeps the four slots of 1994. */
+        showAuto =
+            (GetNrOfNodes(games) > GAME_AUTOSAVE_SLOT) && (tcLoadFromMainMenu || (GameMode == GAME_MODE_PLUS));
+        Log("Load menu: %d entries", showAuto ? GAME_AUTOSAVE_SLOT + 1 : GAME_AUTOSAVE_SLOT);
+        activ = (uint32_t)Menu(games, showAuto ? 31L : 15L, 0, NULL, 0L);
         inpTurnFunctionKey(1);
 
         /* a slot still named as in the original list is empty; the Game+ autosave slot has no
@@ -381,11 +399,20 @@ ubyte tcSaveChangesInScenes(char *fileName)
     return back;
 }
 
+/* "gamemode <n>" line of a saved game: 1 if the line is that key (mode is set then) */
+static ubyte tcReadGameModeLine(const char *line, ubyte *mode)
+{
+    if (strncmp(line, "gamemode ", 9)) return 0;
+    *mode = (atoi(line + 9) == GAME_MODE_PLUS) ? GAME_MODE_PLUS : GAME_MODE_ORIGINAL;
+    return 1;
+}
+
 ubyte tcLoadChangesInScenes(char *fileName)
 {
     int32_t i = 0;
     char buffer[TXT_KEY_LENGTH];
     ubyte back = 1;
+    ubyte mode = GAME_MODE_ORIGINAL;
     uint32_t eventNr = 0;
     uint32_t count = 0;
     FILE *file = NULL;
@@ -398,7 +425,8 @@ ubyte tcLoadChangesInScenes(char *fileName)
 
         for (i = 0; i < film->AmountOfScenes; i++)
         {
-            dskGets(buffer, TXT_KEY_LENGTH - 1, file);
+            if (!dskGets(buffer, TXT_KEY_LENGTH - 1, file)) break;
+            if (tcReadGameModeLine(buffer, &mode)) break; /* fewer scenes than this version knows */
             eventNr = atol(buffer);
             dskGets(buffer, TXT_KEY_LENGTH - 1, file);
             count = atol(buffer);
@@ -409,12 +437,11 @@ ubyte tcLoadChangesInScenes(char *fileName)
                 back = 0;
         }
 
-        /* saved games without this line are from older versions and play in the original mode */
-        GameMode = GAME_MODE_ORIGINAL;
-        if (dskGets(buffer, TXT_KEY_LENGTH - 1, file) && !strncmp(buffer, "gamemode ", 9))
-        {
-            GameMode = (atoi(buffer + 9) == GAME_MODE_PLUS) ? GAME_MODE_PLUS : GAME_MODE_ORIGINAL;
-        }
+        /* The mode line is found by its key, wherever it stands after the scenes: other lines
+           around it must not turn a Game+ game into an original one. Saved games without the
+           line are from older versions and play in the original mode. */
+        while (dskGets(buffer, TXT_KEY_LENGTH - 1, file)) tcReadGameModeLine(buffer, &mode);
+        GameMode = mode;
         Log("Game mode of the saved game: %s", (GameMode == GAME_MODE_PLUS) ? "Game+" : "original");
         sndUpdateAmbience(); /* the background sounds follow the mode of the loaded game */
 

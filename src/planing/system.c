@@ -288,6 +288,49 @@ void SaveHandler(FILE *fh, struct System *sys, uint32_t id)
     }
 }
 
+/* Reads a saved plan without loading it and calls func for every ACTION_USE in it
+   (handler id, item id, tool id). The file position is kept. */
+void ScanSavedUseActions(FILE *fh, void (*func)(uint32_t id, uint32_t itemId, uint32_t toolId))
+{
+    char buffer[32];
+    uint32_t id = 0;
+    long pos = 0;
+
+    if (!fh || !func) return;
+
+    pos = ftell(fh);
+    fseek(fh, 0, SEEK_SET);
+
+    while (dskGets(buffer, 31, fh))
+    {
+        if (!strcmp(buffer, FILE_ACTION_LIST_ID))
+        {
+            if (!dskGets(buffer, 31, fh)) break;
+            id = atol(buffer);
+        }
+        else if (!strcmp(buffer, FILE_ACTION_ID))
+        {
+            uint32_t type = 0;
+
+            if (!dskGets(buffer, 31, fh)) break;
+            type = atol(buffer);
+            if (!dskGets(buffer, 31, fh)) break; /* time */
+
+            if (type == ACTION_USE)
+            {
+                uint32_t toolId = 0;
+
+                if (!dskGets(buffer, 31, fh)) break;
+                toolId = atol(buffer);
+                if (!dskGets(buffer, 31, fh)) break;
+                func(id, atol(buffer), toolId);
+            }
+        }
+    }
+
+    fseek(fh, pos, SEEK_SET);
+}
+
 ubyte LoadHandler(FILE *fh, struct System *sys, uint32_t id)
 {
     struct Action *a = NULL;

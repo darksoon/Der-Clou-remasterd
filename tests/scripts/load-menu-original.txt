@@ -1,0 +1,25 @@
+# After burglary-plus.txt (same TEST_HOME, needs fullenv=42 storyoff=42): the list of saved games
+# has the Game+ autosave as fifth entry. A new game in the original mode opens the load menu
+# with F1; it must show the four slots of 1994 only.
+wait 2500
+key Return
+# game mode: original
+wait 1500
+key Return
+wait 3000
+# F1 opens the game menu: continue, end / save, load
+key F1
+wait 1500
+key Right
+wait 300
+key Down
+wait 300
+key Return
+wait 1500
+shot o01
+key Escape
+wait 1000
+key Return
+wait 1500
+shot o02
+quit

@@ -6,6 +6,7 @@
 */
 #include "inphdl/inphdl.h"
 #include "base/base.h"
+#include "base/settings.h"
 
 #include <SDL3/SDL.h>
 #include <string.h>
@@ -37,10 +38,25 @@ struct IHandler
 
 struct IHandler IHandler;
 
-/* fast forward for the burglary playback, toggled with Tab */
+/* fast forward for the burglary playback, toggled with Tab. The key only counts while the
+   playback runs (inpAllowFastForward), so a Tab pressed in a menu never speeds up a later burglary. */
 static ubyte inpFastForwardOn = 0;
+static ubyte inpFastForwardAllowed = 0;
 ubyte inpFastForward(void) { return inpFastForwardOn; }
-void inpSetFastForward(ubyte on) { inpFastForwardOn = on; }
+void inpSetFastForward(ubyte on) { inpFastForwardOn = (ubyte)(on && inpFastForwardAllowed); }
+/* start (1) and end (0) of the playback: both begin at normal speed */
+void inpAllowFastForward(ubyte allowed)
+{
+    inpFastForwardAllowed = allowed ? 1 : 0;
+    inpFastForwardOn = 0;
+}
+
+/* volume and fullscreen keys change the same values as the settings menu: keep them the same way */
+static void inpStoreKeySettings(void)
+{
+    sndUpdateAmbience(); /* the background sounds follow the sound effects volume */
+    tcSaveSettings();
+}
 
 /* optional handler for extra keys (only installed by Game+ screens) */
 static inpKeyHookFunc inpKeyHook = NULL;
@@ -585,13 +601,17 @@ int32_t inpWaitFor(int32_t l_Mask)
                     }
                     if ((sym == SDLK_TAB) && !event.key.repeat)
                     {
-                        inpFastForwardOn = !inpFastForwardOn;
+                        if (inpFastForwardAllowed) inpFastForwardOn = !inpFastForwardOn;
                         break;
                     }
                     /* Alt+Enter: toggle fullscreen (handled here so Enter does not also confirm) */
                     if (((sym == SDLK_RETURN) || (sym == SDLK_KP_ENTER)) && (event.key.mod & SDL_KMOD_ALT))
                     {
-                        if (!event.key.repeat) gfxToggleFullscreen();
+                        if (!event.key.repeat)
+                        {
+                            gfxToggleFullscreen();
+                            inpStoreKeySettings();
+                        }
                         break;
                     }
                     if (inpKeyHook && !event.key.repeat)
@@ -643,7 +663,11 @@ int32_t inpWaitFor(int32_t l_Mask)
                     {
                         case SDLK_F11:
                         {
-                            if (!event.key.repeat) gfxToggleFullscreen();
+                            if (!event.key.repeat)
+                            {
+                                gfxToggleFullscreen();
+                                inpStoreKeySettings();
+                            }
                         }
                         break;
                         case SDLK_F12:
@@ -661,6 +685,7 @@ int32_t inpWaitFor(int32_t l_Mask)
                             {
                                 Config.MusicVolume = SND_MAX_VOLUME;
                             }
+                            inpStoreKeySettings();
                         }
                         break;
                         case SDLK_DELETE:
@@ -670,6 +695,7 @@ int32_t inpWaitFor(int32_t l_Mask)
                             {
                                 Config.MusicVolume = 0;
                             }
+                            inpStoreKeySettings();
                         }
                         break;
                         case SDLK_HOME:
@@ -679,6 +705,7 @@ int32_t inpWaitFor(int32_t l_Mask)
                             {
                                 Config.SfxVolume = SND_MAX_VOLUME;
                             }
+                            inpStoreKeySettings();
                         }
                         break;
                         case SDLK_END:
@@ -688,6 +715,7 @@ int32_t inpWaitFor(int32_t l_Mask)
                             {
                                 Config.SfxVolume = 0;
                             }
+                            inpStoreKeySettings();
                         }
                         break;
                         case SDLK_PAGEUP:
@@ -697,6 +725,7 @@ int32_t inpWaitFor(int32_t l_Mask)
                             {
                                 Config.VoiceVolume = SND_MAX_VOLUME;
                             }
+                            inpStoreKeySettings();
                         }
                         break;
                         case SDLK_PAGEDOWN:
@@ -706,6 +735,7 @@ int32_t inpWaitFor(int32_t l_Mask)
                             {
                                 Config.VoiceVolume = 0;
                             }
+                            inpStoreKeySettings();
                         }
                         break;
                         default:

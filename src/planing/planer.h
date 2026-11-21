@@ -84,6 +84,9 @@
 #endif
 
 extern ubyte AnimCounter;
+/* 0 = plan as saved, 1 = changed; PLAN_CHANGED_BY_TIMELINE = changed, and the last change was
+   an undo or redo of the Game+ timeline (its redo stack still fits the plan) */
+#define PLAN_CHANGED_BY_TIMELINE 2
 extern ubyte PlanChanged;
 
 void plPlaner(uint32_t objId);

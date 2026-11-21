@@ -80,6 +80,7 @@ extern void tcGetLastName(char *Name, char *dest, uint32_t maxLength);
 extern void tcCutName(char *Name, char Sign, uint32_t maxLength);
 
 extern ubyte tcLoadTheClou(void);
+extern ubyte tcLoadTheClouFromMainMenu(void);
 extern void tcSaveTheClou(int bAutoSave);
 extern void tcShowNewspaper(void);
 extern uint32_t tcBurglary(uint32_t buildingID);

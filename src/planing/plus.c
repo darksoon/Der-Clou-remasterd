@@ -70,13 +70,13 @@ static const char *plusTxtTitle[4] = {"Timeline", "Zeitleiste", "Chronologie", "
 static const char *plusTxtTotal[4] = {"Total", "Gesamt", "Total", "Total"};
 static const char *plusTxtEmpty[4] = {"Nothing planned yet", "Noch nichts geplant", "Rien de planifi\x82",
                                       "Nada planeado"};
-static const char *plusTxtKeys[4] = {"Z: undo   Y: redo   T: close", "Z: r\x81" "ckg\x84" "ngig   Y: wiederholen   T: schlie\xe1" "en",
+static const char *plusTxtKeys[4] = {"Z: undo   Y: redo   T: close", "Z: r\x81" "ckg\x84" "ngig   Y: wiederherstellen   T: schlie\xe1" "en",
                                      "Z: annuler   Y: r\x82" "tablir   T: fermer", "Z: deshacer   Y: rehacer   T: cerrar"};
 static const char *plusTxtUndone[4] = {"Undone", "R\x81" "ckg\x84" "ngig", "Annul\x82", "Deshecho"};
-static const char *plusTxtRedone[4] = {"Redone", "Wiederholt", "R\x82" "tabli", "Rehecho"};
+static const char *plusTxtRedone[4] = {"Redone", "Wiederhergestellt", "R\x82" "tabli", "Rehecho"};
 static const char *plusTxtNoUndo[4] = {"Nothing to undo", "Nichts zum R\x81" "ckg\x84" "ngigmachen",
                                        "Rien \x85 annuler", "Nada que deshacer"};
-static const char *plusTxtNoRedo[4] = {"Nothing to redo", "Nichts zum Wiederholen", "Rien \x85 r\x82" "tablir",
+static const char *plusTxtNoRedo[4] = {"Nothing to redo", "Nichts wiederherzustellen", "Rien \x85 r\x82" "tablir",
                                        "Nada que rehacer"};
 
 /* state */
@@ -628,15 +628,20 @@ static void plusRedoMark(void)
     plusRedoPerson = CurrentPerson;
     plusRedoActions = h ? GetNrOfNodes(h->Actions) : 0;
     plusRedoLength = plusLength(h);
+
+    /* every other change of the plan sets PlanChanged back to 1 (saving or loading to 0) */
+    if (PlanChanged) PlanChanged = PLAN_CHANGED_BY_TIMELINE;
 }
 
-/* forget the redo stack when the plan was changed some other way since the last undo */
+/* Forget the redo stack when the plan was changed some other way since the last undo or redo.
+   Person, number of actions and length alone would miss an action that was replaced by another
+   one of the same duration: redo would then put the old action back at the wrong place. */
 static void plusRedoCheck(void)
 {
     struct Handler *h = plusHandler((ubyte)CurrentPerson);
 
-    if ((plusRedoPerson != CurrentPerson) || (plusRedoActions != (h ? GetNrOfNodes(h->Actions) : 0)) ||
-        (plusRedoLength != plusLength(h)))
+    if ((PlanChanged != PLAN_CHANGED_BY_TIMELINE) || (plusRedoPerson != CurrentPerson) ||
+        (plusRedoActions != (h ? GetNrOfNodes(h->Actions) : 0)) || (plusRedoLength != plusLength(h)))
         plusRedoCount = 0;
 }
 
