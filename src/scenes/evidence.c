@@ -485,7 +485,7 @@ int32_t tcEscapeFromBuilding(uint32_t escBits)
         {
             Building build = (Building)dbGetObject(Search.BuildingId);
 
-            timeLeft = build->PoliceTime - (Search.TimeOfBurglary - Search.TimeOfAlarm);
+            timeLeft = CFG_SCALE(build->PoliceTime, 125, 80) - (Search.TimeOfBurglary - Search.TimeOfAlarm);
             timeLeft -= tcCalcEscapeTime();
 
             if (timeLeft > 0) escapeSucc = FAHN_ESCAPED;

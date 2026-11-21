@@ -389,6 +389,8 @@ static void loadConfig(const char *rootPath)
 #endif
     Config.gfxLinearFilter = 0;
     Config.gfxIntegerScale = 0;
+    Config.Difficulty = CFG_DIFFICULTY_NORMAL;
+    Config.ShowPoliceTimer = 1;
 
     sprintf(config_file, "%s" DIR_SEPARATOR "%s", rootPath, "cosp.cfg");
     file = dskOpen(config_file, "rb", 0);
@@ -468,6 +470,19 @@ static void loadConfig(const char *rootPath)
             else if (!strcasecmp(pParam, "integerscale"))
             {
                 Config.gfxIntegerScale = atoi(pValue) ? 1 : 0;
+            }
+            else if (!strcasecmp(pParam, "difficulty"))
+            {
+                if (!strcasecmp(pValue, "easy") || !strcmp(pValue, "0"))
+                    Config.Difficulty = CFG_DIFFICULTY_EASY;
+                else if (!strcasecmp(pValue, "hard") || !strcmp(pValue, "2"))
+                    Config.Difficulty = CFG_DIFFICULTY_HARD;
+                else
+                    Config.Difficulty = CFG_DIFFICULTY_NORMAL;
+            }
+            else if (!strcasecmp(pParam, "policetimer"))
+            {
+                Config.ShowPoliceTimer = atoi(pValue) ? 1 : 0;
             }
             else if (!strcasecmp(pParam, "usejoystick"))
             {
@@ -578,6 +593,9 @@ int tcStartGame(int argc, char **argv)
         errSetLogFile(logPath);
         Log("%s %s", COSP_TITLE, COSP_VERSION);
         Log("Game data: %s", rootPath);
+        Log("Difficulty: %s", (Config.Difficulty == CFG_DIFFICULTY_EASY)   ? "easy"
+                              : (Config.Difficulty == CFG_DIFFICULTY_HARD) ? "hard"
+                                                                            : "normal");
         Log("User data: %s", dskGetUserPath());
     }
 

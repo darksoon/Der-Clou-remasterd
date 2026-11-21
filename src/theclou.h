@@ -37,8 +37,21 @@ typedef struct
     char gfxResizable;     /* window can be resized freely (aspect ratio is kept) */
     char gfxLinearFilter;  /* scale with bilinear filtering instead of nearest neighbour */
     char gfxIntegerScale;  /* only scale the window content by whole numbers */
+
+    char Difficulty;       /* CFG_DIFFICULTY_*, normal plays exactly like the original */
+    char ShowPoliceTimer;  /* show the time until the police arrives once the alarm is loud */
 } Configuration_t;
 extern Configuration_t Config; /* base.c */
+
+#define CFG_DIFFICULTY_EASY 0
+#define CFG_DIFFICULTY_NORMAL 1
+#define CFG_DIFFICULTY_HARD 2
+
+/* scales a game value by a percentage depending on the difficulty (100 = unchanged) */
+#define CFG_SCALE(value, easyPerc, hardPerc)                                                                  \
+    ((Config.Difficulty == CFG_DIFFICULTY_EASY)   ? ((int32_t)(value) * (easyPerc)) / 100                     \
+     : (Config.Difficulty == CFG_DIFFICULTY_HARD) ? ((int32_t)(value) * (hardPerc)) / 100                     \
+                                                  : (int32_t)(value))
 #define CFG_JOYSTICK_AUTO 255 /* usejoystick = auto: first joystick found, follows hotplug */
 
 /*

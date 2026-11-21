@@ -259,6 +259,31 @@ static ubyte plCarTooFull(void)
 
 static void plPlayerAction(void);
 
+/* seconds from the alarm until the police surrounds the building */
+static uint32_t plPoliceTime(void) { return (uint32_t)CFG_SCALE(PD.bldObj->PoliceTime, 125, 80); }
+
+/* once the alarm is loud the burglars know the police is coming: show how long they have */
+static void plDisplayPoliceTimer(void)
+{
+    static const char *label[] = {"Police in", "Polizei in", "Police dans", "Policia en"};
+    char info[40];
+    int32_t left;
+    ubyte lang = txtGetLanguage();
+
+    if (!Config.ShowPoliceTimer || !(Search.EscapeBits & FAHN_ALARM) || !Search.TimeOfAlarm) return;
+
+    left = (int32_t)(Search.TimeOfAlarm + plPoliceTime()) - (int32_t)PD.realTime;
+    if (left < 0) left = 0;
+
+    snprintf(info, sizeof(info), "%s %02d:%02d", label[lang <= 3 ? lang : 1], (int)(left / 60), (int)(left % 60));
+
+    gfxSetPens(m_wrp, 0, 0, 0);
+    gfxRectFill(m_wrp, 110, 0, 218, 10);
+    gfxSetRect(110, 108);
+    gfxSetPens(m_wrp, 249, GFX_SAME_PEN, GFX_SAME_PEN);
+    gfxPrint(m_wrp, info, 2, GFX_PRINT_CENTER);
+}
+
 /* one timer tick of the playback; with fast forward (Tab) several simulation steps run per frame */
 static void plPlayerTick(void)
 {
@@ -280,6 +305,7 @@ static void plPlayerAction(void)
     PD.realTime = PD.timer / PLANING_CORRECT_TIME;
 
     plDisplayTimer(PD.realTime, 0);
+    plDisplayPoliceTimer();
 
     if (PD.sndState && (PD.timer > (PD.maxTimer * 20) / 100) && (PD.bldId != Building_Starford_Kaserne))
     {
@@ -351,7 +377,7 @@ static void plPlayerAction(void)
             sndPlayFX("sirene.voc");
         }
 
-        if (PD.realTime >= (Search.TimeOfAlarm + PD.bldObj->PoliceTime))
+        if (PD.realTime >= (Search.TimeOfAlarm + plPoliceTime()))
         {
             Search.EscapeBits |= FAHN_SURROUNDED;
 
