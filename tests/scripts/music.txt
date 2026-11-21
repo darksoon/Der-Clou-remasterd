@@ -1,0 +1,3 @@
+# Title music: let it play past the point where held notes have to be struck again
+wait 40000
+quit

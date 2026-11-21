@@ -65,7 +65,11 @@ void oplWrite(int reg, int val)
     MXR_LockAudio();
     if (oplEmulator == OPL_EMULATOR_NUKED)
     {
-        OPL3_WriteReg(&oplNuked, (uint16_t)reg, (uint8_t)val);
+        /* Buffered: every write takes effect two samples after the previous one, like the slow
+           port access of a real card. The player switches a note off and on again without a
+           pause; written at once the chip would never see the key go off and held notes would
+           not be struck again. */
+        OPL3_WriteRegBuffered(&oplNuked, (uint16_t)reg, (uint8_t)val);
     }
     else if (oplEmulator == OPL_EMULATOR_MAME)
     {

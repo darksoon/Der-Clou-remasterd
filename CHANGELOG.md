@@ -3,6 +3,22 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.15.1 (21.11.2026)
+
+### Behoben
+
+- Mit der genauen AdLib-Emulation (Standard seit 0.15.0, auch im Browser) verstummte die Musik nach
+  wenigen Sekunden fast ganz. Der Musikplayer schaltet eine Note aus und sofort wieder an; eine echte
+  AdLib-Karte ist langsam genug, um das mitzubekommen, die Emulation bekam beides gleichzeitig und
+  schlug gehaltene Noten nicht neu an. Die Befehle an den Chip kommen jetzt wie bei der echten Karte
+  mit kurzer Verzögerung an. Die Titelmusik läuft damit wie mit AdPlug und der klassischen Emulation
+
+### Technik
+
+- Neuer Test `tests/run-music-test.sh`: nimmt die Titelmusik über den Audiotreiber „disk“ auf und
+  schlägt fehl, wenn sie verstummt. Die CI prüft beide Emulationen
+- `ROADMAP.md` mit den geplanten Punkten, getrennt nach Original und Spiel+
+
 ## 0.15.0 (21.11.2026)
 
 ### Neu
