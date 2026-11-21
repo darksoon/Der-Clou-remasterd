@@ -1,0 +1,6 @@
+# Results of tests/scripts/gamemode.txt (Game+, difficulty = hard): the balance comes from
+# PLUS/BALANCE.LUA and the mode is restored from the saved game.
+Game mode: Game+, difficulty hard
+Lua: balance.lua loaded
+Balance: police 80 %, dealer 85 %
+Game mode of the saved game: Game+

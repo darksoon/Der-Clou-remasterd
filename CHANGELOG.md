@@ -3,6 +3,19 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.14.0 (21.11.2026)
+
+### Neu
+
+- Lua 5.5.1 als Skriptsprache für Spiel+. Lua ist fest eingebaut (feste Version mit Prüfsumme) und läuft
+  abgeschottet: nur Basis-, Text-, Tabellen-, Mathe-, UTF-8- und Coroutine-Bibliothek, ohne `dofile`,
+  `loadfile` und `load`, also ohne Zugriff auf Dateien oder das System
+- Erster Einsatz: Die Prozentwerte des Schwierigkeitsgrads (Polizeizeit, Hehlerpreise) stehen in
+  `PLUS/BALANCE.LUA` und lassen sich über `MODFILES/PLUS/BALANCE.LUA` ändern. Ein fehlerhaftes Skript
+  landet mit Zeilennummer in `clou.log`, das Spiel nimmt dann die eingebauten Werte
+- Der Originalmodus startet Lua nie, das prüft die Referenzpartie jetzt mit. Neue Testprüfung `REJECT`
+  für Zeilen, die nicht im Log stehen dürfen
+
 ## 0.13.0 (21.11.2026)
 
 ### Technik

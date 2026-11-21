@@ -9,6 +9,7 @@ set(SOURCE_FILES
     anim/sysanim.c
     base/base.c
     base/settings.c
+    script/script.c
     data/dataappl.c
     data/database.c
     data/datacalc.c
@@ -78,7 +79,7 @@ add_link_options("$<$<CONFIG:RELEASE>:-s>")
 add_compile_definitions(CMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}"
                         INSTALL_PATH_BIN="${INSTALL_PATH_BIN}")
 
-target_link_libraries(DerClou PRIVATE SDL3::SDL3)
+target_link_libraries(DerClou PRIVATE SDL3::SDL3 Lua::Lua)
 if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
   target_link_libraries(DerClou PRIVATE m)
 endif()

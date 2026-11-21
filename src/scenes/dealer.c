@@ -80,7 +80,7 @@ static int32_t moreRandom(int32_t v)
     r = CalcRandomNr(0, (v / 4) + 1);
     r -= (v / 8);
     v += r;
-    v = CFG_SCALE(v, 115, 85); /* dealers pay more on easy, less on hard */
+    v = CFG_SCALE(v, "dealer", 115, 85); /* dealers pay more on easy, less on hard */
     return (min(v, 250));
 }
 

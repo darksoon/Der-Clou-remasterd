@@ -11,6 +11,7 @@
 
 #include <SDL3/SDL.h>
 #include "base/settings.h"
+#include "script/script.h"
 #include "intro/intro.h"
 
 // cheat function
@@ -19,6 +20,22 @@
 
 Configuration_t Config;
 unsigned char GameMode = GAME_MODE_ORIGINAL;
+
+int32_t cfgScale(int32_t value, const char *what, int easyPerc, int hardPerc)
+{
+    int difficulty = CFG_DIFFICULTY_EFFECTIVE;
+    int percent = 100;
+
+    if (GameMode != GAME_MODE_PLUS) return value; /* the original mode is never changed */
+
+    if (difficulty == CFG_DIFFICULTY_EASY)
+        percent = easyPerc;
+    else if (difficulty == CFG_DIFFICULTY_HARD)
+        percent = hardPerc;
+
+    percent = scrBalancePercent(what, difficulty, percent);
+    return (value * percent) / 100;
+}
 
 void *StdBuffer1 = 0;
 
@@ -38,6 +55,7 @@ void tcClearStdBuffer(void *p_Buffer)
 
 static void tcDone(void)
 {
+    scrDone();
     plDone();
     sndDoneFX();  // Attention!
     sndDone();

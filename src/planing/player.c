@@ -259,7 +259,7 @@ static ubyte plCarTooFull(void)
 static void plPlayerAction(void);
 
 /* seconds from the alarm until the police surrounds the building */
-static uint32_t plPoliceTime(void) { return (uint32_t)CFG_SCALE(PD.bldObj->PoliceTime, 125, 80); }
+static uint32_t plPoliceTime(void) { return (uint32_t)CFG_SCALE(PD.bldObj->PoliceTime, "police", 125, 80); }
 
 /* once the alarm is loud the burglars know the police is coming: show how long they have */
 static void plDisplayPoliceTimer(void)

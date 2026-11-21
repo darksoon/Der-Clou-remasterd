@@ -338,5 +338,7 @@ ubyte tcChooseGameMode(void)
         (CFG_DIFFICULTY_EFFECTIVE == CFG_DIFFICULTY_EASY)   ? "easy"
         : (CFG_DIFFICULTY_EFFECTIVE == CFG_DIFFICULTY_HARD) ? "hard"
                                                             : "normal");
+    Log("Balance: police %d %%, dealer %d %%", (int)CFG_SCALE(100, "police", 125, 80),
+        (int)CFG_SCALE(100, "dealer", 115, 85));
     return 1;
 }

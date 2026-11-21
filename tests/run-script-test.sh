@@ -5,6 +5,7 @@
 # TEST_HOME=<dir> uses that directory as home instead of a fresh one.
 # Screenshots taken by the script land in $SHOTDIR (default: tests/out/<script name>).
 # EXPECT=<grep pattern> additionally requires a line in the game log.
+# REJECT=<grep pattern> fails the test if the game log contains it.
 # EXPECT_FILE=<file> requires every line of that file (except # comments) literally in the log.
 set -u
 EXE="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
@@ -37,6 +38,7 @@ if grep -q "ERROR: AddressSanitizer" "$SHOTDIR/game.log"; then echo "FAIL: Addre
 if ! grep -q "Script mode: end of script" "$SHOTDIR/game.log"; then echo "FAIL: script did not finish (exit $STATUS)"; exit 1; fi
 if ! grep -q "Window closed, quitting" "$SHOTDIR/game.log"; then echo "FAIL: no clean quit (exit $STATUS)"; exit 1; fi
 if [ -n "${EXPECT:-}" ] && ! grep -q "$EXPECT" "$SHOTDIR/game.log"; then echo "FAIL: log does not contain '$EXPECT'"; exit 1; fi
+if [ -n "${REJECT:-}" ] && grep -q "$REJECT" "$SHOTDIR/game.log"; then echo "FAIL: log contains '$REJECT'"; exit 1; fi
 if [ -n "${EXPECT_FILE:-}" ]; then
   while IFS= read -r line; do
     case "$line" in ''|'#'*) continue ;; esac

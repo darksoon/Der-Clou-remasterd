@@ -53,6 +53,30 @@ else()
   FetchContent_MakeAvailable(SDL3)
 endif()
 
+# Lua for the scripts of Game+: the pinned release is always built in (it is small and has no dependencies)
+set(DERCLOU_LUA_VERSION 5.5.1)
+include(FetchContent)
+FetchContent_Declare(
+  lua
+  URL https://www.lua.org/ftp/lua-${DERCLOU_LUA_VERSION}.tar.gz
+  URL_HASH SHA256=1c4b4068d67061f2a2231ad2b5422e77acea1487ea9890f6320af614f4373dce
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_MakeAvailable(lua) # the tarball has no CMakeLists.txt, this only downloads it
+file(GLOB LUA_SOURCES ${lua_SOURCE_DIR}/src/*.c)
+list(REMOVE_ITEM LUA_SOURCES ${lua_SOURCE_DIR}/src/lua.c ${lua_SOURCE_DIR}/src/luac.c)
+add_library(lua_static STATIC ${LUA_SOURCES})
+target_include_directories(lua_static SYSTEM PUBLIC ${lua_SOURCE_DIR}/src)
+if(APPLE)
+  target_compile_definitions(lua_static PRIVATE LUA_USE_MACOSX)
+elseif(UNIX AND NOT EMSCRIPTEN)
+  target_compile_definitions(lua_static PRIVATE LUA_USE_POSIX)
+endif()
+if(UNIX AND NOT EMSCRIPTEN)
+  target_link_libraries(lua_static PUBLIC m)
+endif()
+add_library(Lua::Lua ALIAS lua_static)
+message(STATUS "Lua ${DERCLOU_LUA_VERSION}")
+
 if(EMSCRIPTEN)
   # Release: optimise, no debug info (keeps the download small)
   set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG" CACHE STRING "Release flags" FORCE)

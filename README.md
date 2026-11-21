@@ -28,7 +28,8 @@ Dieses Projekt führt die besten Teile der bisherigen Community-Ports zusammen:
 - Planung per Mausklick: Rechtsklick im Gehen-Modus, die Person nimmt den schnellsten Weg
 - Zeitraffer beim Einbruch (Tab) und Polizei-Countdown nach einem lauten Alarm
 - Zwei Spielarten, gewählt beim Start eines neuen Spiels und im Spielstand gespeichert: „Original“ spielt wie 1994 und bekommt nur Komfortfunktionen, „Spiel+“ enthält alles, was das Spiel oder seine Balance verändert
-- Schwierigkeitsgrad leicht, normal oder schwer (nur in Spiel+)
+- Schwierigkeitsgrad leicht, normal oder schwer (nur in Spiel+), die Werte stehen im Lua-Skript `PLUS/BALANCE.LUA`
+- Lua 5.5 als Skriptsprache für Spiel+, abgeschottet ohne Datei- und Systemzugriff. Der Originalmodus startet nie ein Skript
 - Einstellungsmenü im Hauptmenü: Lautstärken, Vollbild, Skalierung, Schwierigkeit, Polizei-Countdown, Zeitraffer und Gamepad, gespeichert im Benutzerordner (auch im Browser)
 - Skriptmodus für automatische Testpartien, die bei jeder Änderung in der CI laufen, bis hin zu einem kompletten Einbruch
 
@@ -37,7 +38,10 @@ Die wichtigsten Optionen lassen sich im Hauptmenü unter „Einstellungen“ än
 Eigene Dateien ersetzen Originaldaten, ohne diese zu verändern: Eine Datei unter `MODFILES/` im Spielordner
 wird statt der gleichnamigen Originaldatei geladen, zum Beispiel `MODFILES/PICTURES/MENU` statt
 `PICTURES/MENU`. Ordner- und Dateinamen werden großgeschrieben. Bilder dürfen statt ILBM auch PNG mit
-256-Farben-Palette sein, Name, Größe und Farbbereich müssen dem Original entsprechen. Was noch zu tun ist, steht in [AUDIT.md](AUDIT.md).
+256-Farben-Palette sein, Name, Größe und Farbbereich müssen dem Original entsprechen. So lassen sich auch
+die Lua-Skripte von Spiel+ anpassen, zum Beispiel die Werte des Schwierigkeitsgrads in
+`MODFILES/PLUS/BALANCE.LUA`. Fehler in einem Skript stehen in `clou.log`, das Spiel nimmt dann die
+eingebauten Werte. Was noch zu tun ist, steht in [AUDIT.md](AUDIT.md).
 
 ## Tasten
 
@@ -176,6 +180,7 @@ Zusammengeführt aus der Roadmap von iljabauer/DerClou und eigenen Zielen.
     - [x] Spielarten „Original“ und „Spiel+“, Testpartie mit Referenzwerten sichert den Originalmodus ab
     - [ ] Bessere Übersicht im Planungsmodus (Sichtfelder der Wachen, Zeitleiste)
     - [ ] Werkzeug zum Lesen und Schreiben der Gebäude- und Datenbankdateien, Grundlage für neue Gebäude
+    - [x] Lua 5.5 für Spiel+ (erster Einsatz: Werte des Schwierigkeitsgrads)
     - [ ] Erweiterter Modus mit neuen Einbrüchen
 
 ## CREDITS

@@ -58,11 +58,11 @@ extern unsigned char GameMode; /* base.c */
 /* the difficulty only applies in Game+, the original mode always plays "normal" */
 #define CFG_DIFFICULTY_EFFECTIVE ((GameMode == GAME_MODE_PLUS) ? Config.Difficulty : CFG_DIFFICULTY_NORMAL)
 
-/* scales a game value by a percentage depending on the difficulty (100 = unchanged) */
-#define CFG_SCALE(value, easyPerc, hardPerc)                                                                  \
-    ((CFG_DIFFICULTY_EFFECTIVE == CFG_DIFFICULTY_EASY)   ? ((int32_t)(value) * (easyPerc)) / 100              \
-     : (CFG_DIFFICULTY_EFFECTIVE == CFG_DIFFICULTY_HARD) ? ((int32_t)(value) * (hardPerc)) / 100              \
-                                                         : (int32_t)(value))
+/* scales a game value by a percentage depending on the difficulty (100 = unchanged).
+   In Game+ the percentages come from PLUS/BALANCE.LUA, the numbers here are the fallback.
+   The original mode always returns the value unchanged. */
+extern int32_t cfgScale(int32_t value, const char *what, int easyPerc, int hardPerc); /* base.c */
+#define CFG_SCALE(value, what, easyPerc, hardPerc) cfgScale((int32_t)(value), (what), (easyPerc), (hardPerc))
 #define CFG_FAST_FORWARD_DEFAULT 4
 #define CFG_USER_FILENAME "settings.cfg" /* written by the settings menu into the user directory */
 #define CFG_JOYSTICK_AUTO 255 /* usejoystick = auto: first joystick found, follows hotplug */

@@ -47,8 +47,13 @@ jobs:
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "fullenv = 42" "storyoff = 42"
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/walk-to.txt "fullenv = 42" "storyoff = 42"
           # original mode: results must match the reference, the difficulty must not matter
-          EXPECT_FILE=tests/expected/burglary-original.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
-          EXPECT="Game mode of the saved game: Game+" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/gamemode.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
+          # (and it must never start Lua)
+          REJECT="Lua" EXPECT_FILE=tests/expected/burglary-original.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
+          # Game+: balance from PLUS/BALANCE.LUA, mode restored from the saved game
+          EXPECT_FILE=tests/expected/gamemode-plus.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/gamemode.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
+          # a script in MODFILES replaces the built-in one
+          mkdir -p "$RUNNER_TEMP/luamods/PLUS" && sed 's/police = 80,/police = 50,/' gamedata/PLUS/BALANCE.LUA > "$RUNNER_TEMP/luamods/PLUS/BALANCE.LUA"
+          MODFILES="$RUNNER_TEMP/luamods" EXPECT="Balance: police 50 %" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/gamemode.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
           # replacement files in MODFILES are used instead of the original data
           mkdir -p "$RUNNER_TEMP/mods/PICTURES" && cp gamedata/PICTURES/MENU "$RUNNER_TEMP/mods/PICTURES/"
           MODFILES="$RUNNER_TEMP/mods" EXPECT="Modfile: .*PICTURES/MENU" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
@@ -94,8 +99,13 @@ jobs:
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "fullenv = 42" "storyoff = 42"
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/walk-to.txt "fullenv = 42" "storyoff = 42"
           # original mode: results must match the reference, the difficulty must not matter
-          EXPECT_FILE=tests/expected/burglary-original.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
-          EXPECT="Game mode of the saved game: Game+" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/gamemode.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
+          # (and it must never start Lua)
+          REJECT="Lua" EXPECT_FILE=tests/expected/burglary-original.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
+          # Game+: balance from PLUS/BALANCE.LUA, mode restored from the saved game
+          EXPECT_FILE=tests/expected/gamemode-plus.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/gamemode.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
+          # a script in MODFILES replaces the built-in one
+          mkdir -p "$RUNNER_TEMP/luamods/PLUS" && sed 's/police = 80,/police = 50,/' gamedata/PLUS/BALANCE.LUA > "$RUNNER_TEMP/luamods/PLUS/BALANCE.LUA"
+          MODFILES="$RUNNER_TEMP/luamods" EXPECT="Balance: police 50 %" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/gamemode.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
           # replacement files in MODFILES are used instead of the original data
           mkdir -p "$RUNNER_TEMP/mods/PICTURES" && cp gamedata/PICTURES/MENU "$RUNNER_TEMP/mods/PICTURES/"
           MODFILES="$RUNNER_TEMP/mods" EXPECT="Modfile: .*PICTURES/MENU" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
