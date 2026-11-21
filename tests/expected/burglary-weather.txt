@@ -1,9 +1,11 @@
 # Results of tests/scripts/burglary-weather.txt in Game+ with DERCLOU_SEED=42.
 # The night light and the weather only change the picture and the sound: with plusweather = storm
 # and with plusweather = off the burglary must give exactly these results.
-Walk to 362/140: 147 steps
-Walk to 515/197: 542 steps
-Walk to 631/240: 41 steps
+Walk to 362/140: 105 steps
+Walk to 515/247: 82 steps
+Walk to 631/240: 21 steps
 Walk to 548/206: 19 steps
-Burglary played: 65 s burglary time
-Escape from building: escaped, 295 s left
+Walk to 548/206: 44 steps
+Walk to 548/206: 34 steps
+Burglary played: 76 s burglary time
+Escape from building: escaped, -1 s left

@@ -75,51 +75,8 @@ jobs:
         run: tests/run-data-test.sh
       - name: Scripted play tests
         if: needs.changes.outputs.play == 'true'
-        run: |
-          # the original never uses the new Game+ voices; Game+ does
-          REJECT="PLUS/VOICE|Background sound" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt
-          EXPECT="Voice: .*PLUS/VOICE/HOTEL_ANT_11" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start-plus.txt
-          # the title music must keep playing with both AdLib emulations
-          tests/run-music-test.sh build/build/x64/DerClou "opl = nuked"
-          tests/run-music-test.sh build/build/x64/DerClou "opl = mame"
-          # skipping the intro right away must still start the title music in the menu
-          MUSIC_SCRIPT=music-skip-intro tests/run-music-test.sh build/build/x64/DerClou "nointro = 0"
-          SHOTDIR=tests/out/story-start-crt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt "displayfilter = crt"
-          REJECT="Planner: " tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "fullenv = 42" "storyoff = 42"
-          # Game+ planner: guard routes and view areas, timeline with undo and redo
-          EXPECT="Planner: redo action" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning-plus.txt "fullenv = 42" "storyoff = 42"
-          tests/run-script-test.sh build/build/x64/DerClou tests/scripts/walk-to.txt "fullenv = 42" "storyoff = 42"
-          # path finding must not walk through the closed shop front of the Kiosk
-          EXPECT_FILE=tests/expected/walk-to-kiosk.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/walk-to-kiosk.txt "fullenv = 42" "storyoff = 42"
-          # original mode: results must match the reference, the difficulty must not matter
-          # (and it must never start Lua)
-          REJECT="Lua|Autosave" EXPECT_FILE=tests/expected/burglary-original.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
-          # Game+: autosave in the extra fifth slot before the burglary, it loads again as Game+
-          (export TEST_HOME="$(mktemp -d)"
-           EXPECT_FILE=tests/expected/burglary-plus.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-plus.txt "fullenv = 42" "storyoff = 42"
-           EXPECT="Game mode of the saved game: Game+" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-plus-load.txt)
-          # Game+ background sounds, never in the original
-          EXPECT="Background sound: .*LOBBY" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start-plus.txt
-          # Game+ night and weather: thunderstorm with lightning every 1.5 s, the burglary plays the same
-          EXPECT="Thunder (close)" EXPECT_FILE=tests/expected/burglary-weather.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-weather.txt "fullenv = 42" "storyoff = 42" "plusweather = storm" "plusflash = 1500"
-          EXPECT_FILE=tests/expected/burglary-weather.txt REJECT="Weather|Light:" SHOTDIR=tests/out/burglary-weather-off tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-weather.txt "fullenv = 42" "storyoff = 42" "plusweather = off"
-          # held arrow key repeats with the game's own timing
-          tests/run-script-test.sh build/build/x64/DerClou tests/scripts/key-repeat.txt
-          # smooth edges (Scale4x) with the CRT picture
-          SHOTDIR=tests/out/story-smooth tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt "scale2x = 1" "displayfilter = crt"
-          # Game+: balance from PLUS/BALANCE.LUA, mode restored from the saved game
-          EXPECT_FILE=tests/expected/gamemode-plus.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/gamemode.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
-          # a script in MODFILES replaces the built-in one
-          mkdir -p "$RUNNER_TEMP/luamods/PLUS" && sed 's/police = 80,/police = 50,/' gamedata/PLUS/BALANCE.LUA > "$RUNNER_TEMP/luamods/PLUS/BALANCE.LUA"
-          MODFILES="$RUNNER_TEMP/luamods" EXPECT="Balance: police 50 %" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/gamemode.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
-          # replacement files in MODFILES are used instead of the original data
-          mkdir -p "$RUNNER_TEMP/mods/PICTURES" && cp gamedata/PICTURES/MENU "$RUNNER_TEMP/mods/PICTURES/"
-          MODFILES="$RUNNER_TEMP/mods" EXPECT="Modfile: .*PICTURES/MENU" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
-          # data files edited through JSON and rebuilt by tools/clou-data.py load from MODFILES
-          tests/run-data-test.sh build/build/x64/DerClou
-          export TEST_HOME="$(mktemp -d)"
-          EXPECT="Settings saved" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
-          EXPECT_FILE=tests/expected/settings-reload.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings-reload.txt
+        # four lanes in parallel, see tests/ci-play-tests.sh
+        run: tests/ci-play-tests.sh build/build/x64/DerClou full
       - name: AppImage
         env:
           APPIMAGE_EXTRACT_AND_RUN: 1
@@ -158,38 +115,7 @@ jobs:
       - name: Build
         run: cmake --build build
       - name: Scripted play tests
-        run: |
-          tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt
-          tests/run-music-test.sh build/build/x64/DerClou "opl = nuked"
-          SHOTDIR=tests/out/story-start-crt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt "displayfilter = crt"
-          REJECT="Planner: " tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "fullenv = 42" "storyoff = 42"
-          # Game+ planner: guard routes and view areas, timeline with undo and redo
-          EXPECT="Planner: redo action" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning-plus.txt "fullenv = 42" "storyoff = 42"
-          tests/run-script-test.sh build/build/x64/DerClou tests/scripts/walk-to.txt "fullenv = 42" "storyoff = 42"
-          # path finding must not walk through the closed shop front of the Kiosk
-          EXPECT_FILE=tests/expected/walk-to-kiosk.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/walk-to-kiosk.txt "fullenv = 42" "storyoff = 42"
-          # original mode: results must match the reference, the difficulty must not matter
-          # (and it must never start Lua)
-          REJECT="Lua|Autosave" EXPECT_FILE=tests/expected/burglary-original.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
-          # Game+: autosave in the extra fifth slot before the burglary, it loads again as Game+
-          (export TEST_HOME="$(mktemp -d)"
-           EXPECT_FILE=tests/expected/burglary-plus.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-plus.txt "fullenv = 42" "storyoff = 42"
-           EXPECT="Game mode of the saved game: Game+" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-plus-load.txt)
-          # Game+ night and weather (thunderstorm, CRT picture and smooth edges)
-          EXPECT_FILE=tests/expected/burglary-weather.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-weather.txt "fullenv = 42" "storyoff = 42" "plusweather = storm" "plusflash = 1500" "displayfilter = crt" "scale2x = 1"
-          # smooth edges (Scale4x) with the CRT picture
-          SHOTDIR=tests/out/story-smooth tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt "scale2x = 1" "displayfilter = crt"
-          # Game+: balance from PLUS/BALANCE.LUA, mode restored from the saved game
-          EXPECT_FILE=tests/expected/gamemode-plus.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/gamemode.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
-          # a script in MODFILES replaces the built-in one
-          mkdir -p "$RUNNER_TEMP/luamods/PLUS" && sed 's/police = 80,/police = 50,/' gamedata/PLUS/BALANCE.LUA > "$RUNNER_TEMP/luamods/PLUS/BALANCE.LUA"
-          MODFILES="$RUNNER_TEMP/luamods" EXPECT="Balance: police 50 %" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/gamemode.txt "fullenv = 42" "storyoff = 42" "difficulty = hard"
-          # replacement files in MODFILES are used instead of the original data
-          mkdir -p "$RUNNER_TEMP/mods/PICTURES" && cp gamedata/PICTURES/MENU "$RUNNER_TEMP/mods/PICTURES/"
-          MODFILES="$RUNNER_TEMP/mods" EXPECT="Modfile: .*PICTURES/MENU" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
-          export TEST_HOME="$(mktemp -d)"
-          EXPECT="Settings saved" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings.txt
-          EXPECT_FILE=tests/expected/settings-reload.txt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/settings-reload.txt
+        run: tests/ci-play-tests.sh build/build/x64/DerClou sanitizer
 
   windows:
     runs-on: windows-latest
