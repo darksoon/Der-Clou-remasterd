@@ -474,6 +474,10 @@ uint32_t StdHandle(uint32_t choice)
                     else
                     {
                         uint32_t building = 0;
+
+                        /* Game+: keep the state before the burglary in the autosave slot */
+                        if (GameMode == GAME_MODE_PLUS) tcSaveTheClou(1);
+
                         gfxChangeColors(l_wrp, 0, GFX_FADE_OUT, 0);
 
                         if (GamePlayMode & GP_NO_MUSIC_IN_PLANING) sndStopSound(0);

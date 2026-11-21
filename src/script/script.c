@@ -123,3 +123,25 @@ int scrBalancePercent(const char *what, int difficulty, int fallback)
 
     return percent;
 }
+
+int scrToolSkillPercent(const char *toolName)
+{
+    int percent = -1;
+
+    if (!L) scrInit();
+    if (!L || !toolName) return -1;
+
+    /* tools[name] */
+    if (lua_getglobal(L, "tools") == LUA_TTABLE)
+    {
+        if (lua_getfield(L, -1, toolName) == LUA_TNUMBER)
+        {
+            lua_Integer v = lua_tointeger(L, -1);
+            if ((v >= 0) && (v <= 100)) percent = (int)v;
+        }
+        lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+
+    return percent;
+}

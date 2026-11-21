@@ -129,7 +129,7 @@ void InitToolPresent(uint32_t nr, LIST *presentationData, LIST *texts)
         {
             Ability ability = (Ability)OL_DATA(n);
 
-            AddPresentLine(presentationData, PRESENT_AS_BAR, (intptr_t)toolRequiresGet(nr, OL_NR(n)), 255L, abilities,
+            AddPresentLine(presentationData, PRESENT_AS_BAR, (intptr_t)tcToolRequirement(nr, OL_NR(n)), 255L, abilities,
                            (uword)ability->Name);
         }
     }

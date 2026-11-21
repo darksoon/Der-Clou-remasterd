@@ -13,6 +13,9 @@
 #include <emscripten.h>
 #endif
 
+/* slot index of the Game+ autosave, after the four slots of the original */
+#define GAME_AUTOSAVE_SLOT 4
+
 void tcSaveTheClou(int bAutoSave)
 {
     char line[TXT_KEY_LENGTH];
@@ -58,7 +61,9 @@ void tcSaveTheClou(int bAutoSave)
         }
         else
         {
-            activ = 0;
+            /* Game+ saves on its own into an extra fifth slot, the player's four slots stay untouched */
+            while (GetNrOfNodes(games) <= GAME_AUTOSAVE_SLOT) CreateNode(games, 0L, "Auto");
+            activ = GAME_AUTOSAVE_SLOT;
         }
 
         /* Name erstellen */
@@ -73,8 +78,13 @@ void tcSaveTheClou(int bAutoSave)
             strcat(location, ", ");
             strcat(location, date);
 
-            sprintf(date, "(%d)", activ + 1);
-            strcat(location, date);
+            if (bAutoSave)
+                snprintf(location, sizeof(location), "Auto, %.40s", date); /* short: it is the third column */
+            else
+            {
+                sprintf(date, "(%d)", activ + 1);
+                strcat(location, date);
+            }
 
             /* Games.list abspeichern */
 
@@ -133,6 +143,7 @@ void tcSaveTheClou(int bAutoSave)
             sprintf(line, "%s%d%s", STORY_DATA_NAME, activ, GAME_DATA_EXT);
             dskBuildPathNameUser(DATADISK_DIRECTORY, line, pathname);
             tcSaveChangesInScenes(pathname);
+            if (bAutoSave) Log("Autosave in slot %d", activ + 1);
 
             #ifdef __EMSCRIPTEN__
             // Sync filesystem in browser to save files to indexdb
@@ -274,11 +285,15 @@ ubyte tcLoadTheClou(void)
 
         inpTurnFunctionKey(0);
         inpTurnESC(1);
-        activ = (uint32_t)Menu(games, 15L, 0, NULL, 0L);
+        /* 15: the four slots of the original, 31 also shows the Game+ autosave slot once it exists */
+        activ = (uint32_t)Menu(games, (GetNrOfNodes(games) > GAME_AUTOSAVE_SLOT) ? 31L : 15L, 0, NULL, 0L);
         inpTurnFunctionKey(1);
 
+        /* a slot still named as in the original list is empty; the Game+ autosave slot has no
+           original entry and exists only once it was written */
         if ((activ != GET_OUT) &&
-            (strcmp(NODE_NAME(GetNthNode(games, (int32_t)activ)), NODE_NAME(GetNthNode(origin, (int32_t)activ)))))
+            ((activ >= GetNrOfNodes(origin)) ||
+             strcmp(NODE_NAME(GetNthNode(games, (int32_t)activ)), NODE_NAME(GetNthNode(origin, (int32_t)activ)))))
         {
             loaded = tcLoadIt((ubyte)activ);
         }

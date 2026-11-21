@@ -82,6 +82,75 @@ ubyte tcBuyTool(ubyte choice)
     return oldChoice;
 }
 
+/* Game+: after the description of a tool, the skills it needs and who in the gang can use it */
+static const char *toolNeeds[4] = {"Needs %s: %u of 100", "Braucht %s: %u von 100", "Demande %s : %u sur 100",
+                                   "Necesita %s: %u de 100"};
+static const char *toolCan[4] = {"Can use it: %s (%u)", "Kann damit umgehen: %s (%u)", "Peut l'utiliser : %s (%u)",
+                                 "Puede usarla: %s (%u)"};
+static const char *toolNobody[4] = {"Nobody in your gang can use it yet.", "Niemand in deiner Bande kann das bisher.",
+                                    "Personne dans ta bande ne sait encore s'en servir.",
+                                    "Nadie de tu banda sabe usarla todav\xa1" "a."};
+
+static void tcAddToolUsers(LIST *desc, uint32_t toolId)
+{
+    uint32_t abilityId[8];
+    uint32_t need[8];
+    int count = 0;
+    int users = 0;
+    int i = 0;
+    ubyte lang = txtGetLanguage();
+    char line[TXT_KEY_LENGTH];
+    char name[TXT_KEY_LENGTH];
+    NODE *n = NULL;
+    LIST *gang = NULL;
+
+    if (lang > 3) lang = 1;
+
+    toolRequiresAll(toolId, OLF_PRIVATE_LIST, Object_Ability);
+    for (n = (NODE *)LIST_HEAD(ObjectListPrivate); NODE_SUCC(n) && (count < 8); n = (NODE *)NODE_SUCC(n))
+    {
+        abilityId[count] = OL_NR(n);
+        need[count] = tcToolRequirement(toolId, OL_NR(n));
+        count++;
+    }
+    RemoveList(ObjectListPrivate);
+
+    if (!count) return; /* anyone can use it */
+
+    CreateNode(desc, 0L, "");
+    for (i = 0; i < count; i++)
+    {
+        dbGetObjectName(abilityId[i], name);
+        snprintf(line, sizeof(line), toolNeeds[lang], name, (unsigned)((need[i] * 100 + 127) / 255));
+        CreateNode(desc, 0L, line);
+    }
+
+    joined_byAll(Person_Matt_Stuvysunt, OLF_PRIVATE_LIST | OLF_INCLUDE_NAME, Object_Person);
+    gang = ObjectListPrivate;
+    for (n = (NODE *)LIST_HEAD(gang); NODE_SUCC(n); n = (NODE *)NODE_SUCC(n))
+    {
+        uint32_t persId = OL_NR(n);
+        uint32_t worst = 255;
+        int ok = 1;
+
+        for (i = 0; i < count; i++)
+        {
+            uint32_t skill = has(persId, abilityId[i]) ? hasGet(persId, abilityId[i]) : 0;
+            if (skill < need[i]) ok = 0;
+            if (skill < worst) worst = skill;
+        }
+        if (ok)
+        {
+            snprintf(line, sizeof(line), toolCan[lang], NODE_NAME(n), (unsigned)((worst * 100 + 127) / 255));
+            CreateNode(desc, 0L, line);
+            users++;
+        }
+    }
+    RemoveList(gang);
+
+    if (!users) CreateNode(desc, 0L, (char *)toolNobody[lang]);
+}
+
 ubyte tcDescTool(ubyte choice)
 {
     LIST *tools = NULL;
@@ -117,6 +186,7 @@ ubyte tcDescTool(ubyte choice)
             dbGetObjectName(OL_NR(GetNthNode(tools, (uint32_t)choice)), line);
 
             desc = txtGoKey(TOOLS_TXT, line);
+            if (GameMode == GAME_MODE_PLUS) tcAddToolUsers(desc, OL_NR(GetNthNode(tools, (uint32_t)choice)));
 
             SetPictID(mary->PictID);
             Bubble(desc, 0, 0L, 0L);

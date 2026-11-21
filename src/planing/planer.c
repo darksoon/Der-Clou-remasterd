@@ -872,7 +872,7 @@ static ubyte plCheckAbilities(uint32_t persId, uint32_t checkToolId)
         }
         else
         {
-            if (hasGet(persId, OL_NR(n)) < toolRequiresGet(checkToolId, OL_NR(n)))
+            if (hasGet(persId, OL_NR(n)) < tcToolRequirement(checkToolId, OL_NR(n)))
             {
                 ret = 0;
                 break;

@@ -3,6 +3,21 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.18.0 (21.11.2026)
+
+### Neu
+
+- Einstellungsmenü: „Kanten glätten“ rundet beim Vergrößern die Treppenstufen schräger Kanten ab
+  (Scale2x, 3x oder 4x, je nach Fenstergröße). Lässt sich mit den Bildfiltern kombinieren, gilt
+  sofort und auch im Browser. In `cosp.cfg` heißt die Option `scale2x`
+- Spiel+: Bei „Werkzeuge beschreiben“ steht unter der Beschreibung, welche Fähigkeit das Werkzeug
+  wie stark verlangt und wer aus der Bande damit umgehen kann
+- Spiel+: Das Stethoskop verlangt 50 statt 70 von 100 beim Safeknacken; vorher erreichte das kaum
+  ein Komplize, den man anwerben kann. Die Werte stehen in `PLUS/BALANCE.LUA` unter `tools` und
+  lassen sich für jedes Werkzeug anpassen
+- Spiel+: Vor jedem Einbruch wird automatisch gespeichert, in einem eigenen fünften Platz
+  „Auto“. Die vier Plätze des Originals bleiben unberührt
+
 ## 0.17.0 (21.11.2026)
 
 ### Neu

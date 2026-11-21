@@ -15,6 +15,8 @@
 #include "base/base.h"
 #include "gfx/crt.h"
 #include "gfx/filter.h"
+
+static void gfxChooseScaleFilter(void);
 #include "memory/memory.h"
 #include "port/port.h"
 #include "text/text.h"
@@ -339,47 +341,7 @@ int gfxInitSDL(void)
             Config.gfxScreenHeight = 200;
         }
 
-        switch (gfxScalingFactor)
-        {
-            case 2:
-                if (Config.gfxScaleNx)
-                {
-                    gfxFilter = gfxFilter_x2_Scale2x;
-                }
-                else
-                {
-                    gfxFilter = gfxFilter_x2_Copy;
-                }
-                break;
-            case 3:
-                if (Config.gfxScaleNx)
-                {
-                    gfxFilter = gfxFilter_x3_Scale3x;
-                }
-                else
-                {
-                    gfxFilter = gfxFilter_x3_Copy;
-                }
-                break;
-            case 4:
-                if (Config.gfxScaleNx)
-                {
-                    gfxFilter = gfxFilter_x4_Scale4x;
-                    gfxFilter_x4_Buffer = (unsigned char *)MemAlloc(640 * 400);
-                    if (!gfxFilter_x4_Buffer)
-                    {
-                        gfxFilter = gfxFilter_x4_Copy;
-                    }
-                }
-                else
-                {
-                    gfxFilter = gfxFilter_x4_Copy;
-                }
-                break;
-            default:
-                gfxFilter = gfxFilter_x1_Copy;
-                break;
-        }
+        gfxChooseScaleFilter();
 
         gfxScalingOffsetX = (Config.gfxScreenWidth - (320 * gfxScalingFactor)) / 2;
         gfxScalingOffsetY = (Config.gfxScreenHeight - (200 * gfxScalingFactor)) / 2;
@@ -447,9 +409,36 @@ void gfxToggleFullscreen(void)
 }
 
 /* apply fullscreen, scaling filter and integer scaling from Config at runtime (settings menu) */
+/* copy or Scale2x/3x/4x (smooth edges) from the 320x200 picture to the screen surface */
+static void gfxChooseScaleFilter(void)
+{
+    switch (gfxScalingFactor)
+    {
+        case 2:
+            gfxFilter = Config.gfxScaleNx ? gfxFilter_x2_Scale2x : gfxFilter_x2_Copy;
+            break;
+        case 3:
+            gfxFilter = Config.gfxScaleNx ? gfxFilter_x3_Scale3x : gfxFilter_x3_Copy;
+            break;
+        case 4:
+            gfxFilter = gfxFilter_x4_Copy;
+            if (Config.gfxScaleNx)
+            {
+                if (!gfxFilter_x4_Buffer) gfxFilter_x4_Buffer = (unsigned char *)MemAlloc(640 * 400);
+                if (gfxFilter_x4_Buffer) gfxFilter = gfxFilter_x4_Scale4x;
+            }
+            break;
+        default:
+            gfxFilter = gfxFilter_x1_Copy;
+            break;
+    }
+}
+
 void gfxApplyDisplayConfig(void)
 {
     if (!Window) return;
+
+    gfxChooseScaleFilter();
 
     if (ScreenTexture)
     {

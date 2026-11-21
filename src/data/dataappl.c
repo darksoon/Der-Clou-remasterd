@@ -6,6 +6,8 @@
 */
 #include "data/dataappl.h"
 
+#include "script/script.h"
+
 static int32_t tcGetWeightOfNerves(int32_t teamMood);
 static int32_t tcIsConnectedWithEnabledAlarm(uint32_t lsoId);
 
@@ -1052,4 +1054,20 @@ void tcInsertGuard(LIST *list, LIST *roomsList, uword x, uword y, uword width, u
         if ((x <= (gx + 16)) && ((x + width) >= gx) && (y <= (gy + 23)) && ((y + height) >= gy))
             if (tcInsideSameRoom(roomsList, gx + tcX_HOTSPOT, gy, x + tcX_HOTSPOT, y))
                 dbAddObjectNode(list, guardId, OLF_INCLUDE_NAME | OLF_INSERT_STAR);
+}
+
+uint32_t tcToolRequirement(uint32_t toolId, uint32_t abilityId)
+{
+    uint32_t value = toolRequiresGet(toolId, abilityId);
+
+    if ((GameMode == GAME_MODE_PLUS) && value)
+    {
+        char name[TXT_KEY_LENGTH];
+        int percent = 0;
+
+        dbGetObjectName(toolId, name);
+        percent = scrToolSkillPercent(name);
+        if (percent >= 0) value = (uint32_t)((percent * 255 + 50) / 100);
+    }
+    return value;
 }

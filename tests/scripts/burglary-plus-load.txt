@@ -1,0 +1,15 @@
+# After burglary-plus.txt (same TEST_HOME): load the autosave from the fifth slot
+wait 2500
+key Down
+wait 300
+key Return
+wait 2000
+shot k01
+key Right
+wait 200
+key Right
+wait 300
+key Return
+wait 4000
+shot k02
+quit

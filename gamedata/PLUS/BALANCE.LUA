@@ -16,3 +16,11 @@ balance = {
     dealer = 85,
   },
 }
+
+-- Skill a tool needs in Game+, in percent of the ability (the original values are shown
+-- when looking at a tool at Mary Bolton's). Tools not listed keep the original value.
+-- The stethoscope asks for 70 % safe cracking in the original, which almost no one who
+-- can be hired reaches; the cutting torch only needs 35 %.
+tools = {
+  Stethoskop = 50,
+}

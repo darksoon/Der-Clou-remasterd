@@ -62,6 +62,9 @@ extern int32_t tcAlarmByTouch(uint32_t lsoId);
 extern int32_t tcGuardDetectsGuy(LIST *roomsList, uword us_XPos, uword us_YPos, ubyte uch_ViewDirection,
                                  char *puch_GuardName, char *puch_LivingName);
 extern int32_t tcGetCarStrike(Car car);
+
+/* skill (0..255) a tool needs of an ability; Game+ can change it in PLUS/BALANCE.LUA */
+extern uint32_t tcToolRequirement(uint32_t toolId, uint32_t abilityId);
 extern int32_t tcCalcEscapeOfTeam(void);
 extern int32_t tcGuyTellsAll(Person p);
 extern int32_t tcGuyCanEscape(Person p);
