@@ -1,0 +1,15 @@
+# Key repeat: in the settings menu, holding Down for 1.4 s moves the cursor once at once and then,
+# after the delay of 0.5 s, about 10 times per second like the PC keyboard of 1994
+wait 2500
+key Right
+wait 300
+key Return
+wait 1500
+keydown Down
+wait 1400
+keyup Down
+wait 500
+shot r01
+key Escape
+wait 1000
+quit

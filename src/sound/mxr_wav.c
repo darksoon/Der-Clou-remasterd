@@ -92,6 +92,7 @@ typedef struct
 {
     MXR_Input mxrInput;
     WAVFile wavFile;
+    int bLoop;
 } MXR_InputWAV;
 
 static uint32_t MXR_ProcessInputWAV(MXR_InputWAV *pInput, void *pStream, uint32_t nNumSamples)
@@ -115,6 +116,31 @@ static uint32_t MXR_ProcessInputWAV(MXR_InputWAV *pInput, void *pStream, uint32_
     return 0;  // MXR will destroy this input
 }
 
+/* looping input: starts again at the beginning of the data when the end is reached */
+static uint32_t MXR_ProcessInputWAVLoop(MXR_InputWAV *pInput, void *pStream, uint32_t nNumSamples)
+{
+    uint32_t nDone = 0;
+    int nRestarts = 0;
+
+    while ((nDone < nNumSamples) && (nRestarts < 2))
+    {
+        uint32_t n = MXR_ProcessInputWAV(pInput, (unsigned char *)pStream + nDone * pInput->mxrInput.fmt.nSampleSize,
+                                         nNumSamples - nDone);
+        if (n)
+        {
+            nDone += n;
+            nRestarts = 0;
+        }
+        else
+        {
+            fseek(pInput->wavFile.pFile, (long)pInput->wavFile.dwDataOffset, SEEK_SET);
+            pInput->wavFile.dwPosition = 0;
+            nRestarts++;
+        }
+    }
+    return nDone;
+}
+
 static void MXR_DestroyInputWAV(MXR_InputWAV *pInput)
 {
     if (pInput->wavFile.pFile)
@@ -135,6 +161,7 @@ MXR_Input *MXR_CreateInputWAV(const char *pszFileName)
     pInput->mxrInput.pProcess = (MXR_ProcessInputFunc)MXR_ProcessInputWAV;
     pInput->mxrInput.pDestroy = (MXR_DestroyInputFunc)MXR_DestroyInputWAV;
     pInput->mxrInput.nVolume = 128;
+    pInput->bLoop = 0;
 
     if (!WAVOpen(&pInput->wavFile, pszFileName))
     {
@@ -151,3 +178,15 @@ MXR_Input *MXR_CreateInputWAV(const char *pszFileName)
 }
 
 /******************************************************************************/
+
+MXR_Input *MXR_CreateInputWAVLoop(const char *pszFileName)
+{
+    MXR_InputWAV *pInput = (MXR_InputWAV *)MXR_CreateInputWAV(pszFileName);
+
+    if (pInput)
+    {
+        pInput->bLoop = 1;
+        pInput->mxrInput.pProcess = (MXR_ProcessInputFunc)MXR_ProcessInputWAVLoop;
+    }
+    return (MXR_Input *)pInput;
+}

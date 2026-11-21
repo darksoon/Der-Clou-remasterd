@@ -74,7 +74,7 @@ jobs:
         if: needs.changes.outputs.play == 'true'
         run: |
           # the original never uses the new Game+ voices; Game+ does
-          REJECT="PLUS/VOICE" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt
+          REJECT="PLUS/VOICE|Background sound" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt
           EXPECT="Voice: .*PLUS/VOICE/HOTEL_ANT_11" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start-plus.txt
           # the title music must keep playing with both AdLib emulations
           tests/run-music-test.sh build/build/x64/DerClou "opl = nuked"
@@ -91,6 +91,10 @@ jobs:
           (export TEST_HOME="$(mktemp -d)"
            EXPECT="Autosave in slot 5" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-plus.txt "fullenv = 42" "storyoff = 42"
            EXPECT="Game mode of the saved game: Game+" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/burglary-plus-load.txt)
+          # Game+ background sounds, never in the original
+          EXPECT="Background sound: .*STREET" tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start-plus.txt
+          # held arrow key repeats with the game's own timing
+          tests/run-script-test.sh build/build/x64/DerClou tests/scripts/key-repeat.txt
           # smooth edges (Scale4x) with the CRT picture
           SHOTDIR=tests/out/story-smooth tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt "scale2x = 1" "displayfilter = crt"
           # Game+: balance from PLUS/BALANCE.LUA, mode restored from the saved game

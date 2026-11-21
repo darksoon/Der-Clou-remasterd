@@ -493,6 +493,10 @@ static int readConfigFile(const char *config_file, int optional)
             {
                 Config.ShowPoliceTimer = atoi(pValue) ? 1 : 0;
             }
+            else if (!strcasecmp(pParam, "plusambience"))
+            {
+                Config.PlusAmbience = atoi(pValue) ? 1 : 0;
+            }
             else if (!strcasecmp(pParam, "plusvoices"))
             {
                 Config.PlusVoices = atoi(pValue) ? 1 : 0;
@@ -582,6 +586,7 @@ static void loadConfig(const char *rootPath)
     Config.Difficulty = CFG_DIFFICULTY_NORMAL;
     Config.ShowPoliceTimer = 1;
     Config.PlusVoices = 1;
+    Config.PlusAmbience = 1;
     Config.FastForward = CFG_FAST_FORWARD_DEFAULT;
     Config.OplEmulator = 1;
     Config.gfxDisplayFilter = 0;

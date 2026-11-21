@@ -361,6 +361,21 @@ static void inpScriptPump(void)
             else
                 inpScriptPushKey(sym);
         }
+        else if (!strcmp(cmd, "keydown") || !strcmp(cmd, "keyup"))
+        {
+            /* hold a key (keydown, wait, keyup), e.g. to test the key repeat */
+            SDL_Keycode sym = SDL_GetKeyFromName(arg);
+            SDL_Event ev;
+            memset(&ev, 0, sizeof(ev));
+            ev.type = (cmd[3] == 'd') ? SDL_EVENT_KEY_DOWN : SDL_EVENT_KEY_UP;
+            ev.key.down = (cmd[3] == 'd');
+            ev.key.key = sym;
+            ev.key.scancode = SDL_GetScancodeFromKey(sym, NULL);
+            if (sym == SDLK_UNKNOWN)
+                Log("Script mode: unknown key '%s'", arg);
+            else
+                SDL_PushEvent(&ev);
+        }
         else if ((!strcmp(cmd, "click") || !strcmp(cmd, "rclick")) && sscanf(arg, "%d %d", &x, &y) == 2)
         {
             Uint8 button = (cmd[0] == 'r') ? SDL_BUTTON_RIGHT : SDL_BUTTON_LEFT;
@@ -510,6 +525,28 @@ void inpTurnFunctionKey(uword us_NewStatus) { IHandler.uch_FunctionKeyStatus = (
 
 void inpTurnMouse(uword us_NewStatus) { IHandler.uch_MouseStatus = (ubyte)us_NewStatus; }
 
+/* Key repeat of the arrow keys as on the PC keyboard of 1994: the game sets delay and rate
+   (inpSetKeyRepeat), the planner for example walks faster while a key is held. Repeats from the
+   system are ignored for the arrows so that the game's own timing applies. */
+static SDL_Keycode inpRepeatKey = 0;
+static Uint64 inpRepeatNext = 0;
+static Uint32 inpRepeatDelayMs = 500;
+static Uint32 inpRepeatPeriodMs = 92; /* 10.9 per second, the BIOS default */
+
+static int inpIsArrow(SDL_Keycode sym)
+{
+    return (sym == SDLK_LEFT) || (sym == SDLK_RIGHT) || (sym == SDLK_UP) || (sym == SDLK_DOWN);
+}
+
+static int32_t inpArrowAction(SDL_Keycode sym, int32_t l_Mask)
+{
+    if ((l_Mask & INP_LEFT) && (sym == SDLK_LEFT)) return INP_KEYBOARD | INP_LEFT;
+    if ((l_Mask & INP_RIGHT) && (sym == SDLK_RIGHT)) return INP_KEYBOARD | INP_RIGHT;
+    if ((l_Mask & INP_UP) && (sym == SDLK_UP)) return INP_KEYBOARD | INP_UP;
+    if ((l_Mask & INP_DOWN) && (sym == SDLK_DOWN)) return INP_KEYBOARD | INP_DOWN;
+    return 0;
+}
+
 int32_t inpWaitFor(int32_t l_Mask)
 {
     int32_t action = 0;
@@ -536,6 +573,12 @@ int32_t inpWaitFor(int32_t l_Mask)
             {
                 case SDL_EVENT_KEY_DOWN:
                     sym = event.key.key;
+                    if (inpIsArrow(sym))
+                    {
+                        if (event.key.repeat) break; /* repeated below with the game's own timing */
+                        inpRepeatKey = sym;
+                        inpRepeatNext = SDL_GetTicks() + inpRepeatDelayMs;
+                    }
                     if ((sym == SDLK_TAB) && !event.key.repeat)
                     {
                         inpFastForwardOn = !inpFastForwardOn;
@@ -566,6 +609,7 @@ int32_t inpWaitFor(int32_t l_Mask)
                     break;
                 case SDL_EVENT_KEY_UP:
                     sym = event.key.key;
+                    if (sym == inpRepeatKey) inpRepeatKey = 0;
                     if ((l_Mask & (INP_LBUTTONP | INP_LBUTTONR)) &&
                         ((sym == SDLK_SPACE) || (sym == SDLK_RETURN) || (sym == SDLK_KP_ENTER)))
                     {
@@ -774,6 +818,9 @@ int32_t inpWaitFor(int32_t l_Mask)
                         action |= INP_KEYBOARD | INP_LBUTTONP;
                     }
                     break;
+                case SDL_EVENT_WINDOW_FOCUS_LOST:
+                    inpRepeatKey = 0; /* the key up goes to another window */
+                    break;
                 case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
                 case SDL_EVENT_WINDOW_EXPOSED:
                     gfxRepresentSDL();
@@ -791,6 +838,13 @@ int32_t inpWaitFor(int32_t l_Mask)
                     break;
             }
         }
+        /* an arrow key that is still held repeats */
+        if (!action && inpRepeatKey && (SDL_GetTicks() >= inpRepeatNext))
+        {
+            action = inpArrowAction(inpRepeatKey, l_Mask);
+            inpRepeatNext = SDL_GetTicks() + inpRepeatPeriodMs;
+        }
+
         inpDoPseudoMultiTasking();
         wfd();
 
@@ -808,10 +862,10 @@ int32_t inpWaitFor(int32_t l_Mask)
  */
 void inpSetKeyRepeat(unsigned char rate)
 {
-    /* needs some experimenting... */
-    // int x = (((rate & 0xe0) >> 5) + 1) << 7;
-    // int y = ((rate & 0x1f) + 1) << 1;
-    // TODO SDL2 int x = (((rate & 0xe0) >> 5) + 1) << 8;
-    // TODO SDL2 int y = ((rate & 0x1f) + 1) << 4;
-    // TODO SDL2 SDL_EnableKeyRepeat(x, y);
+    /* typematic rates of the PC keyboard in characters per second * 10, index y */
+    static const Uint16 cps10[32] = {300, 267, 240, 218, 200, 185, 171, 160, 150, 133, 120, 109, 100, 92, 86, 80,
+                                     75,  67,  60,  55,  50,  46,  43,  40,  37,  33,  30,  27,  25,  23,  21, 20};
+
+    inpRepeatDelayMs = 250u * ((Uint32)((rate >> 5) & 3) + 1u);
+    inpRepeatPeriodMs = 10000u / cps10[rate & 0x1f];
 }

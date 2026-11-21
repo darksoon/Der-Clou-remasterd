@@ -3,6 +3,27 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.19.0 (21.11.2026)
+
+### Neu
+
+- Spiel+: Hintergrundgeräusche. Zur Straßenmusik hört man den Verkehr und Schritte auf nassem
+  Pflaster, in den Pubs Stimmengemurmel, Gläser und Dartpfeile. Lautstärke über „Geräusche“,
+  abschaltbar im Einstellungsmenü („Hintergrundgeräusche (Spiel+)“, `plusambience` in `cosp.cfg`).
+  Die Dateien liegen in `PLUS/AMBIENT` und lassen sich über MODFILES ersetzen
+- Testskripte kennen `keydown` und `keyup`, um eine Taste zu halten
+
+### Behoben
+
+- Die Tastenwiederholung des Originals fehlte seit der Umstellung auf SDL. Die Pfeiltasten
+  wiederholen sich jetzt mit Verzögerung und Tempo, die das Spiel vorgibt, wie auf der PC-Tastatur
+  von 1994: In der Planung läuft eine Figur beim Halten nach einer Viertelsekunde zügig los, sonst
+  gilt die übliche halbe Sekunde
+
+### Dokumentation
+
+- `ROADMAP.md` auf den aktuellen Stand gebracht
+
 ## 0.18.0 (21.11.2026)
 
 ### Neu

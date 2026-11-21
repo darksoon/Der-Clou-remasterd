@@ -33,6 +33,7 @@ enum
     SET_INTRO,
     SET_PLUS_VOICES,
     SET_SMOOTH_EDGES,
+    SET_PLUS_AMBIENCE,
     SET_BACK,
     SET_COUNT
 };
@@ -54,6 +55,7 @@ static const char *setLabel[SET_COUNT][4] = {
     {"Intro", "Intro", "Intro", "Intro"},
     {"New voices (Game+)", "Neue Stimmen (Spiel+)", "Nouvelles voix (Jeu+)", "Voces nuevas (Juego+)"},
     {"Smooth edges", "Kanten gl\x84tten", "Lisser les bords", "Suavizar bordes"},
+    {"Background sounds (Game+)", "Hintergrundger\x84usche (Spiel+)", "Ambiance (Jeu+)", "Ambiente (Juego+)"},
     {"Back", "Zur\x81" "ck", "Retour", "Volver"},
 };
 
@@ -181,6 +183,9 @@ static void setValueText(int entry, char *value, size_t size)
         case SET_SMOOTH_EDGES:
             snprintf(value, size, "%s", setOnOff[Config.gfxScaleNx ? 1 : 0][lang]);
             break;
+        case SET_PLUS_AMBIENCE:
+            snprintf(value, size, "%s", setOnOff[Config.PlusAmbience ? 1 : 0][lang]);
+            break;
         case SET_GAMEPAD:
             if (!Config.UseJoystick)
                 snprintf(value, size, "%s", setOnOff[0][lang]);
@@ -204,6 +209,7 @@ static void setChange(int entry, int dir)
             break;
         case SET_SFX:
             Config.SfxVolume = setStepVolume(Config.SfxVolume, dir);
+            sndUpdateAmbience();
             break;
         case SET_VOICE:
             Config.VoiceVolume = setStepVolume(Config.VoiceVolume, dir);
@@ -249,6 +255,10 @@ static void setChange(int entry, int dir)
         case SET_SMOOTH_EDGES:
             Config.gfxScaleNx = !Config.gfxScaleNx;
             gfxApplyDisplayConfig();
+            break;
+        case SET_PLUS_AMBIENCE:
+            Config.PlusAmbience = !Config.PlusAmbience;
+            sndUpdateAmbience();
             break;
         case SET_GAMEPAD:
             /* off and auto; a fixed joystick number from cosp.cfg is kept until it is changed */
@@ -305,6 +315,7 @@ void tcSaveSettings(void)
     fprintf(file, "nointro = %d\n", Config.NoIntro ? 1 : 0);
     fprintf(file, "plusvoices = %d\n", Config.PlusVoices ? 1 : 0);
     fprintf(file, "scale2x = %d\n", Config.gfxScaleNx ? 1 : 0);
+    fprintf(file, "plusambience = %d\n", Config.PlusAmbience ? 1 : 0);
     if (Config.UseJoystick == CFG_JOYSTICK_AUTO)
         fprintf(file, "usejoystick = auto\n");
     else

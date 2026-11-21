@@ -29,5 +29,6 @@ void sndFading(short int targetVol);
 
 char *sndGetCurrSoundName(void);
 void sndRestartMusic(void);
+void sndUpdateAmbience(void);
 
 #endif

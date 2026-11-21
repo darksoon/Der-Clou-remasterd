@@ -19,6 +19,50 @@
 
 char currSoundName[256];
 
+/* Game+: background sounds that go with the street and pub music */
+static const char *currAmbience = NULL;
+
+static void sndSetAmbience(const char *file)
+{
+    char path[256];
+
+    if (!pAudioMixer) return;
+    if ((GameMode != GAME_MODE_PLUS) || !Config.PlusAmbience || (Config.SfxVolume <= 0)) file = NULL;
+    if (file == currAmbience) return;
+
+    currAmbience = file;
+    if (file)
+    {
+        dskBuildPathName(PLUS_AMBIENT_DIRECTORY, file, path);
+        Log("Background sound: %s", path);
+        MXR_SetInput(pAudioMixer, MXR_INPUT_AMBIENT, MXR_CreateInputWAVLoop(path));
+        MXR_SetInputVolume(pAudioMixer, MXR_INPUT_AMBIENT, (unsigned char)Config.SfxVolume);
+    }
+    else
+    {
+        MXR_SetInput(pAudioMixer, MXR_INPUT_AMBIENT, NULL);
+    }
+}
+
+/* the background sound for a piece of music: the street songs get the street, the pubs the pub */
+static void sndAmbienceForMusic(const char *name)
+{
+    if (!strncasecmp(name, "street", 6))
+        sndSetAmbience("STREET.WAV");
+    else if (!strncasecmp(name, "bar", 3))
+        sndSetAmbience("PUB.WAV");
+    else
+        sndSetAmbience(NULL);
+}
+
+/* after a change in the settings or the game mode */
+void sndUpdateAmbience(void)
+{
+    currAmbience = NULL;
+    MXR_SetInput(pAudioMixer, MXR_INPUT_AMBIENT, NULL);
+    sndAmbienceForMusic(currSoundName);
+}
+
 int currMusicVolume = 0;
 int targetMusicVolume = 0;
 
@@ -51,6 +95,8 @@ void sndPlaySound(char *name, uint32_t mode)
             currMusicVolume = 0;
             targetMusicVolume = Config.MusicVolume;
             MXR_SetInputVolume(pAudioMixer, MXR_INPUT_MUSIC, currMusicVolume);  // 2018-09-25
+
+            sndAmbienceForMusic(name);
         }
     }
 }
@@ -114,4 +160,8 @@ void sndFading(short int targetVol)
     }
 }
 
-void sndStopSound(ubyte dummy) { MXR_SetInput(pAudioMixer, MXR_INPUT_MUSIC, NULL); }
+void sndStopSound(ubyte dummy)
+{
+    MXR_SetInput(pAudioMixer, MXR_INPUT_MUSIC, NULL);
+    sndSetAmbience(NULL);
+}

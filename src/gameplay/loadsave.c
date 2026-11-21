@@ -8,6 +8,7 @@
 #include "gameplay/gp_app.h"
 #include "organisa/organisa.h"
 #include "port/port.h"
+#include "sound/newsound.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -415,6 +416,7 @@ ubyte tcLoadChangesInScenes(char *fileName)
             GameMode = (atoi(buffer + 9) == GAME_MODE_PLUS) ? GAME_MODE_PLUS : GAME_MODE_ORIGINAL;
         }
         Log("Game mode of the saved game: %s", (GameMode == GAME_MODE_PLUS) ? "Game+" : "original");
+        sndUpdateAmbience(); /* the background sounds follow the mode of the loaded game */
 
         dskClose(file);
     }

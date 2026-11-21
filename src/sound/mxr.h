@@ -62,11 +62,12 @@
 /*
 ** Maximum number of inputs
 */
-#define MXR_MAX_INPUTS 3  // 0 = music, 1 = soundfx, 2 = voice
+#define MXR_MAX_INPUTS 4  // 0 = music, 1 = soundfx, 2 = voice, 3 = background sounds (Game+)
 
 #define MXR_INPUT_MUSIC 0
 #define MXR_INPUT_FX 1
 #define MXR_INPUT_VOICE 2
+#define MXR_INPUT_AMBIENT 3
 
 /******************************************************************************/
 
@@ -109,6 +110,8 @@ extern unsigned char MXR_SetInputVolume(MXR_Mixer *pMixer, int32_t nInput, unsig
 
 extern MXR_Input *MXR_CreateInputVOC(const char *pszFileName);
 extern MXR_Input *MXR_CreateInputWAV(const char *pszFileName);
+/* plays the file over and over until the input is replaced */
+extern MXR_Input *MXR_CreateInputWAVLoop(const char *pszFileName);
 extern MXR_Input *MXR_CreateInputHSC(const char *pszFileName);
 
 /******************************************************************************/
