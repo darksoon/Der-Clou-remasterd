@@ -81,6 +81,8 @@ lane_weather() {
         # thunderstorm with the CRT picture and smooth edges
         EXPECT_FILE=tests/expected/burglary-weather.txt $T "$EXE" tests/scripts/burglary-weather.txt "${ENV42[@]}" "plusweather = storm" "plusflash = 1500" "displayfilter = crt" "scale2x = 1"
     fi
+    # unusual replacement files (sounds, pictures), no audio device, long path of the game directory
+    tests/run-robustness-test.sh "$EXE"
 }
 
 mkdir -p tests/out

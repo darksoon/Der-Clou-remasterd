@@ -449,12 +449,16 @@ static int32_t HSCOpen(HSC_File *pHSC, const char *pszFileName)
     ubyte *hsc_data = NULL;
     ubyte *hsc_file = NULL;
     FILE *pFile = NULL;
+    char szPath[DSK_PATH_MAX];
 
     hscReset(pHSC);
 
     pHSC->hsc_in_process = TRUE;
 
-    pFile = fopen(pszFileName, "rb");
+    /* a replacement in MODFILES wins, like for every other game file */
+    dskResolvePath(pszFileName, szPath, sizeof(szPath));
+
+    pFile = fopen(szPath, "rb");
     if (!pFile)
     {
         return 0;
@@ -463,6 +467,14 @@ static int32_t HSCOpen(HSC_File *pHSC, const char *pszFileName)
     fseek(pFile, 0, SEEK_END);
     hsc_size = ftell(pFile);
     fseek(pFile, 0, SEEK_SET);
+
+    /* 128 instruments of 12 bytes and the pattern table of 51 bytes come before the patterns */
+    if (hsc_size < 1587)
+    {
+        Log("HSC file rejected (too short): %s", szPath);
+        fclose(pFile);
+        return 0;
+    }
 
     hsc_file = MXR_MemAlloc(hsc_size);
     if (!hsc_file)
@@ -474,6 +486,7 @@ static int32_t HSCOpen(HSC_File *pHSC, const char *pszFileName)
     if (fread(hsc_file, 1, hsc_size, pFile) != (size_t)hsc_size)
     {
         fclose(pFile);
+        MXR_MemFree(hsc_file, hsc_size);
         return 0;
     }
     fclose(pFile);
@@ -508,6 +521,10 @@ static int32_t HSCOpen(HSC_File *pHSC, const char *pszFileName)
     }
 
     num_pattern = (hsc_size - 1587) / 1152;
+    if (num_pattern > (int)(sizeof(pHSC->pattern) / sizeof(pHSC->pattern[0])))
+    {
+        num_pattern = (int)(sizeof(pHSC->pattern) / sizeof(pHSC->pattern[0]));
+    }
 
     for (i = 0; i < num_pattern; i++)
     {

@@ -91,7 +91,7 @@ static char *txtGetLine(struct Text *txt, ubyte lineNr)
 //  public functions - TEXT
 void txtInit(ubyte lang)
 {
-    char txtListPath[DSK_PATHNAMELENGTH];
+    char txtListPath[DSK_PATH_MAX];
     struct Text *txt = NULL;
     uword i = 0;
 
@@ -144,7 +144,7 @@ void txtLoad(uint32_t textId)
     {
         if (!txt->txt_Handle)
         {
-            char txtPath[DSK_PATHNAMELENGTH];
+            char txtPath[DSK_PATH_MAX];
             ubyte *mem = NULL;
 
             dskBuildPathName(TEXT_DIRECTORY, NODE_NAME(txt), txtPath);

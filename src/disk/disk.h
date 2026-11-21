@@ -39,12 +39,25 @@ extern char CDDrive[256];
 extern void dskSetRootPath(const char *newRootPath);
 extern void dskInitUserDataPath(void);
 extern void dskMakeDirectory(const char *path);
-extern char *dskGetRootPath(char *result);
+extern char *dskGetRootPathN(char *result, size_t size);
 extern const char *dskGetUserPath(void); /* ends with a directory separator */
 
 extern int32_t dskLoad(const char *puch_Pathname, void *p_MemDest);
-extern void dskBuildPathName(const char *puch_Directory, const char *puch_Filename, char *puch_Result);
-extern void dskBuildPathNameUser(const char *puch_Directory, const char *puch_Filename, char *puch_Result);
+extern void dskBuildPathNameN(const char *puch_Directory, const char *puch_Filename, char *puch_Result, size_t size);
+extern void dskBuildPathNameUserN(const char *puch_Directory, const char *puch_Filename, char *puch_Result,
+                                  size_t size);
+
+/* The result must be a char array (not a pointer), its size limits what is written.
+   Path buffers should have DSK_PATH_MAX bytes. */
+#define DSK_PATH_MAX FILENAME_MAX
+#define DSK_ARRAY_SIZE(a) (sizeof(a) + 0 * sizeof(char[(sizeof(a) > sizeof(char *)) ? 1 : -1]))
+#define dskBuildPathName(dir, file, result) dskBuildPathNameN((dir), (file), (result), DSK_ARRAY_SIZE(result))
+#define dskBuildPathNameUser(dir, file, result) dskBuildPathNameUserN((dir), (file), (result), DSK_ARRAY_SIZE(result))
+#define dskGetRootPath(result) dskGetRootPathN((result), DSK_ARRAY_SIZE(result))
+
+/* Path of the file that is really used: the replacement in MODFILES if there is one, else the
+   original path. Returns 1 if the result is a replacement. */
+extern int dskResolvePath(const char *puch_Pathname, char *puch_Result, size_t size);
 extern void dskClose(FILE *p_File);
 extern void dskWrite(FILE *p_File, void *p_MemSource, uint32_t ul_Size);
 extern void dskRead(FILE *p_File, void *p_MemDest, uint32_t ul_Size);

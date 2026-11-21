@@ -91,12 +91,16 @@ static ubyte detectLanguage(void)
     for (count = 0; count < sizeof(languageMark) / sizeof(languageMark[0]); count++)
     {
         char fileName[TXT_KEY_LENGTH];
-        char fileWithPath[TXT_KEY_LENGTH];
+        char fileWithPath[DSK_PATH_MAX];
         FILE *p_File = NULL;
 
         sprintf(fileName, "tcmaine%c.txt", languageMark[count]);
         dskBuildPathName(TEXT_DIRECTORY, fileName, fileWithPath);
-        if ((p_File = fopen(fileWithPath, "r")))
+        char resolved[DSK_PATH_MAX];
+
+        /* a text file that only exists in MODFILES counts as well */
+        dskResolvePath(fileWithPath, resolved, sizeof(resolved));
+        if ((p_File = fopen(resolved, "r")))
         {
             fclose(p_File);
             return (ubyte)count;
@@ -181,10 +185,10 @@ static int tcInit(void)
 
 static void InitData(void)
 {
-    char MainData[TXT_KEY_LENGTH] = {0};
-    char BuildData[TXT_KEY_LENGTH] = {0};
-    char MainRel[TXT_KEY_LENGTH] = {0};
-    char BuildRel[TXT_KEY_LENGTH] = {0};
+    char MainData[DSK_PATH_MAX] = {0};
+    char BuildData[DSK_PATH_MAX] = {0};
+    char MainRel[DSK_PATH_MAX] = {0};
+    char BuildRel[DSK_PATH_MAX] = {0};
     ubyte result = 0;
 
     dskBuildPathName(DATA_DIRECTORY, MAIN_DATA_NAME GAME_DATA_EXT, MainData);

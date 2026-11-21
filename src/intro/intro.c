@@ -57,7 +57,7 @@ static int Anim_Play(IffAnim *anim, int nfile, int delayticks)
     int nframe = 0;
 
     int ntrack = 0;
-    char wavPath[256];
+    char wavPath[DSK_PATH_MAX];
     char wavName[16];
 
     /* start music with anim #3 */
@@ -162,7 +162,7 @@ static int Anim_Play(IffAnim *anim, int nfile, int delayticks)
 
 void tcIntro(void)
 {
-    char anim_path[DSK_PATHNAMELENGTH];
+    char anim_path[DSK_PATH_MAX];
     int n_file = 0;
     int bContinue = 0;
     IffAnim *iff_anim = NULL;

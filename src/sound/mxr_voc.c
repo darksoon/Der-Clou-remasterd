@@ -12,6 +12,8 @@
 
 #include "mxr.h"
 
+#include "disk/disk.h"
+
 /******************************************************************************/
 
 typedef struct
@@ -57,8 +59,13 @@ static int32_t VOCOpen(VOCFile *voc, const char *pszFileName)
 {
     VOCHeader hdr;
     VOCDataHeader dat;
+    char szPath[DSK_PATH_MAX];
+    uint32_t dwBlockSize = 0;
 
-    voc->pFile = fopen(pszFileName, "rb");
+    /* a replacement in MODFILES wins, like for every other game file */
+    dskResolvePath(pszFileName, szPath, sizeof(szPath));
+
+    voc->pFile = fopen(szPath, "rb");
     if (!voc->pFile)
     {
         return 0;
@@ -71,7 +78,10 @@ static int32_t VOCOpen(VOCFile *voc, const char *pszFileName)
     if (dat.nBlockType != 1) goto Lgetout;
     if (dat.nCompression != 0) goto Lgetout;
 
-    voc->dwDataSize = (dat.nSize[0] | (dat.nSize[1] << 8) | (dat.nSize[2] << 16)) - 2;
+    /* the block size counts the two bytes for rate and compression */
+    dwBlockSize = (uint32_t)dat.nSize[0] | ((uint32_t)dat.nSize[1] << 8) | ((uint32_t)dat.nSize[2] << 16);
+    if (dwBlockSize <= 2) goto Lgetout;
+    voc->dwDataSize = dwBlockSize - 2;
     voc->dwDataOffset = ftell(voc->pFile);
     voc->dwSampleSize = 1;
     voc->dwNumSamples = voc->dwDataSize / voc->dwSampleSize;

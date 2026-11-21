@@ -342,7 +342,7 @@ static void lsAddSpotPosition(struct Spot *spot, uword us_XPos, uword us_YPos)
 
 static void lsLoadSpotBitMap(struct SpotControl *spc)
 {
-    char Result[TXT_KEY_LENGTH];
+    char Result[DSK_PATH_MAX];
     int32_t i = 0;
     int32_t j = 0;
     ubyte *d = NULL;
@@ -355,6 +355,12 @@ static void lsLoadSpotBitMap(struct SpotControl *spc)
     {
         Log("lsLoadSpotBitMap: pSurface=NULL");
         return;
+    }
+    /* the loop below and the spot drawing read the full bitmap */
+    if ((spc->pSurface->w < LS_SPOT_BITMAP_WIDTH) || (spc->pSurface->h < LS_SPOT_BITMAP_HEIGHT))
+    {
+        Log("lsLoadSpotBitMap: picture too small (%d x %d): %s", spc->pSurface->w, spc->pSurface->h, Result);
+        NewErrorMsg(Disk_Defect, __FILE__, __func__, 1);
     }
 
     /* what the hack? */
@@ -380,7 +386,7 @@ static void lsLoadSpotBitMap(struct SpotControl *spc)
 void lsLoadSpots(uint32_t bldId, char *uch_FileName)
 {
     FILE *file = NULL;
-    char filename[TXT_KEY_LENGTH];
+    char filename[DSK_PATH_MAX];
     char buffer[TXT_KEY_LENGTH];
     uword SpotCount = 0;
     uword i = 0;

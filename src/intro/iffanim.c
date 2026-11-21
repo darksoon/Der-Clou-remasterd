@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "disk/disk.h"
 #include "error/error.h"
 #include "memory/memory.h"
 
@@ -224,7 +225,10 @@ IffAnim *IffAnim_Open(char *fname)
     anim = (IffAnim *)MemAlloc(sizeof(IffAnim));
     if (anim)
     {
-        file = fopen(fname, "rb");
+        /* a replacement in MODFILES wins, like for every other game file */
+        char path[DSK_PATH_MAX];
+        dskResolvePath(fname, path, sizeof(path));
+        file = fopen(path, "rb");
         if (file)
         {
             anim->nframes = IffAnim_GetNumFrames(anim, file);

@@ -115,9 +115,9 @@ ubyte plOpen(uint32_t objId, ubyte mode, FILE **fh)
         ubyte i = 0;
         FILE *pllFh = NULL;
         uint32_t pllData = 0L;
-        char pllPath[TXT_KEY_LENGTH];
-        char pllUserPath[TXT_KEY_LENGTH];
-        char name1[TXT_KEY_LENGTH];
+        char pllPath[DSK_PATH_MAX];
+        char pllUserPath[DSK_PATH_MAX];
+        char name1[DSK_PATH_MAX];
         char name2[TXT_KEY_LENGTH];
         char expan[TXT_KEY_LENGTH];
         struct IOData *ioData = NULL;

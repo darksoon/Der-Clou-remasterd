@@ -29,6 +29,11 @@ void InitAudio(void)
     fmt.nNumChannels = 2;
     fmt.nSampleSize = 4;
     pAudioMixer = MXR_CreateMixer(&fmt);
+    if (!pAudioMixer)
+    {
+        /* no audio device: the game runs without sound, all sound functions accept the missing mixer */
+        Log("No audio output, the game runs silent");
+    }
 
     MXR_SetOutputVolume(pAudioMixer, SND_MAX_VOLUME);
 
@@ -48,7 +53,7 @@ void sndDoneFX(void) {}
 
 void sndPlayFX(const char *name)
 {
-    char fileName[256];
+    char fileName[DSK_PATH_MAX];
 
     sndDoneFX();
 

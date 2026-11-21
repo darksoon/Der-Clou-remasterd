@@ -54,7 +54,7 @@ void dskInitUserDataPath(void)
         SDL_free(path);
         dskMakeDirectory(UserPathName);
         char result[FILENAME_MAX];
-        dskBuildPathNameUser(DATADISK_DIRECTORY, "", &result[0]);
+        dskBuildPathNameUser(DATADISK_DIRECTORY, "", result);
         dskMakeDirectory(result);
 
         #ifdef __EMSCRIPTEN__
@@ -88,22 +88,47 @@ void dskInitUserDataPath(void)
     }
 }
 
-char *dskGetRootPath(char *result)
+char *dskGetRootPathN(char *result, size_t size)
 {
-    strcpy(result, RootPathName);
+    snprintf(result, size, "%s", RootPathName);
     return result;
 }
 
 /* 2019-11-22 LucyG  */
-static int dskModfilesPathName(const char *pszPath, char *pszModfilesPath)
+static int dskModfilesPathName(const char *pszPath, char *pszModfilesPath, size_t size)
 {
-    int rootPathLen = strlen(RootPathName);
-    if (!memcmp(pszPath, RootPathName, rootPathLen))
+    size_t rootPathLen = strlen(RootPathName);
+
+    /* only files below the game directory can be replaced: root, separator, at least one character */
+    if (rootPathLen && !strncmp(pszPath, RootPathName, rootPathLen) && pszPath[rootPathLen] &&
+        pszPath[rootPathLen + 1])
     {
-        rootPathLen++;  // also skip the separator
-        dskBuildPathName(MODFILES_DIRECTORY, &pszPath[rootPathLen], pszModfilesPath);
+        /* also skip the separator */
+        dskBuildPathNameN(MODFILES_DIRECTORY, &pszPath[rootPathLen + 1], pszModfilesPath, size);
         return 1;
     }
+    return 0;
+}
+
+int dskResolvePath(const char *puch_Pathname, char *puch_Result, size_t size)
+{
+    char szModfilesPath[DSK_PATH_MAX];
+
+    if (dskModfilesPathName(puch_Pathname, szModfilesPath, sizeof(szModfilesPath)))
+    {
+        FILE *file = fopen(szModfilesPath, "rb");
+        if (file)
+        {
+            fclose(file);
+            if (strlen(szModfilesPath) < size)
+            {
+                Log("Modfile: %s", szModfilesPath);
+                snprintf(puch_Result, size, "%s", szModfilesPath);
+                return 1;
+            }
+        }
+    }
+    snprintf(puch_Result, size, "%s", puch_Pathname);
     return 0;
 }
 
@@ -114,8 +139,8 @@ FILE *dskOpen(const char *puch_Pathname, const char *puch_Mode, uword us_DiskId)
     /* 2019-11-22 LucyG : Modfiles support */
     if (puch_Mode[0] == 'r')
     {
-        static char szModfilesPath[260];
-        if (dskModfilesPathName(puch_Pathname, szModfilesPath))
+        char szModfilesPath[DSK_PATH_MAX];
+        if (dskModfilesPathName(puch_Pathname, szModfilesPath, sizeof(szModfilesPath)))
         {
             /* try to open modded file */
             p_File = fopen(szModfilesPath, puch_Mode);
@@ -143,7 +168,7 @@ int32_t dskLoad(const char *puch_Pathname, void *p_MemDest)
     FILE *p_File = NULL;
     int32_t ul_SizeOfFile = 0;
 
-    if ((ul_SizeOfFile = dskFileLength(puch_Pathname)))
+    if ((ul_SizeOfFile = dskFileLength(puch_Pathname)) > 0)
     {
         if ((p_File = dskOpen(puch_Pathname, "rb", 0)))
         {
@@ -156,46 +181,61 @@ int32_t dskLoad(const char *puch_Pathname, void *p_MemDest)
 }
 
 static void dskBuildPathNameGeneric(const char *puch_Directory, const char *puch_Filename, char *puch_Result,
-                                    const char *rootPath)
+                                    size_t size, const char *rootPath)
 {
-    sprintf(puch_Result, "%s" DIR_SEPARATOR "%s" DIR_SEPARATOR "%s", rootPath, puch_Directory, puch_Filename);
+    int len = 0;
+
+    if (!size) return;
+    len = snprintf(puch_Result, size, "%s" DIR_SEPARATOR "%s" DIR_SEPARATOR "%s", rootPath, puch_Directory,
+                   puch_Filename);
+    if ((len < 0) || ((size_t)len >= size))
+    {
+        /* the truncated name does not exist, so opening it fails with the usual error */
+        Log("Path too long (limit %u): %s" DIR_SEPARATOR "%s" DIR_SEPARATOR "%s", (unsigned)size, rootPath,
+            puch_Directory, puch_Filename);
+        if (len < 0) puch_Result[0] = '\0';
+    }
     // convert all chars after rootPath to upper case as all data file names are upper case
-    char *cur = &puch_Result[strlen(rootPath)];
+    size_t rootLen = strlen(rootPath);
+    if (rootLen > strlen(puch_Result)) return;
+    char *cur = &puch_Result[rootLen];
     while (*cur != '\0')
     {
-        *cur = (char)toupper(*cur);
+        *cur = (char)toupper((unsigned char)*cur);
         ++cur;
     }
 }
 
-void dskBuildPathName(const char *puch_Directory, const char *puch_Filename, char *puch_Result)
+void dskBuildPathNameN(const char *puch_Directory, const char *puch_Filename, char *puch_Result, size_t size)
 {
-    dskBuildPathNameGeneric(puch_Directory, puch_Filename, puch_Result, RootPathName);
+    dskBuildPathNameGeneric(puch_Directory, puch_Filename, puch_Result, size, RootPathName);
 }
 
-void dskBuildPathNameUser(const char *puch_Directory, const char *puch_Filename, char *puch_Result)
+void dskBuildPathNameUserN(const char *puch_Directory, const char *puch_Filename, char *puch_Result, size_t size)
 {
-    dskBuildPathNameGeneric(puch_Directory, puch_Filename, puch_Result, UserPathName);
+    dskBuildPathNameGeneric(puch_Directory, puch_Filename, puch_Result, size, UserPathName);
 }
 
+/* never negative: 0 for a file that is missing, empty or cannot be measured */
 int32_t dskFileLength(const char *puch_Pathname)
 {
-    int32_t l_Size = 0;
+    long l_Size = 0;
     FILE *file = NULL;
-    char szModfilesPath[260];
+    char szModfilesPath[DSK_PATH_MAX];
 
     /* same lookup as dskOpen: a file in modfiles replaces the original, so its size counts */
-    if (dskModfilesPathName(puch_Pathname, szModfilesPath)) file = fopen(szModfilesPath, "rb");
+    if (dskModfilesPathName(puch_Pathname, szModfilesPath, sizeof(szModfilesPath)))
+        file = fopen(szModfilesPath, "rb");
     if (!file) file = fopen(puch_Pathname, "rb");
 
     if (file)
     {
-        fseek(file, 0, SEEK_END);
-        l_Size = (int32_t)ftell(file);
+        if (fseek(file, 0, SEEK_END) == 0) l_Size = ftell(file);
         fclose(file);
     }
+    if ((l_Size < 0) || (l_Size > INT32_MAX)) l_Size = 0;
 
-    return l_Size;
+    return (int32_t)l_Size;
 }
 
 void dskClose(FILE *p_File)

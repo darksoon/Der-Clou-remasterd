@@ -598,7 +598,7 @@ static void plLevelDesigner(LSObject lso)
 
             case PLANING_LD_OK:
             {
-                char fileName[TXT_KEY_LENGTH];
+                char fileName[DSK_PATH_MAX];
                 char areaName[TXT_KEY_LENGTH];
 
                 dbGetObjectName(area, areaName);

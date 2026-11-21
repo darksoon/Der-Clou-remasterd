@@ -84,7 +84,7 @@ void RefreshCurrScene(void)
 void InitLocations(void)
 {
     LIST *l = (LIST *)CreateList(0);
-    char pathname[TXT_KEY_LENGTH];
+    char pathname[DSK_PATH_MAX];
 
     dskBuildPathName(TEXT_DIRECTORY, LOCATIONS_TXT, pathname);
 
@@ -377,7 +377,7 @@ void PrepareStory(char *filename)
     struct NewScene NS = {0};
     struct TCEventNode *node = NULL;
     FILE *file = NULL;
-    char pathname[TXT_KEY_LENGTH] = {0};
+    char pathname[DSK_PATH_MAX] = {0};
 
     dskBuildPathName(DATA_DIRECTORY, filename, pathname);
 

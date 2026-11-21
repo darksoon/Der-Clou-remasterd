@@ -174,7 +174,7 @@ static void lsInitObjects(void)
 void lsLoadGlobalData(uint32_t bld, uint32_t ul_AreaId)
 {
     char areaName[TXT_KEY_LENGTH];
-    char fileName[TXT_KEY_LENGTH];
+    char fileName[DSK_PATH_MAX];
 
     dbGetObjectName(ul_AreaId, areaName);
     areaName[strlen(areaName) - 1] = '\0';
@@ -188,7 +188,7 @@ void lsLoadGlobalData(uint32_t bld, uint32_t ul_AreaId)
 
 void lsInitObjectDB(uint32_t bld, uint32_t areaID)
 {
-    char fileName[TXT_KEY_LENGTH];
+    char fileName[DSK_PATH_MAX];
     char areaName[TXT_KEY_LENGTH];
 
     dbGetObjectName(areaID, areaName);
@@ -217,7 +217,7 @@ void lsInitFloorSquares(void)
 {
     uint32_t count = 0;
     int32_t i = 0;
-    char fileName[TXT_KEY_LENGTH];
+    char fileName[DSK_PATH_MAX];
     char areaName[TXT_KEY_LENGTH];
     NODE *n = NULL;
     LIST *areas = NULL;
@@ -250,7 +250,7 @@ void lsInitFloorSquares(void)
 
 void lsLoadAllSpots(void)
 {
-    char fileName[TXT_KEY_LENGTH];
+    char fileName[DSK_PATH_MAX];
     LIST *areas = NULL;
     NODE *n = NULL;
 

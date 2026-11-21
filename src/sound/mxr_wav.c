@@ -10,6 +10,8 @@
 */
 #include "mxr.h"
 
+#include "disk/disk.h"
+
 /******************************************************************************/
 
 typedef struct
@@ -45,35 +47,85 @@ typedef struct
 
 /******************************************************************************/
 
+/* accepted sample rates; the mixer buffer is made for inputs up to twice the output rate */
+#define WAV_MIN_RATE 4000
+#define WAV_MAX_RATE 48000
+
 static int32_t WAVOpen(WAVFile *wav, const char *pszFileName)
 {
     WAVChunk chk;
+    char szPath[DSK_PATH_MAX];
+    const char *pszReason = "not a RIFF/WAVE file";
+    long nFileSize = 0;
+    long nPos = 0;
+    int bHaveFmt = 0;
 
-    wav->pFile = fopen(pszFileName, "rb");
+    /* a replacement in MODFILES wins, like for every other game file */
+    dskResolvePath(pszFileName, szPath, sizeof(szPath));
+
+    wav->pFile = fopen(szPath, "rb");
     if (!wav->pFile)
     {
         return 0;
     }
 
+    if (fseek(wav->pFile, 0, SEEK_END) != 0) goto Lgetout;
+    nFileSize = ftell(wav->pFile);
+    if (fseek(wav->pFile, 0, SEEK_SET) != 0) goto Lgetout;
+
     if (fread(&chk, 1, sizeof(WAVChunk), wav->pFile) != sizeof(WAVChunk)) goto Lgetout;
     if (chk.dwChunkID != makefourcc('R', 'I', 'F', 'F')) goto Lgetout;
     if (fread(&chk.dwChunkID, 1, sizeof(int32_t), wav->pFile) != sizeof(int32_t)) goto Lgetout;
     if (chk.dwChunkID != makefourcc('W', 'A', 'V', 'E')) goto Lgetout;
-    if (fread(&chk, 1, sizeof(WAVChunk), wav->pFile) != sizeof(WAVChunk)) goto Lgetout;
-    if (chk.dwChunkID != makefourcc('f', 'm', 't', ' ')) goto Lgetout;
-    if (chk.dwChunkSize < sizeof(WAVFmtChunk)) goto Lgetout;
-    if (fread(&wav->fmt, 1, sizeof(WAVFmtChunk), wav->pFile) != sizeof(WAVFmtChunk)) goto Lgetout;
-    if (chk.dwChunkSize > sizeof(WAVFmtChunk))
+
+    /* walk the chunks up to "data"; other chunks ("LIST", "fact", ...) are skipped */
+    for (;;)
     {
-        fseek(wav->pFile, chk.dwChunkSize - sizeof(WAVFmtChunk), SEEK_CUR);
+        pszReason = bHaveFmt ? "no data chunk" : "no fmt chunk";
+        if (fread(&chk, 1, sizeof(WAVChunk), wav->pFile) != sizeof(WAVChunk)) goto Lgetout;
+        nPos = ftell(wav->pFile);
+        if ((nPos < 0) || (nPos > nFileSize)) goto Lgetout;
+
+        if (chk.dwChunkID == makefourcc('d', 'a', 't', 'a'))
+        {
+            if (!bHaveFmt) goto Lgetout;
+            break;
+        }
+
+        pszReason = "truncated file";
+        if (chk.dwChunkSize > (uint32_t)(nFileSize - nPos)) goto Lgetout;
+
+        if (chk.dwChunkID == makefourcc('f', 'm', 't', ' '))
+        {
+            pszReason = "bad fmt chunk";
+            if (chk.dwChunkSize < sizeof(WAVFmtChunk)) goto Lgetout;
+            if (fread(&wav->fmt, 1, sizeof(WAVFmtChunk), wav->pFile) != sizeof(WAVFmtChunk)) goto Lgetout;
+            bHaveFmt = 1;
+        }
+
+        /* chunks are word aligned */
+        if (fseek(wav->pFile, nPos + (long)chk.dwChunkSize + (long)(chk.dwChunkSize & 1), SEEK_SET) != 0)
+            goto Lgetout;
     }
-    if (fread(&chk, 1, sizeof(WAVChunk), wav->pFile) != sizeof(WAVChunk)) goto Lgetout;
-    if (chk.dwChunkID != makefourcc('d', 'a', 't', 'a')) goto Lgetout;
+
+    /* the mixer handles nothing else, see MXR_ProcessMixer */
+    pszReason = "only uncompressed PCM is supported";
+    if (wav->fmt.wFormatTag != 1) goto Lgetout;
+    pszReason = "only mono and stereo are supported";
+    if ((wav->fmt.wChannels != 1) && (wav->fmt.wChannels != 2)) goto Lgetout;
+    pszReason = "only 8 and 16 bit are supported";
+    if ((wav->fmt.wBitsPerSample != 8) && (wav->fmt.wBitsPerSample != 16)) goto Lgetout;
+    pszReason = "sample rate must be 4000 to 48000 Hz";
+    if ((wav->fmt.dwSamplesPerSec < WAV_MIN_RATE) || (wav->fmt.dwSamplesPerSec > WAV_MAX_RATE)) goto Lgetout;
+
+    pszReason = "no sample data";
     wav->dwSampleSize = (wav->fmt.wChannels * wav->fmt.wBitsPerSample) >> 3;
     if (!wav->dwSampleSize) goto Lgetout;
     wav->dwDataSize = chk.dwChunkSize;
+    /* a data chunk that claims more than the file holds ends with the file */
+    if (wav->dwDataSize > (uint32_t)(nFileSize - nPos)) wav->dwDataSize = (uint32_t)(nFileSize - nPos);
     if (!wav->dwDataSize) goto Lgetout;
-    wav->dwDataOffset = ftell(wav->pFile);
+    wav->dwDataOffset = (uint32_t)nPos;
     wav->dwNumSamples = wav->dwDataSize / wav->dwSampleSize;
     if (!wav->dwNumSamples) goto Lgetout;
     wav->dwPosition = 0;
@@ -81,6 +133,7 @@ static int32_t WAVOpen(WAVFile *wav, const char *pszFileName)
     return 1;
 
 Lgetout:
+    Log("WAV file rejected (%s): %s", pszReason, szPath);
     fclose(wav->pFile);
     wav->pFile = NULL;
     return 0;

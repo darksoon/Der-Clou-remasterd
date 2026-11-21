@@ -34,7 +34,7 @@ static int sndPlusSoundsOn(void)
 
 static void sndSetAmbience(const char *file)
 {
-    char path[256];
+    char path[DSK_PATH_MAX];
 
     if (!pAudioMixer) return;
     if (!sndPlusSoundsOn()) file = NULL;
@@ -83,6 +83,7 @@ static void sndAmbienceForMusic(const char *name)
 /* after a change in the settings or the game mode */
 void sndUpdateAmbience(void)
 {
+    if (!pAudioMixer) return;
     currAmbience = NULL;
     MXR_SetInput(pAudioMixer, MXR_INPUT_AMBIENT, NULL);
     sndAmbienceForMusic(currSoundName);
@@ -106,7 +107,7 @@ void sndSetWeatherAmbience(const char *file)
 /* Game+: a single weather sound (thunder) on its own mixer input; volume in percent of the effects */
 void sndPlayWeatherFX(const char *file, int percent)
 {
-    char path[256];
+    char path[DSK_PATH_MAX];
     int volume = 0;
 
     if (!pAudioMixer) return;
@@ -141,7 +142,7 @@ void sndDone(void) {}
 
 void sndPlaySound(char *name, uint32_t mode)
 {
-    char path[256];
+    char path[DSK_PATH_MAX];
 
     if (pAudioMixer)
     {
@@ -197,6 +198,8 @@ void sndDoFading(void)
         currMusicVolume--;
     }
 
+    if (!pAudioMixer) return;
+
     MXR_SetInputVolume(pAudioMixer, MXR_INPUT_MUSIC, currMusicVolume);
     MXR_SetInputVolume(pAudioMixer, MXR_INPUT_FX, Config.SfxVolume);
     MXR_SetInputVolume(pAudioMixer, MXR_INPUT_VOICE, Config.VoiceVolume);
@@ -223,6 +226,7 @@ void sndFading(short int targetVol)
 
 void sndStopSound(ubyte dummy)
 {
+    if (!pAudioMixer) return;
     MXR_SetInput(pAudioMixer, MXR_INPUT_MUSIC, NULL);
     sndSetAmbience(NULL);
 }

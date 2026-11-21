@@ -22,8 +22,8 @@ void tcSaveTheClou(int bAutoSave)
     char line[TXT_KEY_LENGTH];
     char location[TXT_KEY_LENGTH];
     char date[TXT_KEY_LENGTH];
-    char RootPath[TXT_KEY_LENGTH];
-    char pathname[TXT_KEY_LENGTH];
+    char RootPath[DSK_PATH_MAX];
+    char pathname[DSK_PATH_MAX];
     LIST *games = (LIST *)CreateList(0);
     NODE *game = NULL;
     uword activ = 0;
@@ -163,8 +163,8 @@ ubyte tcLoadIt(char activ)
 {
     char line[TXT_KEY_LENGTH];
     ubyte loaded = 0;
-    char RootPath[TXT_KEY_LENGTH];
-    char pathname[TXT_KEY_LENGTH];
+    char RootPath[DSK_PATH_MAX];
+    char pathname[DSK_PATH_MAX];
 
     dskGetRootPath(RootPath);
 
@@ -267,8 +267,8 @@ ubyte tcLoadTheClou(void)
     LIST *origin = (LIST *)CreateList(0);
     uint32_t activ = 0;
     Player player = NULL;
-    char pathname1[TXT_KEY_LENGTH];
-    char pathname2[TXT_KEY_LENGTH];
+    char pathname1[DSK_PATH_MAX];
+    char pathname2[DSK_PATH_MAX];
 
     // try to read from user dir first
     dskBuildPathNameUser(DATADISK_DIRECTORY, GAMES_LIST_TXT, pathname1);

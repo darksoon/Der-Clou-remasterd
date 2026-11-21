@@ -197,8 +197,10 @@ void livPrepareAnims(void)
         Log("livPrepareAnims pSurface=NULL");
         return;
     }
-    memcpy(StdBuffer1, sc->pSurface->pixels,
-           sc->pSurface->w * sc->pSurface->h); /* blit from sc->pSurface to StdBuffer1 */
+    /* blit from sc->pSurface to StdBuffer1; a larger (replaced) picture is cut off at the buffer size */
+    size_t size = (size_t)sc->pSurface->w * (size_t)sc->pSurface->h;
+    if (size > (size_t)STD_BUFFER1_SIZE) size = (size_t)STD_BUFFER1_SIZE;
+    memcpy(StdBuffer1, sc->pSurface->pixels, size);
 }
 
 void livDoAnims(ubyte uch_Play, ubyte uch_Move)
@@ -391,7 +393,7 @@ static void livLoadTemplates(void)
     char *line = NULL;
     LIST *l = (LIST *)CreateList(0);
     struct AnimTemplate *tlt = NULL;
-    char pathname[TXT_KEY_LENGTH];
+    char pathname[DSK_PATH_MAX];
 
     dskBuildPathName(TEXT_DIRECTORY, LIV_ANIM_TEMPLATE_LIST, pathname);
 
@@ -426,7 +428,7 @@ static void livLoadLivings(void)
     uword i = 0;
     char *line = NULL;
     LIST *l = (LIST *)CreateList(0);
-    char pathname[TXT_KEY_LENGTH];
+    char pathname[DSK_PATH_MAX];
 
     dskBuildPathName(TEXT_DIRECTORY, LIV_LIVINGS_LIST, pathname);
 
@@ -485,7 +487,7 @@ static void livShow(struct Living *liv)
 
 static void livLoadData(void)
 {
-    char filename[TXT_KEY_LENGTH];
+    char filename[DSK_PATH_MAX];
 
     dskBuildPathName(PICTURE_DIRECTORY, LIV_COLL_NAME, filename);
 

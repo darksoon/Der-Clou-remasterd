@@ -33,7 +33,7 @@ void grdDo(FILE *fh, struct System *sys, LIST *PersonsList, uint32_t BurglarsNr,
 ubyte grdInit(FILE **fh, char *mode, uint32_t bldId, uint32_t areaId)
 {
     char bldName[TXT_KEY_LENGTH];
-    char fileName[TXT_KEY_LENGTH];
+    char fileName[DSK_PATH_MAX];
 
     dbGetObjectName(areaId, fileName);
     fileName[strlen(fileName) - 1] = '\0';

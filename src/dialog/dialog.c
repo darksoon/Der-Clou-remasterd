@@ -340,7 +340,7 @@ ubyte Say(uint32_t TextID, ubyte activ, uword person, char *text)
 {
     LIST *bubble = NULL;
     ubyte choice = 0;
-    char wavName[256];
+    char wavName[DSK_PATH_MAX];
 
     bubble = txtGoKey(TextID, text);
 

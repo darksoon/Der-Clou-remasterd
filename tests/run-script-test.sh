@@ -3,6 +3,8 @@
 # Usage: tests/run-script-test.sh <executable> <script> [extra cosp.cfg lines...]
 # MODFILES=<dir> provides replacement files (MODFILES directory).
 # TEST_HOME=<dir> uses that directory as home instead of a fresh one.
+# TEST_ROOT=<dir> uses that (empty) directory as game directory instead of a fresh one.
+# TEST_AUDIODRIVER=<name> sets the SDL audio driver (default: dummy).
 # Screenshots taken by the script land in $SHOTDIR (default: tests/out/<script name>).
 # EXPECT=<extended grep pattern> additionally requires a line in the game log.
 # REJECT=<grep pattern> fails the test if the game log contains it.
@@ -14,7 +16,7 @@ shift 2
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 NAME="$(basename "$SCRIPT" .txt)"
 SHOTDIR="${SHOTDIR:-$REPO/tests/out/$NAME}"
-ROOT="$(mktemp -d)"
+ROOT="${TEST_ROOT:-$(mktemp -d)}"
 mkdir -p "$SHOTDIR"
 
 # game directory: original data via symlinks plus a test configuration
@@ -24,7 +26,7 @@ if [ -n "${MODFILES:-}" ]; then ln -s "$(cd "$MODFILES" && pwd)" "$ROOT/MODFILES
 { echo "screenwidth = 1280"; echo "screenheight = 960"; echo "nointro = 1"; for l in "$@"; do echo "$l"; done; } > "$ROOT/cosp.cfg"
 
 # TEST_HOME keeps the user directory between runs (settings, saved games)
-export SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy HOME="${TEST_HOME:-$(mktemp -d)}"
+export SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER="${TEST_AUDIODRIVER:-dummy}" HOME="${TEST_HOME:-$(mktemp -d)}"
 export DERCLOU_ROOTDIR="$ROOT" DERCLOU_SCRIPT="$SCRIPT" DERCLOU_SHOTDIR="$SHOTDIR"
 # fixed random seed: test games play the same every time (DERCLOU_SEED= to override)
 export DERCLOU_SEED="${DERCLOU_SEED-42}"

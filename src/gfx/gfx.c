@@ -170,7 +170,11 @@ static void SetWindowIcon(char *icon)
     unsigned int colorkey = 0;
     SDL_Surface *image = NULL;
 
-    image = SDL_LoadBMP(icon);
+    char path[DSK_PATH_MAX];
+
+    /* a replacement in MODFILES wins, like for every other game file */
+    dskResolvePath(icon, path, sizeof(path));
+    image = SDL_LoadBMP(path);
 
     if (image)
     {
@@ -348,7 +352,7 @@ int gfxInitSDL(void)
     if (SDL_InitSubSystem(SDL_INIT_VIDEO))
     {
         SDL_WindowFlags flags = 0;
-        char iconPath[TXT_KEY_LENGTH];
+        char iconPath[DSK_PATH_MAX];
 
         if (Config.gfxFullScreen)
         {
@@ -746,7 +750,7 @@ void gfxCorrectUpperRPBitmap(void) { NCH4UpperRP.p_BitMap = gfxGetGfxBoardBase()
 
 static void gfxInitCollList(void)
 {
-    char pathname[TXT_KEY_LENGTH];
+    char pathname[DSK_PATH_MAX];
     LIST *tempList = (LIST *)CreateList(0);
     NODE *n = NULL;
     struct Collection *coll = NULL;
@@ -783,7 +787,7 @@ static void gfxInitCollList(void)
 
 static void gfxInitPictList(void)
 {
-    char pathname[TXT_KEY_LENGTH];
+    char pathname[DSK_PATH_MAX];
     LIST *tempList = (LIST *)CreateList(0);
     NODE *n = NULL;
     struct Picture *pict = NULL;
@@ -871,7 +875,7 @@ static void gfxInitRastPort(struct RastPort *rp, uword us_LeftEdge, uword us_Top
 static struct Font *gfxOpenFont(char *puch_FileName, uword us_Width, uword us_Height, ubyte uch_FirstChar,
                                 ubyte uch_LastChar, uword us_TotalWidth, uword us_TotalHeight)
 {
-    char Result[TXT_KEY_LENGTH];
+    char Result[DSK_PATH_MAX];
     struct Font *font = (struct Font *)MemAlloc(sizeof(struct Font));
 
     font->us_Width = us_Width;
@@ -883,6 +887,11 @@ static struct Font *gfxOpenFont(char *puch_FileName, uword us_Width, uword us_He
     dskBuildPathName(PICTURE_DIRECTORY, puch_FileName, Result);
 
     font->pSurface = gfxLoadImage(Result);
+    if (!font->pSurface)
+    {
+        /* no text can be drawn without the font */
+        NewErrorMsg(Disk_Defect, __FILE__, __func__, 2);
+    }
 
     return font;
 }
@@ -1147,7 +1156,7 @@ struct RastPort *gfxPrepareColl(uword us_CollId)
     {
         if (!coll->p_Prepared)
         {
-            char Result[TXT_KEY_LENGTH];
+            char Result[DSK_PATH_MAX];
 
             /* Dateiname erstellen */
             dskBuildPathName(PICTURE_DIRECTORY, (char *)coll->puch_Filename, Result);
@@ -1155,6 +1164,11 @@ struct RastPort *gfxPrepareColl(uword us_CollId)
             /* load collection */
             SDL_Surface *pSurface = NULL;
             pSurface = gfxLoadImage(Result);
+            if (!pSurface)
+            {
+                /* neither a usable replacement nor a usable original */
+                NewErrorMsg(Disk_Defect, __FILE__, __func__, 3);
+            }
 
             gfxSetColorTable_hack(pSurface);
 

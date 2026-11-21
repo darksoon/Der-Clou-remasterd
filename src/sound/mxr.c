@@ -21,7 +21,9 @@ struct MXR_Mixer
     uint32_t nVolume;
 
     MXR_Input *pInput[MXR_MAX_INPUTS];
-    unsigned char buffer[MXR_BUFFER_SAMPLES * 2 * sizeof(short)]; /* (hopefully) the largest required buffer */
+    /* Input data for one block of output, as 16 bit stereo at up to twice the output rate.
+       MXR_ProcessMixer never asks an input for more than fits in here. */
+    unsigned char buffer[MXR_BUFFER_SAMPLES * 2 * 2 * sizeof(short)];
 };
 
 #define ClampValue(v, a, z) ((v) < (a) ? (a) : ((v) > (z) ? (z) : (v)))
@@ -355,7 +357,34 @@ static void MXR_ProcessMixer(MXR_Mixer *pMixer, unsigned char *pStream, int nStr
         pInput = pMixer->pInput[i];
         if (pInput && pInput->pProcess)
         {
-            nInputSamples = nStreamSamples * pInput->fmt.nSamplesPerSec / pMixer->fmt.nSamplesPerSec;
+            uint32_t nMaxInputSamples = 0;
+
+            /* anything else would not fit the mixing functions below */
+            if (((pInput->fmt.nNumChannels != 1) && (pInput->fmt.nNumChannels != 2)) ||
+                ((pInput->fmt.nBitsPerChannel != 8) && (pInput->fmt.nBitsPerChannel != 16)))
+            {
+                if (pInput->pDestroy)
+                {
+                    pInput->pDestroy(pInput);
+                }
+                pMixer->pInput[i] = NULL;
+                continue;
+            }
+
+            nInputSamples = (uint32_t)(((uint64_t)nStreamSamples * pInput->fmt.nSamplesPerSec) /
+                                       pMixer->fmt.nSamplesPerSec);
+
+            /* The buffer holds the block after the conversion to 16 bit. An input with a higher rate
+               than the buffer was made for gets less than it needs and plays slower, but stays inside. */
+            nMaxInputSamples = (uint32_t)(sizeof(pMixer->buffer) / (pInput->fmt.nNumChannels * sizeof(short)));
+            if (nInputSamples > nMaxInputSamples)
+            {
+                nInputSamples = nMaxInputSamples;
+            }
+            if (!nInputSamples)
+            {
+                continue; /* a block too short for one input sample, the input stays */
+            }
 
             if (pInput->fmt.nBitsPerChannel == 8)
             {
@@ -457,6 +486,7 @@ static void SDLCALL MXR_AudioStreamCallback(void *userdata, SDL_AudioStream *str
     int blockSize = MXR_BUFFER_SAMPLES * pMixer->fmt.nSampleSize;
 
     (void)total;
+    if ((blockSize <= 0) || (blockSize > (int)sizeof(buffer))) return;
     while (additional > 0)
     {
         int size = (additional < blockSize) ? additional : blockSize;
@@ -485,6 +515,11 @@ MXR_Mixer *MXR_CreateMixer(const MXR_Format *pFormat)
     MXR_Mixer *pMixer = NULL;
     SDL_AudioSpec spec;
     int i = 0;
+
+    if (!pFormat || !pFormat->nSamplesPerSec || ((pFormat->nNumChannels != 1) && (pFormat->nNumChannels != 2)))
+    {
+        return NULL;
+    }
 
     pMixer = (MXR_Mixer *)MXR_MemAlloc(sizeof(MXR_Mixer));
     if (!pMixer)
@@ -585,6 +620,16 @@ void MXR_SetInput(MXR_Mixer *pMixer, int32_t nInput, MXR_Input *pInput)
 {
     MXR_Input *pOldInput = NULL;
 
+    /* without a mixer (no audio device) or with a bad index nothing plays: drop the new input */
+    if (!pMixer || (nInput < 0) || (nInput >= MXR_MAX_INPUTS))
+    {
+        if (pInput && pInput->pDestroy)
+        {
+            pInput->pDestroy(pInput);
+        }
+        return;
+    }
+
     MXR_LockAudio();
 
     pOldInput = pMixer->pInput[nInput];
@@ -604,6 +649,8 @@ unsigned char MXR_SetOutputVolume(MXR_Mixer *pMixer, unsigned char nVolume)
 {
     unsigned char nOldVolume = 0;
 
+    if (!pMixer) return 0;
+
     MXR_LockAudio();
 
     nOldVolume = pMixer->nVolume;
@@ -620,15 +667,18 @@ unsigned char MXR_SetInputVolume(MXR_Mixer *pMixer, int32_t nInput, unsigned cha
 {
     unsigned char nOldVolume = 0;
 
+    if (!pMixer || (nInput < 0) || (nInput >= MXR_MAX_INPUTS)) return 0;
+
+    /* the audio callback removes finished inputs, so the test belongs inside the lock */
+    MXR_LockAudio();
+
     if (pMixer->pInput[nInput])
     {  // 2018-09-25
-        MXR_LockAudio();
-
         nOldVolume = pMixer->pInput[nInput]->nVolume;
         pMixer->pInput[nInput]->nVolume = nVolume;
-
-        MXR_UnlockAudio();
     }
+
+    MXR_UnlockAudio();
 
     return nOldVolume;
 }
