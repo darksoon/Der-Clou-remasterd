@@ -72,6 +72,10 @@ set(SOURCE_FILES
     theclou.c)
 
 add_executable(DerClou ${SOURCE_FILES})
+if(EMSCRIPTEN)
+  # relink when the page template changes
+  set_target_properties(DerClou PROPERTIES LINK_DEPENDS "${CMAKE_SOURCE_DIR}/web/shell.html")
+endif()
 
 target_include_directories(DerClou PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_compile_options(DerClou PUBLIC -Wall -Wno-format-overflow)

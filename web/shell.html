@@ -2,7 +2,14 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c2a22">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Der Clou! remastered</title>
 <meta name="description" content="Die Einbruchssimulation Der Clou! von 1994, direkt im Browser spielen.">
 <style>
@@ -35,6 +42,52 @@
     display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
   footer a { color:var(--muted); }
   kbd { border:1px solid var(--line); padding:0 .3rem; border-radius:3px; }
+
+  /* touch controls, shown only on devices without a fine pointer */
+  html, body { overscroll-behavior:none; }
+  #play { flex:1; display:flex; flex-direction:column; min-height:0; }
+  .pad, .touch { display:none; }
+  .pad button { width:3.4rem; height:3.4rem; padding:0; font-size:1.3rem; touch-action:none;
+    -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; border-radius:10px; }
+  .pad button.on { background:var(--accent); color:#000; border-color:var(--accent); }
+  .pad button.wide { width:auto; padding:0 .8rem; font-size:.95rem; }
+  .dpad { display:grid; grid-template-columns:repeat(3, 3.4rem); grid-template-rows:repeat(3, 3.4rem); gap:.3rem; }
+  .dpad .u { grid-column:2; grid-row:1; } .dpad .l { grid-column:1; grid-row:2; }
+  .dpad .r { grid-column:3; grid-row:2; } .dpad .d { grid-column:2; grid-row:3; }
+  .acts { display:flex; flex-direction:column; gap:.5rem; align-items:stretch; }
+  #rotate { display:none; }
+  @media (hover: none) {
+    button:hover, a.btn:hover { border-color:var(--line); color:var(--text); }
+  }
+  @media (pointer: coarse) {
+    body { -webkit-user-select:none; user-select:none; }
+    #overlay { gap:.5rem; overflow:auto; }
+    #overlay h2 { font-size:1.4rem; }
+    #overlay p { font-size:.75rem; }
+    .desk { display:none; }
+    .touch { display:block; }
+    header nav a.btn { display:none; }
+    .pad { display:flex; align-items:center; justify-content:center; padding:.4rem; gap:.6rem; }
+    main { padding:.25rem; }
+    #stage { width:min(100%, calc((100dvh - 15rem) * 4 / 3)); }
+    header { padding:.3rem .6rem; }
+    footer { font-size:.7rem; padding:.3rem .6rem; }
+    .controls { display:flex; justify-content:space-between; align-items:center; padding:.3rem .6rem; gap:.6rem; }
+  }
+  @media (pointer: coarse) and (orientation: landscape) {
+    header, footer { display:none; }
+    #play { display:flex; flex-direction:row; align-items:center; flex:1; min-height:0; }
+    .controls { display:contents; }
+    .controls .dpad-wrap { order:0; }
+    main { order:1; flex:1; height:100%; }
+    .controls .acts-wrap { order:2; }
+    #stage { width:min(100%, calc((100dvh - .6rem) * 4 / 3)); }
+  }
+  @media (pointer: coarse) and (orientation: portrait) {
+    #rotate { display:block; text-align:center; color:var(--muted); font-size:.8rem; padding:.2rem; }
+    .acts { display:grid; grid-template-columns:1fr 1fr; }
+    #stage { width:min(100%, calc((100dvh - 17rem) * 4 / 3)); }
+  }
 </style>
 </head>
 <body>
@@ -45,6 +98,7 @@
     <a class="btn" href="https://github.com/darksoon/Der-Clou-remasterd" target="_blank" rel="noopener">GitHub</a>
   </nav>
 </header>
+<div id="play">
 <main>
   <div id="stage">
     <canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
@@ -53,11 +107,34 @@
       <p id="status">Lade Spieldaten …</p>
       <div id="progress"><div id="bar"></div></div>
       <button id="start">Klicken zum Starten</button>
-      <p>Steuerung mit Maus und Tastatur: Pfeiltasten, <kbd>Enter</kbd>, <kbd>Esc</kbd>.
+      <p class="desk">Steuerung mit Maus und Tastatur: Pfeiltasten, <kbd>Enter</kbd>, <kbd>Esc</kbd>.
          Spielstände und Pläne werden im Browser gespeichert.</p>
+      <p class="touch">Tippen ist Klicken. Die Tasten neben dem Bild ersetzen Pfeiltasten,
+         Enter und Esc, „Rechtsklick“ gilt für den nächsten Tipp.</p>
+      <p style="font-size:.75rem">Basierend auf der Originalversion von neo Software. Details darüber finden Sie unter www.neo.at</p>
     </div>
   </div>
 </main>
+<div class="controls">
+  <div class="pad dpad-wrap">
+    <div class="dpad">
+      <button class="u" data-key="ArrowUp" aria-label="Hoch"><svg width="16" height="10" viewBox="0 0 16 10" aria-hidden="true"><polygon points="0,10 8,0 16,10" fill="currentColor"/></svg></button>
+      <button class="l" data-key="ArrowLeft" aria-label="Links"><svg width="10" height="16" viewBox="0 0 10 16" aria-hidden="true"><polygon points="10,0 10,16 0,8" fill="currentColor"/></svg></button>
+      <button class="r" data-key="ArrowRight" aria-label="Rechts"><svg width="10" height="16" viewBox="0 0 10 16" aria-hidden="true"><polygon points="0,0 0,16 10,8" fill="currentColor"/></svg></button>
+      <button class="d" data-key="ArrowDown" aria-label="Runter"><svg width="16" height="10" viewBox="0 0 16 10" aria-hidden="true"><polygon points="0,0 16,0 8,10" fill="currentColor"/></svg></button>
+    </div>
+  </div>
+  <div class="pad acts-wrap">
+    <div class="acts">
+      <button class="wide" data-key="Enter">OK</button>
+      <button class="wide" data-key="Escape">Zur&uuml;ck</button>
+      <button class="wide" id="rclick" title="Der n&auml;chste Tipp z&auml;hlt als rechte Maustaste">Rechts&shy;klick</button>
+      <button class="wide" id="fs2">Vollbild</button>
+    </div>
+  </div>
+</div>
+<div id="rotate">Tipp: Im Querformat ist das Bild gr&ouml;&szlig;er.</div>
+</div>
 <footer>
   <span>Basierend auf der Originalversion von neo Software. Details darüber finden Sie unter www.neo.at</span>
   <span>Nichtkommerzielles Fanprojekt · <a href="https://github.com/darksoon/Der-Clou-remasterd/blob/main/PublicLicenceContract.txt">Lizenz</a></span>
@@ -96,6 +173,7 @@
   function start() {
     if (!ready) return;
     overlay.style.display = 'none';
+    document.body.classList.add('playing');
     canvas.focus();
     // started from a click, so the browser allows sound
     Module.callMain([]);
@@ -105,11 +183,77 @@
     if (overlay.style.display !== 'none' && ready && e.key === 'Enter') { e.preventDefault(); start(); }
   });
 
-  document.getElementById('fs').addEventListener('click', function () {
-    var el = document.getElementById('stage');
-    (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  function goFullscreen(el) {
+    var req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (!req) return;
+    var p = req.call(el);
+    // on phones also keep the picture in landscape where the browser allows it
+    if (p && p.then && screen.orientation && screen.orientation.lock) {
+      p.then(function () { return screen.orientation.lock('landscape'); }).catch(function () {});
+    }
     canvas.focus();
+  }
+  document.getElementById('fs').addEventListener('click', function () { goFullscreen(document.getElementById('stage')); });
+  document.getElementById('fs2').addEventListener('click', function () { goFullscreen(document.documentElement); });
+
+  // on-screen keys: send the same key events a keyboard would (SDL reads event.code)
+  function sendKey(code, down, repeat) {
+    canvas.dispatchEvent(new KeyboardEvent(down ? 'keydown' : 'keyup',
+      { code: code, key: code, repeat: !!repeat, bubbles: true, cancelable: true }));
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.pad [data-key]'), function (b) {
+    var code = b.getAttribute('data-key');
+    var delay = null, rep = null;
+    function release() {
+      if (delay === null && rep === null) return;
+      clearTimeout(delay); clearInterval(rep); delay = rep = null;
+      b.classList.remove('on');
+      sendKey(code, false);
+    }
+    b.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      if (delay !== null || rep !== null) return;
+      b.classList.add('on');
+      sendKey(code, true);
+      // held arrows repeat like a keyboard
+      if (code.indexOf('Arrow') === 0) {
+        delay = setTimeout(function () { rep = setInterval(function () { sendKey(code, true, true); }, 90); }, 350);
+      } else {
+        delay = setTimeout(function () {}, 0);
+      }
+    });
+    b.addEventListener('pointerup', release);
+    b.addEventListener('pointercancel', release);
+    b.addEventListener('pointerleave', release);
+    b.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   });
+
+  // "Rechtsklick": the next tap on the picture is sent as the right mouse button
+  var rightNext = false;
+  var rbtn = document.getElementById('rclick');
+  rbtn.addEventListener('click', function () { rightNext = !rightNext; rbtn.classList.toggle('on', rightNext); });
+  var stage = document.getElementById('stage');
+  function asRight(e) {
+    if (!rightNext || e.pointerType === 'mouse' || e.__clou) return;
+    e.stopPropagation(); e.preventDefault();
+    if (e.type === 'pointermove') return;
+    var init = { pointerId: 99, pointerType: 'mouse', isPrimary: true, clientX: e.clientX, clientY: e.clientY,
+                 button: 2, buttons: e.type === 'pointerdown' ? 2 : 0, bubbles: true, cancelable: true };
+    if (e.type === 'pointerdown') {
+      var mv = new PointerEvent('pointermove', Object.assign({}, init, { button: -1, buttons: 0 }));
+      mv.__clou = true; canvas.dispatchEvent(mv);
+    }
+    var ev = new PointerEvent(e.type, init); ev.__clou = true;
+    canvas.dispatchEvent(ev);
+    if (e.type === 'pointerup' || e.type === 'pointercancel') { rightNext = false; rbtn.classList.remove('on'); }
+  }
+  ['pointerdown', 'pointermove', 'pointerup', 'pointercancel'].forEach(function (t) {
+    stage.addEventListener(t, asRight, true);
+  });
+
+  // no double-tap zoom or pinch on the game
+  document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
 
   window.addEventListener('error', function () {
     statusEl.textContent = 'Fehler beim Laden. Bitte Seite neu laden.';

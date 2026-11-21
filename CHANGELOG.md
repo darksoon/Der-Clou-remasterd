@@ -3,6 +3,27 @@
 Die Versionsnummer folgt [Semantic Versioning](https://semver.org/lang/de/). Bis zur 1.0 kann sich das
 Verhalten zwischen Versionen noch ändern.
 
+## 0.16.0 (21.11.2026)
+
+### Neu
+
+- Browser auf dem Handy und Tablet: Neben dem Bild liegen Tasten für die Pfeile, „OK“ (Enter),
+  „Zurück“ (Esc), „Rechtsklick“ (der nächste Tipp zählt als rechte Maustaste) und „Vollbild“.
+  Gehaltene Pfeile wiederholen sich wie auf der Tastatur. Im Querformat füllt das Bild den
+  Bildschirm, Seitenkopf und Fußzeile treten zurück. Kein Zoomen oder Verrutschen beim Tippen
+- Die Browser-Version lässt sich als App auf den Startbildschirm legen und startet dann im
+  Vollbild und im Querformat (Web-App-Manifest mit Icon)
+
+### Geändert
+
+- Das Intro läuft wieder beim Start, wie 1994. Mit Esc oder „Zurück“ geht es direkt ins Menü.
+  Abschalten lässt es sich weiter mit `nointro = 1` in `cosp.cfg`
+
+### Behoben
+
+- Wurde das Fenster während des Intros geschlossen, endete nur das Intro und das Spiel lief im
+  Hauptmenü weiter. Jetzt beendet es das Spiel
+
 ## 0.15.1 (21.11.2026)
 
 ### Behoben

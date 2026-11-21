@@ -13,6 +13,9 @@
 #include "inphdl/inphdl.h"
 #include "intro/iffanim.h"
 
+/* set when the window is closed during the intro */
+static int introQuit = 0;
+
 enum
 {
     NUM_ANIM_FILES = 5
@@ -138,6 +141,8 @@ static int Anim_Play(IffAnim *anim, int nfile, int delayticks)
                 action = inpWaitFor(INP_TIME | INP_ESC | INP_QUIT);
                 if (action & (INP_ESC | INP_QUIT))
                 {
+                    /* a closed window ends the game, not only the intro */
+                    if (action & INP_QUIT) introQuit = 1;
                     q = 1;
                     break;
                 }
@@ -186,4 +191,6 @@ void tcIntro(void)
 
     memset(gfxGetGfxBoardBase(), 0, 320 * 200);
     gfxInvalidate();
+
+    if (introQuit) tcQuitGame();
 }

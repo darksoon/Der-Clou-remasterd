@@ -196,6 +196,7 @@ jobs:
           mkdir -p dist/web
           cp build-web/build/web/DerClou.* dist/web/
           cp dist/web/DerClou.html dist/web/index.html
+          cp web/play/* dist/web/
           cp PublicLicenceContract.txt mame.txt dist/web/
           cp src/sound/nuked/LICENSE.txt dist/web/LICENSE-Nuked-OPL3.txt
           cd dist && zip -qr ../DerClou-web.zip web
