@@ -45,6 +45,7 @@ jobs:
       - name: Scripted play tests
         run: |
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt
+          SHOTDIR=tests/out/story-start-crt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt "displayfilter = crt"
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "fullenv = 42" "storyoff = 42"
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/walk-to.txt "fullenv = 42" "storyoff = 42"
           # original mode: results must match the reference, the difficulty must not matter
@@ -99,6 +100,7 @@ jobs:
       - name: Scripted play tests
         run: |
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt
+          SHOTDIR=tests/out/story-start-crt tests/run-script-test.sh build/build/x64/DerClou tests/scripts/story-start.txt "displayfilter = crt"
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/planning.txt "fullenv = 42" "storyoff = 42"
           tests/run-script-test.sh build/build/x64/DerClou tests/scripts/walk-to.txt "fullenv = 42" "storyoff = 42"
           # original mode: results must match the reference, the difficulty must not matter

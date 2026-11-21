@@ -29,6 +29,7 @@ Dieses Projekt führt die besten Teile der bisherigen Community-Ports zusammen:
 - Zeitraffer beim Einbruch (Tab) und Polizei-Countdown nach einem lauten Alarm
 - Zwei Spielarten, gewählt beim Start eines neuen Spiels und im Spielstand gespeichert: „Original“ spielt wie 1994 und bekommt nur Komfortfunktionen, „Spiel+“ enthält alles, was das Spiel oder seine Balance verändert
 - Schwierigkeitsgrad leicht, normal oder schwer (nur in Spiel+), die Werte stehen im Lua-Skript `PLUS/BALANCE.LUA`
+- Bildfilter „Scanlines“ und „Röhrenmonitor“, auch im Browser und ohne Mehraufwand gegenüber dem normalen Bild
 - AdLib-Musik wahlweise über Nuked OPL3 (klingt wie der echte Chip, Standard) oder die bisherige MAME-Emulation, umschaltbar im laufenden Spiel
 - Lua 5.5 als Skriptsprache für Spiel+, abgeschottet ohne Datei- und Systemzugriff. Der Originalmodus startet nie ein Skript
 - Einstellungsmenü im Hauptmenü: Lautstärken, Vollbild, Skalierung, Schwierigkeit, Polizei-Countdown, Zeitraffer und Gamepad, gespeichert im Benutzerordner (auch im Browser)
@@ -164,6 +165,7 @@ Zusammengeführt aus der Roadmap von iljabauer/DerClou und eigenen Zielen.
     - [x] Bilder ohne Zusatzbibliothek laden (ILBM eingebaut, PNG über SDL 3)
     - [x] Umstieg auf SDL 3
     - [x] Frei skalierbares Fenster, Vollbild-Taste, wählbarer Filter
+    - [x] Bildfilter Scanlines und Röhrenmonitor
     - [ ] Bilder mit 640 Pixeln Breite, Basisauflösung 640 × 240
     - [ ] Mehr als 256 Farben (16 oder 32 Bit)
 3. Ton und Musik

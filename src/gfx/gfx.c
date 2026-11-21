@@ -13,6 +13,7 @@
 
 #include <SDL3/SDL.h>
 #include "base/base.h"
+#include "gfx/crt.h"
 #include "gfx/filter.h"
 #include "memory/memory.h"
 #include "port/port.h"
@@ -178,6 +179,24 @@ void gfxInvalidate(void) { bGfxInvalidate = 1; }
 int gfxSaveScreenshotTo(const char *fileName)
 {
     if (!SurfaceScreen) return 0;
+    if (Config.gfxDisplayFilter)
+    {
+        /* show what the player sees: the picture with the display filter */
+        SDL_Surface *shot = SDL_CreateSurface(SurfaceScreen->w, SurfaceScreen->h, SDL_PIXELFORMAT_ARGB8888);
+        int ok = 0;
+        if (shot)
+        {
+            if (gfxConvertWithDisplayFilter((const uint8_t *)SurfaceScreen->pixels, SurfaceScreen->pitch,
+                                            (const uint8_t *)SDL_GetSurfacePalette(SurfaceScreen)->colors,
+                                            (uint32_t *)shot->pixels, shot->pitch / 4, shot->w, shot->h,
+                                            gfxScalingFactor, Config.gfxDisplayFilter))
+            {
+                ok = SDL_SavePNG(shot, fileName);
+            }
+            SDL_DestroySurface(shot);
+        }
+        if (ok) return 1;
+    }
     if (SDL_SavePNG(SurfaceScreen, fileName)) return 1;
     Log("PNG screenshot failed (%s), saving BMP", SDL_GetError());
     return SDL_SaveBMP(SurfaceScreen, fileName);
@@ -465,6 +484,22 @@ void gfxDoneSDL(void)
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
+/* converts the screen into the texture with the display filter (scanlines, CRT) */
+static int gfxPresentWithDisplayFilter(void)
+{
+    void *pixels = NULL;
+    int pitch = 0;
+    int ok = 0;
+
+    if (!SDL_LockTexture(ScreenTexture, NULL, &pixels, &pitch)) return 0;
+    ok = gfxConvertWithDisplayFilter((const uint8_t *)SurfaceScreen->pixels, SurfaceScreen->pitch,
+                                     (const uint8_t *)SDL_GetSurfacePalette(SurfaceScreen)->colors, (uint32_t *)pixels,
+                                     pitch / 4, SurfaceScreen->w, SurfaceScreen->h, gfxScalingFactor,
+                                     Config.gfxDisplayFilter);
+    SDL_UnlockTexture(ScreenTexture);
+    return ok;
+}
+
 void gfxUpdateSDL(struct RastPort *rp)
 {
     ubyte *src = NULL;
@@ -507,11 +542,14 @@ void gfxUpdateSDL(struct RastPort *rp)
         SDL_UnlockSurface(SurfaceScreen);
 
         SDL_RenderClear(Renderer);
-        SDL_Surface *target = SDL_ConvertSurface(SurfaceScreen, SDL_PIXELFORMAT_ARGB8888);
-        if (target)
+        if (!Config.gfxDisplayFilter || !gfxPresentWithDisplayFilter())
         {
-            SDL_UpdateTexture(ScreenTexture, NULL, target->pixels, target->pitch);
-            SDL_DestroySurface(target);
+            SDL_Surface *target = SDL_ConvertSurface(SurfaceScreen, SDL_PIXELFORMAT_ARGB8888);
+            if (target)
+            {
+                SDL_UpdateTexture(ScreenTexture, NULL, target->pixels, target->pitch);
+                SDL_DestroySurface(target);
+            }
         }
         SDL_RenderTexture(Renderer, ScreenTexture, NULL, NULL);
         SDL_RenderPresent(Renderer);

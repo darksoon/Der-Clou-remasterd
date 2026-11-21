@@ -67,6 +67,7 @@ set(SOURCE_FILES
     intro/intro.c
     intro/iffanim.c
     gfx/filter.c
+    gfx/crt.c
     gfx/loadimage.c
     theclou.c)
 

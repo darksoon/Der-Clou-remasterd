@@ -24,6 +24,7 @@ enum
     SET_OPL,
     SET_FULLSCREEN,
     SET_FILTER,
+    SET_DISPLAY_FILTER,
     SET_INTEGER_SCALE,
     SET_DIFFICULTY,
     SET_POLICE_TIMER,
@@ -41,6 +42,7 @@ static const char *setLabel[SET_COUNT][4] = {
     {"AdLib music", "AdLib-Musik", "Musique AdLib", "M\xa3sica AdLib"},
     {"Fullscreen", "Vollbild", "Plein \x82" "cran", "Pantalla completa"},
     {"Scaling", "Skalierung", "Lissage", "Escalado"},
+    {"Picture", "Bild", "Image", "Imagen"},
     {"Whole pixels", "Ganze Pixel", "Pixels entiers", "P\xa1xeles enteros"},
     {"Difficulty (Game+)", "Schwierigkeit (Spiel+)", "Difficult\x82 (Jeu+)", "Dificultad (Juego+)"},
     {"Police countdown", "Polizei-Countdown", "Chrono police", "Aviso polic\xa1" "a"},
@@ -63,6 +65,12 @@ static const char *setDifficulty[3][4] = {
     {"easy", "leicht", "facile", "f\xa0" "cil"},
     {"normal", "normal", "normal", "normal"},
     {"hard", "schwer", "difficile", "dif\xa1" "cil"},
+};
+
+static const char *setDisplayFilter[3][4] = {
+    {"plain", "normal", "normale", "normal"},
+    {"scanlines", "Scanlines", "lignes", "l\xa1neas"},
+    {"CRT monitor", "R\x94hrenmonitor", "\x82" "cran CRT", "monitor CRT"},
 };
 
 static const char *setOpl[2][4] = {
@@ -143,6 +151,9 @@ static void setValueText(int entry, char *value, size_t size)
         case SET_FILTER:
             snprintf(value, size, "%s", setFilter[Config.gfxLinearFilter ? 1 : 0][lang]);
             break;
+        case SET_DISPLAY_FILTER:
+            snprintf(value, size, "%s", setDisplayFilter[(int)Config.gfxDisplayFilter % 3][lang]);
+            break;
         case SET_INTEGER_SCALE:
             snprintf(value, size, "%s", setOnOff[Config.gfxIntegerScale ? 1 : 0][lang]);
             break;
@@ -195,6 +206,10 @@ static void setChange(int entry, int dir)
             break;
         case SET_FILTER:
             Config.gfxLinearFilter = !Config.gfxLinearFilter;
+            gfxApplyDisplayConfig();
+            break;
+        case SET_DISPLAY_FILTER:
+            Config.gfxDisplayFilter = (char)((Config.gfxDisplayFilter + 3 + dir) % 3);
             gfxApplyDisplayConfig();
             break;
         case SET_INTEGER_SCALE:
@@ -253,6 +268,9 @@ void tcSaveSettings(void)
     fprintf(file, "opl = %s\n", Config.OplEmulator ? "nuked" : "mame");
     fprintf(file, "fullscreen = %d\n", Config.gfxFullScreen ? 1 : 0);
     fprintf(file, "scalequality = %s\n", Config.gfxLinearFilter ? "linear" : "nearest");
+    fprintf(file, "displayfilter = %s\n", (Config.gfxDisplayFilter == 2)   ? "crt"
+                                          : (Config.gfxDisplayFilter == 1) ? "scanlines"
+                                                                            : "off");
     fprintf(file, "integerscale = %d\n", Config.gfxIntegerScale ? 1 : 0);
     fprintf(file, "difficulty = %s\n", (Config.Difficulty == CFG_DIFFICULTY_EASY)   ? "easy"
                                        : (Config.Difficulty == CFG_DIFFICULTY_HARD) ? "hard"

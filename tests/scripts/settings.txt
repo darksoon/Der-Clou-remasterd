@@ -27,6 +27,8 @@ wait 200
 key Down
 wait 200
 key Down
+wait 200
+key Down
 wait 300
 key Right
 wait 500

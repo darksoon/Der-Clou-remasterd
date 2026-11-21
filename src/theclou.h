@@ -41,6 +41,7 @@ typedef struct
     char Difficulty;       /* CFG_DIFFICULTY_*, normal plays exactly like the original */
     char ShowPoliceTimer;  /* show the time until the police arrives once the alarm is loud */
     char FastForward;      /* simulation steps per frame while fast forward (Tab) is on */
+    char gfxDisplayFilter; /* GFX_DISPLAY_FILTER_*: off, scanlines or CRT look */
     char OplEmulator;      /* AdLib music: 1 = Nuked OPL3 (accurate, default), 0 = MAME fmopl (classic) */
 } Configuration_t;
 extern Configuration_t Config; /* base.c */

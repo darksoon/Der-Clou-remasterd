@@ -12,6 +12,10 @@ Verhalten zwischen Versionen noch ändern.
 - Einstellungsmenü: „AdLib-Musik: genau / klassisch“ schaltet im laufenden Spiel um, die Musik beginnt
   dann neu. In `cosp.cfg` heißt die Option `opl = nuked | mame`
 - Nuked OPL3 liegt unverändert in `src/sound/nuked/` (LGPL 2.1 oder neuer), der Lizenztext ist in jedem Paket
+- Bildfilter „Scanlines“ und „Röhrenmonitor“ (Scanlines und die Farbstreifen einer Streifenmaske), im
+  Einstellungsmenü unter „Bild“ oder mit `displayfilter = off | scanlines | crt`. Der Filter wird beim
+  Umwandeln der 256 Farben in das Fensterbild über vorbereitete Farbtabellen angewendet und kostet damit
+  praktisch keine Rechenzeit, auch im Browser. Screenshots mit F12 zeigen das Bild mit Filter
 
 ## 0.14.0 (21.11.2026)
 
